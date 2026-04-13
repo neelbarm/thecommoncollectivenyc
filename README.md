@@ -77,9 +77,16 @@ Fully designed:
 - Login page (`/login`)
 - Signup page (`/signup`)
 - Apply page (`/apply`)
+- Onboarding flow (`/onboarding`) with:
+  - multi-step form UX
+  - progress bar
+  - draft auto-save
+  - completion state + edit mode
+  - final persistence to `QuestionnaireResponse` + `Profile`
+  - redirect to `/dashboard` after successful completion
 
 Polished placeholders with shell + nav:
-- `/dashboard`, `/onboarding`, `/cohort`, `/events`, `/drop`, `/admin`
+- `/dashboard`, `/cohort`, `/events`, `/drop`, `/admin`
 
 ## Environment variables
 

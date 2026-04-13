@@ -158,8 +158,22 @@ model Profile {
   userId                String    @unique
   bio                   String?
   neighborhood          String?
+  ageRange              String?
   occupation            String?
-  interests             String[]
+  socialGoal            String?
+  preferredNights       String?
+  budgetComfort         String?
+  drinkingPreference    String?
+  smokingPreference     String?
+  physicalActivityLevel String?
+  timePreference        String?
+  plansFrequency        String?
+  idealGroupEnergy      String?
+  peopleToMeet          String?
+  idealWeek             String?
+  interests             String[]  @default([])
+  preferredVibe         String[]  @default([])
+  onboardingDraft       Json?
   instagramHandle       String?
   onboardingCompletedAt DateTime?
   createdAt             DateTime  @default(now())
@@ -233,22 +247,22 @@ model Venue {
 }
 
 model Event {
-  id           String       @id @default(cuid())
+  id           String        @id @default(cuid())
   seasonId     String
   cohortId     String?
   venueId      String
   title        String
-  slug         String       @unique
+  slug         String        @unique
   description  String
   startsAt     DateTime
   endsAt       DateTime
-  status       EventStatus  @default(DRAFT)
+  status       EventStatus   @default(DRAFT)
   capacity     Int
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
-  season       Season       @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  cohort       Cohort?      @relation(fields: [cohortId], references: [id], onDelete: SetNull)
-  venue        Venue        @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  season       Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  cohort       Cohort?       @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  venue        Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
   rsvps        RSVP[]
   bookings     Booking[]
   reminders    Reminder[]
@@ -371,7 +385,7 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  user              User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@id([provider, providerAccountId])
   @@index([userId])
