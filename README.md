@@ -1,36 +1,187 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# The Common Collective — Phase 1 Foundation
 
-## Getting Started
+Phase 1 delivers the MVP foundation for The Common Collective as a production-minded scaffold:
 
-First, run the development server:
+- Next.js 15 App Router + TypeScript
+- Tailwind CSS + shadcn/ui
+- Prisma ORM + PostgreSQL
+- NextAuth credentials auth (email/password)
+- Mobile-first responsive UI foundation
+- Initial route shells and polished public pages
+
+## What is implemented in Phase 1
+
+### 1) Project foundation
+- Clean reusable architecture (`app`, `components`, `lib`, `prisma`, `types`)
+- Design system tokens in `app/globals.css` using premium warm brand palette
+- Shared layout pieces (site header/footer, app shell)
+
+### 2) Prisma schema
+Models included:
+- `User`
+- `MemberApplication`
+- `QuestionnaireResponse`
+- `Profile`
+- `Season`
+- `Cohort`
+- `CohortMembership`
+- `Venue`
+- `Event`
+- `RSVP`
+- `DropRequest`
+- `DropResponse`
+- `Booking`
+- `Reminder`
+- `AdminNote`
+
+Also includes NextAuth support models:
+- `Account`
+- `Session`
+- `VerificationToken`
+
+### 3) Seed data
+`prisma/seed.ts` creates:
+- 1 admin user
+- 12 member users
+- 3 cohorts
+- 2 seasons
+- 3 venues
+- 8 events
+- sample RSVPs
+- 4 drop requests + sample responses
+- booking and reminder demo data
+
+### 4) Auth foundation
+- Sign up API: `POST /api/auth/signup`
+- Credentials login via NextAuth
+- Logout via user menu
+- Protected member routes via `middleware.ts`
+- Admin-only guard for `/admin`
+
+### 5) Route shells
+Implemented routes:
+- `/`
+- `/apply`
+- `/login`
+- `/signup`
+- `/onboarding`
+- `/dashboard`
+- `/cohort`
+- `/events`
+- `/drop`
+- `/admin`
+
+### 6) Initial UI implementation
+Fully designed:
+- Home page (`/`)
+- Login page (`/login`)
+- Signup page (`/signup`)
+- Apply page (`/apply`)
+
+Polished placeholders with shell + nav:
+- `/dashboard`, `/onboarding`, `/cohort`, `/events`, `/drop`, `/admin`
+
+## Environment variables
+
+Create a `.env` file in the project root:
+
+```bash
+DATABASE_URL="postgresql://postgres:postgres@localhost:5432/common_collective"
+NEXTAUTH_URL="http://localhost:3000"
+NEXTAUTH_SECRET="replace-with-a-long-random-secret"
+```
+
+### Generate a secure `NEXTAUTH_SECRET`
+
+```bash
+openssl rand -base64 32
+```
+
+## Local PostgreSQL setup (example)
+
+If you need a local postgres container quickly:
+
+```bash
+docker run --name common-collective-db \
+  -e POSTGRES_PASSWORD=postgres \
+  -e POSTGRES_DB=common_collective \
+  -p 5432:5432 \
+  -d postgres:16
+```
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Prisma migration + client generation
+
+```bash
+npm run prisma:migrate
+npm run prisma:generate
+```
+
+## Seed the database
+
+```bash
+npm run prisma:seed
+```
+
+Seeded credentials:
+- Admin: `admin@commoncollective.nyc` / `CommonClub123`
+- Member example: `ari@example.com` / `CommonClub123`
+
+## Run development server
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+App runs at:
+- `http://localhost:3000`
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Useful scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+npm run lint
+npm run build
+npm run prisma:migrate
+npm run prisma:generate
+npm run prisma:seed
+```
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+app/
+  (public)/
+    page.tsx
+    apply/page.tsx
+    login/page.tsx
+    signup/page.tsx
+  (member)/
+    dashboard/page.tsx
+    onboarding/page.tsx
+    cohort/page.tsx
+    events/page.tsx
+    drop/page.tsx
+    admin/page.tsx
+  api/
+    auth/[...nextauth]/route.ts
+    auth/signup/route.ts
+    applications/route.ts
+components/
+  layout/
+  site/
+  ui/
+lib/
+  auth/
+  validations/
+  prisma.ts
+prisma/
+  schema.prisma
+  seed.ts
+types/
+  next-auth.d.ts
+```
