@@ -7,6 +7,7 @@ import { prisma } from "@/lib/prisma";
 
 const updateApplicationSchema = z.object({
   status: z.nativeEnum(ApplicationStatus),
+  preserveSubmittedAt: z.boolean().optional(),
 });
 
 export async function PATCH(
@@ -19,7 +20,12 @@ export async function PATCH(
   }
 
   const { applicationId } = await context.params;
-  const payload = await request.json();
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
   const parsed = updateApplicationSchema.safeParse(payload);
 
   if (!parsed.success) {
@@ -38,7 +44,8 @@ export async function PATCH(
       status,
       reviewedById: session.user.id,
       reviewedAt: status === "REVIEWING" || status === "ACCEPTED" || status === "REJECTED" ? now : null,
-      submittedAt: status === "SUBMITTED" && !payload?.preserveSubmittedAt ? now : undefined,
+      submittedAt:
+        status === "SUBMITTED" && !parsed.data.preserveSubmittedAt ? now : undefined,
     },
     select: {
       id: true,

@@ -17,9 +17,14 @@ export async function PATCH(
   }
 
   const { requestId } = await context.params;
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
 
-  const action = body?.action;
+  const action = typeof body === "object" && body ? (body as { action?: string }).action : undefined;
 
   if (action !== "cancel") {
     return NextResponse.json({ error: "Unsupported action" }, { status: 400 });

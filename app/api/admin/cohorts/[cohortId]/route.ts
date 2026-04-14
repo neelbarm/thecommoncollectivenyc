@@ -23,7 +23,12 @@ export async function PATCH(
   }
 
   const { cohortId } = await context.params;
-  const payload = await request.json();
+  let payload: unknown;
+  try {
+    payload = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
+  }
   const parsed = updateCohortSchema.safeParse(payload);
 
   if (!parsed.success) {
