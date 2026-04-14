@@ -160,6 +160,7 @@ export async function getMemberDashboardData(userId: string): Promise<MemberDash
             select: {
               id: true,
               name: true,
+              description: true,
               status: true,
               season: {
                 select: {
@@ -286,7 +287,8 @@ export async function getMemberDashboardData(userId: string): Promise<MemberDash
     ? {
         id: currentCohort.id,
         name: currentCohort.name,
-        description: getCohortDescription(currentCohort.name),
+        description:
+          currentCohort.description?.trim() || getCohortDescription(currentCohort.name),
         status: currentCohort.status,
         seasonName: currentCohort.season.name,
         seasonProgressLabel: getSeasonProgressLabel(

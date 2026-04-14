@@ -39,6 +39,17 @@ The Common Collective is a production-minded Next.js MVP with:
   - `PATCH /api/admin/drop-requests/[requestId]`
   - `POST /api/admin/notes`
 
+### Manual concierge operations (primary workflow)
+- **Cohorts:** `/admin/cohorts` — create cohorts (name, description, season, capacity), edit details, add members by picker, change membership status, remove members
+- **Events:** `/admin/events` — create events (season, optional cohort, venue, times, draft or published), list recent events, publish / unpublish (draft ↔ published)
+- **Member cohort page:** `/cohort` — roster and upcoming published cohort events (links to `/events` for RSVP)
+- Admin APIs (manual):
+  - `POST /api/admin/cohorts`, `GET /api/admin/cohorts/data`
+  - `PATCH /api/admin/cohorts/[cohortId]` (status, capacity, name, description)
+  - `POST /api/admin/cohorts/[cohortId]/members`, `PATCH` / `DELETE` on `.../members/[membershipId]`
+  - `POST /api/admin/events`, `GET /api/admin/events/data`
+  - `PATCH /api/admin/events/[eventId]` (status, title, description, times, capacity, cohort, venue)
+
 ### Cohort assignment engine
 - Deterministic cohort matching at `/admin/assignments`
 - Scorer uses profile fields: neighborhood, interests, vibe, social goal, preferred nights, budget comfort, age range, group energy
