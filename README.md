@@ -85,8 +85,50 @@ Fully designed:
   - final persistence to `QuestionnaireResponse` + `Profile`
   - redirect to `/dashboard` after successful completion
 
-Polished placeholders with shell + nav:
-- `/dashboard`, `/cohort`, `/events`, `/drop`, `/admin`
+Phase 3-5 fully implemented:
+- Member dashboard (`/dashboard`)
+- Events + RSVP flow (`/events`)
+- The Drop (`/drop`)
+
+### 7) Phase 6 admin operations dashboard
+- Full admin operations console at `/admin` (admin-only access via middleware + server auth guard).
+- Overview cards:
+  - total members
+  - total applications
+  - total cohorts
+  - upcoming events
+  - active Drop requests
+- Sectioned operational views:
+  - applications triage
+  - members roster
+  - questionnaire response summary
+  - cohort management
+  - season management
+  - events management
+  - RSVP overview
+  - Drop requests management
+  - booking and reminder status
+  - admin notes stream + create note action
+- Useful filters:
+  - by season
+  - by cohort
+  - by application / event / Drop status
+  - text search
+- Lightweight update actions (no schema changes):
+  - update application status
+  - update cohort status
+  - update season status
+  - update event status
+  - update Drop request status
+  - create admin note
+
+Admin APIs added:
+- `PATCH /api/admin/applications/[applicationId]`
+- `PATCH /api/admin/cohorts/[cohortId]`
+- `PATCH /api/admin/seasons/[seasonId]`
+- `PATCH /api/admin/events/[eventId]`
+- `PATCH /api/admin/drop-requests/[requestId]`
+- `POST /api/admin/notes`
 
 ## Environment variables
 
