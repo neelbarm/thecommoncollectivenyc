@@ -1,154 +1,92 @@
-# The Common Collective — Phase 1 Foundation
+# The Common Collective — MVP (Phases 1-8)
 
-Phase 1 delivers the MVP foundation for The Common Collective as a production-minded scaffold:
+The Common Collective is a production-minded Next.js MVP with:
 
 - Next.js 15 App Router + TypeScript
-- Tailwind CSS + shadcn/ui
+- Tailwind CSS + shared design system components
 - Prisma ORM + PostgreSQL
 - NextAuth credentials auth (email/password)
-- Mobile-first responsive UI foundation
-- Initial route shells and polished public pages
+- Member flows: onboarding, dashboard, events/RSVP, The Drop
+- Admin ops dashboard with lightweight operational updates
 
-## What is implemented in Phase 1
+---
 
-### 1) Project foundation
-- Clean reusable architecture (`app`, `components`, `lib`, `prisma`, `types`)
-- Design system tokens in `app/globals.css` using premium warm brand palette
-- Shared layout pieces (site header/footer, app shell)
+## Implemented scope
 
-### 2) Prisma schema
-Models included:
-- `User`
-- `MemberApplication`
-- `QuestionnaireResponse`
-- `Profile`
-- `Season`
-- `Cohort`
-- `CohortMembership`
-- `Venue`
-- `Event`
-- `RSVP`
-- `DropRequest`
-- `DropResponse`
-- `Booking`
-- `Reminder`
-- `AdminNote`
+### Foundation and member experience
+- Public routes: `/`, `/apply`, `/login`, `/signup`
+- Member routes: `/onboarding`, `/dashboard`, `/cohort`, `/events`, `/drop`
+- Member onboarding flow:
+  - multi-step questionnaire
+  - draft autosave
+  - completion/edit mode
+  - persistence to `Profile` + `QuestionnaireResponse`
+- Member dashboard with cohort/event/drop context
+- Events page with RSVP + optimistic updates
+- Drop flow with create/cancel request states
 
-Also includes NextAuth support models:
-- `Account`
-- `Session`
-- `VerificationToken`
+### Admin operations
+- Admin-only `/admin` route with:
+  - overview cards
+  - applications/members/questionnaire/cohorts/seasons/events/RSVP/drop/booking/reminder/admin notes views
+  - filters by season/cohort/status/search
+  - lightweight status update flows and note creation
+- Admin APIs:
+  - `PATCH /api/admin/applications/[applicationId]`
+  - `PATCH /api/admin/cohorts/[cohortId]`
+  - `PATCH /api/admin/seasons/[seasonId]`
+  - `PATCH /api/admin/events/[eventId]`
+  - `PATCH /api/admin/drop-requests/[requestId]`
+  - `POST /api/admin/notes`
 
-### 3) Seed data
-`prisma/seed.ts` creates:
-- 1 admin user
-- 12 member users
-- 3 cohorts
-- 2 seasons
-- 3 venues
-- 8 events
-- sample RSVPs
-- 4 drop requests + sample responses
-- booking and reminder demo data
+### Production-readiness passes (Phases 7-8)
+- Navigation/state/UX consistency and accessibility improvements across core routes
+- Safer API request-body parsing for deployment contexts
+- Deployment and launch checklist documentation
 
-### 4) Auth foundation
-- Sign up API: `POST /api/auth/signup`
-- Credentials login via NextAuth
-- Logout via user menu
-- Protected member routes via `middleware.ts`
-- Admin-only guard for `/admin`
-
-### 5) Route shells
-Implemented routes:
-- `/`
-- `/apply`
-- `/login`
-- `/signup`
-- `/onboarding`
-- `/dashboard`
-- `/cohort`
-- `/events`
-- `/drop`
-- `/admin`
-
-### 6) Initial UI implementation
-Fully designed:
-- Home page (`/`)
-- Login page (`/login`)
-- Signup page (`/signup`)
-- Apply page (`/apply`)
-- Onboarding flow (`/onboarding`) with:
-  - multi-step form UX
-  - progress bar
-  - draft auto-save
-  - completion state + edit mode
-  - final persistence to `QuestionnaireResponse` + `Profile`
-  - redirect to `/dashboard` after successful completion
-
-Phase 3-5 fully implemented:
-- Member dashboard (`/dashboard`)
-- Events + RSVP flow (`/events`)
-- The Drop (`/drop`)
-
-### 7) Phase 6 admin operations dashboard
-- Full admin operations console at `/admin` (admin-only access via middleware + server auth guard).
-- Overview cards:
-  - total members
-  - total applications
-  - total cohorts
-  - upcoming events
-  - active Drop requests
-- Sectioned operational views:
-  - applications triage
-  - members roster
-  - questionnaire response summary
-  - cohort management
-  - season management
-  - events management
-  - RSVP overview
-  - Drop requests management
-  - booking and reminder status
-  - admin notes stream + create note action
-- Useful filters:
-  - by season
-  - by cohort
-  - by application / event / Drop status
-  - text search
-- Lightweight update actions (no schema changes):
-  - update application status
-  - update cohort status
-  - update season status
-  - update event status
-  - update Drop request status
-  - create admin note
-
-Admin APIs added:
-- `PATCH /api/admin/applications/[applicationId]`
-- `PATCH /api/admin/cohorts/[cohortId]`
-- `PATCH /api/admin/seasons/[seasonId]`
-- `PATCH /api/admin/events/[eventId]`
-- `PATCH /api/admin/drop-requests/[requestId]`
-- `POST /api/admin/notes`
+---
 
 ## Environment variables
 
-Create a `.env` file in the project root:
+Copy `.env.example` to `.env` and fill values:
 
 ```bash
-DATABASE_URL="postgresql://postgres:postgres@localhost:5432/common_collective"
-NEXTAUTH_URL="http://localhost:3000"
-NEXTAUTH_SECRET="replace-with-a-long-random-secret"
+cp .env.example .env
 ```
 
-### Generate a secure `NEXTAUTH_SECRET`
+Required variables:
+
+- `DATABASE_URL`: PostgreSQL connection string for runtime
+- `NEXTAUTH_URL`: canonical public app URL (no trailing slash)
+- `NEXTAUTH_SECRET`: strong random secret for signing auth tokens
+
+Optional variables:
+
+- `DATABASE_URL_NON_POOLING`: direct DB URL for migration workflows on hosts that use pooled runtime connections
+
+Generate a secure secret:
 
 ```bash
 openssl rand -base64 32
 ```
 
-## Local PostgreSQL setup (example)
+---
 
-If you need a local postgres container quickly:
+## Local development setup
+
+### 1) Install dependencies
+
+```bash
+npm install
+```
+
+### 2) Configure environment
+
+```bash
+cp .env.example .env
+```
+
+### 3) Start PostgreSQL (example via Docker)
 
 ```bash
 docker run --name common-collective-db \
@@ -158,20 +96,14 @@ docker run --name common-collective-db \
   -d postgres:16
 ```
 
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Prisma migration + client generation
+### 4) Apply schema and generate Prisma client (local)
 
 ```bash
 npm run prisma:migrate
 npm run prisma:generate
 ```
 
-## Seed the database
+### 5) Optional seed data
 
 ```bash
 npm run prisma:seed
@@ -181,56 +113,143 @@ Seeded credentials:
 - Admin: `admin@commoncollective.nyc` / `CommonClub123`
 - Member example: `ari@example.com` / `CommonClub123`
 
-## Run development server
+### 6) Run app
 
 ```bash
 npm run dev
 ```
 
-App runs at:
-- `http://localhost:3000`
+---
+
+## Exact production deployment steps
+
+The commands below are safe for CI/CD and production hosts.
+
+### 1) Provision PostgreSQL
+- Create a production database.
+- Obtain connection string(s).
+
+### 2) Set production environment variables on your host
+
+At minimum:
+
+```bash
+DATABASE_URL="postgresql://..."
+NEXTAUTH_URL="https://your-domain.com"
+NEXTAUTH_SECRET="long-random-secret"
+```
+
+Optional:
+
+```bash
+DATABASE_URL_NON_POOLING="postgresql://..."
+```
+
+Use `DATABASE_URL_NON_POOLING` for migration jobs if your runtime `DATABASE_URL` uses connection pooling/proxying.
+
+### 3) Install and build
+
+```bash
+npm ci
+npm run lint
+npm run build
+```
+
+### 4) Run database migrations (deployment-safe)
+
+```bash
+npx prisma migrate deploy
+npx prisma generate
+```
+
+### 5) Optional: seed initial/demo data
+
+Use this only if you intentionally want demo content in that environment:
+
+```bash
+npm run prisma:seed
+```
+
+### 6) Start app
+
+```bash
+npm run start
+```
+
+If your host runs its own process manager, use the equivalent start command in that environment.
+
+---
+
+## Auth + routing production notes
+
+- `NEXTAUTH_URL` **must** match your public production origin exactly.
+- Middleware protects member/admin routes and preserves `callbackUrl` path + query for login redirects.
+- `/admin` remains role-gated (`ADMIN`) in middleware and server-side guards.
+
+---
+
+## Prisma command reference (production-safe)
+
+- Generate client:
+  - `npx prisma generate`
+- Apply existing migrations:
+  - `npx prisma migrate deploy`
+- Seed:
+  - `npm run prisma:seed`
+
+Avoid `prisma migrate dev` in production; it is for local development only.
+
+---
+
+## Launch checklist
+
+### Environment
+- [ ] `DATABASE_URL` set correctly
+- [ ] `NEXTAUTH_URL` set to canonical public URL
+- [ ] `NEXTAUTH_SECRET` set to strong random value
+- [ ] (Optional) `DATABASE_URL_NON_POOLING` configured for migration pipeline
+
+### Database
+- [ ] PostgreSQL reachable from deploy environment
+- [ ] `npx prisma migrate deploy` completed successfully
+- [ ] `npx prisma generate` completed successfully
+- [ ] Seed run decision made (`npm run prisma:seed` optional)
+
+### Deploy host steps
+- [ ] `npm ci`
+- [ ] `npm run lint`
+- [ ] `npm run build`
+- [ ] migrations applied
+- [ ] app started with `npm run start` (or host equivalent)
+
+### Post-deploy smoke tests
+- [ ] Public pages render: `/`, `/apply`, `/login`, `/signup`
+- [ ] Auth works: signup/login/logout
+- [ ] Member routes accessible when logged in: `/onboarding`, `/dashboard`, `/events`, `/drop`
+- [ ] Protected-route redirect works when logged out
+- [ ] Admin route gate works:
+  - member blocked from `/admin`
+  - admin can access `/admin`
+- [ ] Core API flows work:
+  - submit application
+  - onboarding save + submit
+  - RSVP update
+  - Drop create/cancel
+  - admin status update + note create
+
+---
 
 ## Useful scripts
 
 ```bash
+npm run dev
 npm run lint
 npm run build
-npm run prisma:migrate
+npm run start
 npm run prisma:generate
+npm run prisma:migrate
 npm run prisma:seed
 ```
 
-## Project structure
-
-```text
-app/
-  (public)/
-    page.tsx
-    apply/page.tsx
-    login/page.tsx
-    signup/page.tsx
-  (member)/
-    dashboard/page.tsx
-    onboarding/page.tsx
-    cohort/page.tsx
-    events/page.tsx
-    drop/page.tsx
-    admin/page.tsx
-  api/
-    auth/[...nextauth]/route.ts
-    auth/signup/route.ts
-    applications/route.ts
-components/
-  layout/
-  site/
-  ui/
-lib/
-  auth/
-  validations/
-  prisma.ts
-prisma/
-  schema.prisma
-  seed.ts
-types/
-  next-auth.d.ts
-```
+> Note: `npm run prisma:migrate` runs `prisma migrate dev` and is intended for local development only.
+> For production, always run `npx prisma migrate deploy`.
