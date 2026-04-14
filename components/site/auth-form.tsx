@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [isPending, startTransition] = useTransition();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
 
   const isSignup = mode === "signup";
 
@@ -111,7 +113,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                 return;
               }
 
-              router.push("/dashboard");
+              router.push(callbackUrl);
               router.refresh();
             });
           }}

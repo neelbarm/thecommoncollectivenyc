@@ -38,83 +38,87 @@ export async function POST(request: Request) {
 
   const { eventId, status } = parsed.data;
 
-  const event = await prisma.event.findUnique({
-    where: { id: eventId },
-    select: {
-      id: true,
-      capacity: true,
-      startsAt: true,
-      status: true,
-    },
-  });
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: {
+        id: true,
+        capacity: true,
+        startsAt: true,
+        status: true,
+      },
+    });
 
-  if (!event || event.status !== "PUBLISHED") {
-    return NextResponse.json({ error: "Event is unavailable." }, { status: 404 });
+    if (!event || event.status !== "PUBLISHED") {
+      return NextResponse.json({ error: "Event is unavailable." }, { status: 404 });
+    }
+
+    const existingRsvp = await prisma.rSVP.findUnique({
+      where: {
+        userId_eventId: {
+          userId: session.user.id,
+          eventId,
+        },
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    const goingCountExcludingUser = await prisma.rSVP.count({
+      where: {
+        eventId,
+        status: RSVPStatus.GOING,
+        userId: {
+          not: session.user.id,
+        },
+      },
+    });
+
+    const seatsRemaining = event.capacity - goingCountExcludingUser;
+    const shouldWaitlist =
+      status === RSVPStatus.GOING &&
+      existingRsvp?.status !== RSVPStatus.GOING &&
+      seatsRemaining <= 0;
+
+    const appliedStatus = shouldWaitlist ? RSVPStatus.WAITLISTED : status;
+
+    await prisma.rSVP.upsert({
+      where: {
+        userId_eventId: {
+          userId: session.user.id,
+          eventId,
+        },
+      },
+      create: {
+        userId: session.user.id,
+        eventId,
+        status: appliedStatus,
+        respondedAt: new Date(),
+      },
+      update: {
+        status: appliedStatus,
+        respondedAt: new Date(),
+      },
+    });
+
+    const updatedGoingCount = await prisma.rSVP.count({
+      where: {
+        eventId,
+        status: RSVPStatus.GOING,
+      },
+    });
+
+    return NextResponse.json({
+      ok: true,
+      eventId,
+      rsvpStatus: appliedStatus,
+      goingCount: updatedGoingCount,
+      spotsLeft: Math.max(0, event.capacity - updatedGoingCount),
+      isFull: updatedGoingCount >= event.capacity,
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to update RSVP right now." }, { status: 500 });
   }
-
-  const existingRsvp = await prisma.rSVP.findUnique({
-    where: {
-      userId_eventId: {
-        userId: session.user.id,
-        eventId,
-      },
-    },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
-
-  const goingCountExcludingUser = await prisma.rSVP.count({
-    where: {
-      eventId,
-      status: RSVPStatus.GOING,
-      userId: {
-        not: session.user.id,
-      },
-    },
-  });
-
-  const seatsRemaining = event.capacity - goingCountExcludingUser;
-  const shouldWaitlist =
-    status === RSVPStatus.GOING &&
-    existingRsvp?.status !== RSVPStatus.GOING &&
-    seatsRemaining <= 0;
-
-  const appliedStatus = shouldWaitlist ? RSVPStatus.WAITLISTED : status;
-
-  await prisma.rSVP.upsert({
-    where: {
-      userId_eventId: {
-        userId: session.user.id,
-        eventId,
-      },
-    },
-    create: {
-      userId: session.user.id,
-      eventId,
-      status: appliedStatus,
-      respondedAt: new Date(),
-    },
-    update: {
-      status: appliedStatus,
-      respondedAt: new Date(),
-    },
-  });
-
-  const updatedGoingCount = await prisma.rSVP.count({
-    where: {
-      eventId,
-      status: RSVPStatus.GOING,
-    },
-  });
-
-  return NextResponse.json({
-    ok: true,
-    eventId,
-    rsvpStatus: appliedStatus,
-    goingCount: updatedGoingCount,
-    spotsLeft: Math.max(0, event.capacity - updatedGoingCount),
-    isFull: updatedGoingCount >= event.capacity,
-  });
 }

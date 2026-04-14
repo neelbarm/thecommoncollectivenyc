@@ -38,25 +38,29 @@ export async function PATCH(
 
   const { eventId } = await context.params;
 
-  const existing = await prisma.event.findUnique({
-    where: { id: eventId },
-    select: { id: true },
-  });
+  try {
+    const existing = await prisma.event.findUnique({
+      where: { id: eventId },
+      select: { id: true },
+    });
 
-  if (!existing) {
-    return NextResponse.json({ error: "Event not found." }, { status: 404 });
+    if (!existing) {
+      return NextResponse.json({ error: "Event not found." }, { status: 404 });
+    }
+
+    const updated = await prisma.event.update({
+      where: { id: eventId },
+      data: {
+        status: parsed.data.status,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    return NextResponse.json({ ok: true, event: updated });
+  } catch {
+    return NextResponse.json({ error: "Unable to update event right now." }, { status: 500 });
   }
-
-  const updated = await prisma.event.update({
-    where: { id: eventId },
-    data: {
-      status: parsed.data.status,
-    },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
-
-  return NextResponse.json({ ok: true, event: updated });
 }

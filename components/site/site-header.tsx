@@ -5,9 +5,9 @@ import { UserMenu } from "@/components/site/user-menu";
 import { cn } from "@/lib/utils";
 
 const guestNavItems = [
+  { href: "/", label: "Home" },
   { href: "/apply", label: "Apply" },
-  { href: "/events", label: "Events" },
-  { href: "/drop", label: "The Drop" },
+  { href: "/login", label: "Log in" },
 ];
 
 const memberNavItems = [

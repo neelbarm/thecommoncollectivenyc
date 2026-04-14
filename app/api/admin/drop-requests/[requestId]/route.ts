@@ -37,26 +37,31 @@ export async function PATCH(
   }
 
   const { requestId } = await context.params;
-  const existing = await prisma.dropRequest.findUnique({
-    where: { id: requestId },
-    select: { id: true },
-  });
 
-  if (!existing) {
-    return NextResponse.json({ error: "Drop request not found." }, { status: 404 });
+  try {
+    const existing = await prisma.dropRequest.findUnique({
+      where: { id: requestId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Drop request not found." }, { status: 404 });
+    }
+
+    const updated = await prisma.dropRequest.update({
+      where: { id: requestId },
+      data: {
+        status: parsed.data.status,
+      },
+      select: {
+        id: true,
+        status: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json({ ok: true, request: updated });
+  } catch {
+    return NextResponse.json({ error: "Unable to update drop request right now." }, { status: 500 });
   }
-
-  const updated = await prisma.dropRequest.update({
-    where: { id: requestId },
-    data: {
-      status: parsed.data.status,
-    },
-    select: {
-      id: true,
-      status: true,
-      updatedAt: true,
-    },
-  });
-
-  return NextResponse.json({ ok: true, request: updated });
 }

@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
@@ -51,10 +50,7 @@ export async function POST(request: Request) {
         },
       },
     });
-  } catch (error) {
-    if (error instanceof ZodError) {
-      return NextResponse.json({ error: "Invalid signup details." }, { status: 400 });
-    }
+  } catch {
     return NextResponse.json({ error: "Unable to create account right now." }, { status: 500 });
   }
 

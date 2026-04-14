@@ -30,41 +30,45 @@ export async function PATCH(
     return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
   }
 
-  const existing = await prisma.dropRequest.findUnique({
-    where: { id: requestId },
-    select: {
-      id: true,
-      requesterId: true,
-      status: true,
-    },
-  });
+  try {
+    const existing = await prisma.dropRequest.findUnique({
+      where: { id: requestId },
+      select: {
+        id: true,
+        requesterId: true,
+        status: true,
+      },
+    });
 
-  if (!existing || existing.requesterId !== session.user.id) {
-    return NextResponse.json({ error: "Request not found" }, { status: 404 });
+    if (!existing || existing.requesterId !== session.user.id) {
+      return NextResponse.json({ error: "Request not found" }, { status: 404 });
+    }
+
+    const cancellableStatuses = new Set<DropRequestStatus>([
+      DropRequestStatus.OPEN,
+      DropRequestStatus.MATCHED,
+    ]);
+
+    if (!cancellableStatuses.has(existing.status)) {
+      return NextResponse.json(
+        { error: "Only active Drop requests can be cancelled." },
+        { status: 409 },
+      );
+    }
+
+    const updated = await prisma.dropRequest.update({
+      where: { id: requestId },
+      data: {
+        status: DropRequestStatus.WITHDRAWN,
+      },
+      select: {
+        id: true,
+        status: true,
+      },
+    });
+
+    return NextResponse.json({ ok: true, request: updated });
+  } catch {
+    return NextResponse.json({ error: "Unable to cancel Drop request right now." }, { status: 500 });
   }
-
-  const cancellableStatuses = new Set<DropRequestStatus>([
-    DropRequestStatus.OPEN,
-    DropRequestStatus.MATCHED,
-  ]);
-
-  if (!cancellableStatuses.has(existing.status)) {
-    return NextResponse.json(
-      { error: "Only active Drop requests can be cancelled." },
-      { status: 409 },
-    );
-  }
-
-  const updated = await prisma.dropRequest.update({
-    where: { id: requestId },
-    data: {
-      status: DropRequestStatus.WITHDRAWN,
-    },
-    select: {
-      id: true,
-      status: true,
-    },
-  });
-
-  return NextResponse.json({ ok: true, request: updated });
 }

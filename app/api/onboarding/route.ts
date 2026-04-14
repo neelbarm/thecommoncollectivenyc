@@ -251,9 +251,12 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const state = await buildOnboardingState(session.user.id);
-
-  return NextResponse.json(state);
+  try {
+    const state = await buildOnboardingState(session.user.id);
+    return NextResponse.json(state);
+  } catch {
+    return NextResponse.json({ error: "Unable to load onboarding state." }, { status: 500 });
+  }
 }
 
 export async function PATCH(request: Request) {

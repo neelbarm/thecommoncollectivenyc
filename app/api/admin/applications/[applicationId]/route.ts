@@ -38,39 +38,43 @@ export async function PATCH(
   const status = parsed.data.status;
   const now = new Date();
 
-  const updated = await prisma.memberApplication.update({
-    where: { id: applicationId },
-    data: {
-      status,
-      reviewedById: session.user.id,
-      reviewedAt: status === "REVIEWING" || status === "ACCEPTED" || status === "REJECTED" ? now : null,
-      submittedAt:
-        status === "SUBMITTED" && !parsed.data.preserveSubmittedAt ? now : undefined,
-    },
-    select: {
-      id: true,
-      status: true,
-      reviewedAt: true,
-      submittedAt: true,
-      reviewedBy: {
-        select: {
-          firstName: true,
-          lastName: true,
+  try {
+    const updated = await prisma.memberApplication.update({
+      where: { id: applicationId },
+      data: {
+        status,
+        reviewedById: session.user.id,
+        reviewedAt: status === "REVIEWING" || status === "ACCEPTED" || status === "REJECTED" ? now : null,
+        submittedAt:
+          status === "SUBMITTED" && !parsed.data.preserveSubmittedAt ? now : undefined,
+      },
+      select: {
+        id: true,
+        status: true,
+        reviewedAt: true,
+        submittedAt: true,
+        reviewedBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
         },
       },
-    },
-  });
+    });
 
-  return NextResponse.json({
-    ok: true,
-    application: {
-      id: updated.id,
-      status: updated.status,
-      reviewedAt: updated.reviewedAt?.toISOString() ?? null,
-      submittedAt: updated.submittedAt?.toISOString() ?? null,
-      reviewerName: updated.reviewedBy
-        ? `${updated.reviewedBy.firstName} ${updated.reviewedBy.lastName}`.trim()
-        : null,
-    },
-  });
+    return NextResponse.json({
+      ok: true,
+      application: {
+        id: updated.id,
+        status: updated.status,
+        reviewedAt: updated.reviewedAt?.toISOString() ?? null,
+        submittedAt: updated.submittedAt?.toISOString() ?? null,
+        reviewerName: updated.reviewedBy
+          ? `${updated.reviewedBy.firstName} ${updated.reviewedBy.lastName}`.trim()
+          : null,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to update application right now." }, { status: 500 });
+  }
 }

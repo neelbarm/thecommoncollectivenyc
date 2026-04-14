@@ -37,26 +37,30 @@ export async function PATCH(
     );
   }
 
-  const existing = await prisma.season.findUnique({
-    where: { id: seasonId },
-    select: { id: true },
-  });
+  try {
+    const existing = await prisma.season.findUnique({
+      where: { id: seasonId },
+      select: { id: true },
+    });
 
-  if (!existing) {
-    return NextResponse.json({ error: "Season not found" }, { status: 404 });
+    if (!existing) {
+      return NextResponse.json({ error: "Season not found" }, { status: 404 });
+    }
+
+    const updated = await prisma.season.update({
+      where: { id: seasonId },
+      data: {
+        status: parsed.data.status,
+      },
+      select: {
+        id: true,
+        status: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json({ ok: true, season: updated });
+  } catch {
+    return NextResponse.json({ error: "Unable to update season right now." }, { status: 500 });
   }
-
-  const updated = await prisma.season.update({
-    where: { id: seasonId },
-    data: {
-      status: parsed.data.status,
-    },
-    select: {
-      id: true,
-      status: true,
-      updatedAt: true,
-    },
-  });
-
-  return NextResponse.json({ ok: true, season: updated });
 }
