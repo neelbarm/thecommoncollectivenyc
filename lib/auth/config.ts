@@ -13,6 +13,7 @@ function resolveRole(value: unknown): Role {
 
 export const authConfig = {
   adapter: PrismaAdapter(prisma),
+  trustHost: true,
   session: {
     strategy: "jwt",
   },
