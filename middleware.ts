@@ -1,6 +1,9 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 
-import { auth } from "@/auth";
+import { edgeAuthConfig } from "@/lib/auth/edge-config";
+
+const { auth } = NextAuth(edgeAuthConfig);
 
 const authPages = new Set(["/login", "/signup"]);
 const protectedPrefixes = [
