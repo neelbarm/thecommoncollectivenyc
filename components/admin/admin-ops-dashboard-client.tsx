@@ -2,6 +2,7 @@
 
 import type { ReactNode } from "react";
 import { useMemo, useState, useTransition } from "react";
+import Link from "next/link";
 import type {
   AdminApplicationStatus,
   AdminCohortStatus,
@@ -574,6 +575,12 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           </CardHeader>
         </Card>
       </section>
+
+      <div className="flex flex-wrap gap-2">
+        <Button asChild size="sm" variant="outline">
+          <Link href="/admin/assignments">Cohort assignment engine →</Link>
+        </Button>
+      </div>
 
       <Card className="border-border/70 bg-card/90 shadow-soft">
         <CardHeader>

@@ -39,6 +39,18 @@ The Common Collective is a production-minded Next.js MVP with:
   - `PATCH /api/admin/drop-requests/[requestId]`
   - `POST /api/admin/notes`
 
+### Cohort assignment engine
+- Deterministic cohort matching at `/admin/assignments`
+- Scorer uses profile fields: neighborhood, interests, vibe, social goal, preferred nights, budget comfort, age range, group energy
+- Greedy round-robin + hill-climbing swap optimization
+- Admin workflow: generate proposals → review per-cohort rosters → approve (promotes to `CohortMembership`) or reject
+- Versioned assignment runs with audit trail (`configJson`, `scoreSnapshot`, creator/approver)
+- Admin APIs:
+  - `POST /api/admin/assignments/run` — generate proposals
+  - `POST /api/admin/assignments/[runId]/approve` — promote to live memberships
+  - `POST /api/admin/assignments/[runId]/reject` — reject run
+  - `GET /api/admin/assignments/data` — fetch assignment data by season
+
 ### Production-readiness passes (Phases 7-8)
 - Navigation/state/UX consistency and accessibility improvements across core routes
 - Safer API request-body parsing for deployment contexts
