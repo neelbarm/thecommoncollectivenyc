@@ -41,9 +41,14 @@ export function EventDetailPanel({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Event details for ${event.title}`}
+      className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center"
+    >
       <button
-        aria-label="Close detail"
+        aria-label="Close event details"
         className="absolute inset-0"
         onClick={onClose}
         type="button"
@@ -56,7 +61,7 @@ export function EventDetailPanel({
               <CardTitle className="text-2xl">{event.title}</CardTitle>
               <CardDescription>{formatDateTime(event.startsAt)}</CardDescription>
             </div>
-            <Button variant="ghost" size="icon" onClick={onClose}>
+            <Button variant="ghost" size="icon" onClick={onClose} aria-label="Close event details">
               <X className="h-4 w-4" />
             </Button>
           </div>
@@ -90,9 +95,29 @@ export function EventDetailPanel({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button disabled={pending} onClick={() => onRsvp("GOING")}>Yes, I&apos;m in</Button>
-            <Button disabled={pending} variant="outline" onClick={() => onRsvp("MAYBE")}>Maybe</Button>
-            <Button disabled={pending} variant="outline" onClick={() => onRsvp("DECLINED")}>Not this time</Button>
+            <Button
+              disabled={pending}
+              onClick={() => onRsvp("GOING")}
+              aria-label={`RSVP going for ${event.title}`}
+            >
+              Yes, I&apos;m in
+            </Button>
+            <Button
+              disabled={pending}
+              variant="outline"
+              onClick={() => onRsvp("MAYBE")}
+              aria-label={`RSVP maybe for ${event.title}`}
+            >
+              Maybe
+            </Button>
+            <Button
+              disabled={pending}
+              variant="outline"
+              onClick={() => onRsvp("DECLINED")}
+              aria-label={`Decline RSVP for ${event.title}`}
+            >
+              Not this time
+            </Button>
           </div>
         </CardContent>
       </Card>

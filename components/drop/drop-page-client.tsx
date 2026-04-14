@@ -67,12 +67,20 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
   }
 
   function closeComposer() {
+    setError(null);
+    setStatusMessage(null);
     setComposerOpen(false);
   }
 
   function createRequest() {
     setError(null);
     setStatusMessage(null);
+
+    const trimmedNote = note.trim();
+    if (trimmedNote.length > 280) {
+      setError("Please keep the note under 280 characters.");
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -84,7 +92,7 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
           body: JSON.stringify({
             activityType: selectedActivity,
             timing: selectedTiming,
-            note,
+            note: trimmedNote,
           }),
         });
 
@@ -119,7 +127,7 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
         setNote("");
         setSelectedActivity(DROP_ACTIVITY_OPTIONS[5]);
         setSelectedTiming(DROP_TIMING_OPTIONS[1]);
-        setStatusMessage("Drop request created. We’ll surface matching responses as members reply.");
+        setStatusMessage("Drop request created. We will surface matching responses as members reply.");
       } catch (createError) {
         setError(createError instanceof Error ? createError.message : "Unable to create Drop request.");
       }
@@ -190,8 +198,21 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
         </CardContent>
       </Card>
 
-      {statusMessage ? <p className="text-sm text-emerald-700">{statusMessage}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {statusMessage ? (
+        <p role="status" aria-live="polite" className="text-sm text-emerald-700">
+          {statusMessage}
+        </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+      {isPending ? (
+        <p role="status" aria-live="polite" className="text-xs text-muted-foreground">
+          Saving your request update...
+        </p>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr]">
         <Card className="border-border/70 bg-card/90 shadow-soft">
@@ -289,28 +310,42 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
       </div>
 
       {isComposerOpen ? (
-        <div className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center">
-          <button className="absolute inset-0" type="button" onClick={closeComposer} aria-label="Close" />
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="drop-composer-title"
+        >
+          <button
+            className="absolute inset-0"
+            type="button"
+            onClick={closeComposer}
+            aria-label="Close composer panel"
+          />
           <Card className="relative z-10 w-full rounded-t-2xl border-border/70 bg-card/95 shadow-soft lg:max-w-xl lg:rounded-2xl">
             <CardHeader className="border-b border-border/60 pb-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="space-y-1">
-                  <CardTitle className="text-2xl">New Drop request</CardTitle>
+                  <CardTitle id="drop-composer-title" className="text-2xl">
+                    New Drop request
+                  </CardTitle>
                   <CardDescription>Share your free window in under a minute.</CardDescription>
                 </div>
-                <Button variant="ghost" size="icon" onClick={closeComposer}>
+                <Button variant="ghost" size="icon" onClick={closeComposer} aria-label="Close composer">
                   <X className="h-4 w-4" />
                 </Button>
               </div>
             </CardHeader>
             <CardContent className="space-y-4 pt-4">
               <div className="space-y-2">
-                <Label>Activity type</Label>
+                <Label id="drop-activity-type-label">Activity type</Label>
                 <div className="flex flex-wrap gap-2">
                   {DROP_ACTIVITY_OPTIONS.map((activity) => (
                     <button
                       key={activity}
                       type="button"
+                      aria-pressed={selectedActivity === activity}
+                      aria-labelledby="drop-activity-type-label"
                       className={`rounded-full border px-3 py-1.5 text-sm transition ${
                         selectedActivity === activity
                           ? "border-foreground bg-foreground text-background"
@@ -325,12 +360,14 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
               </div>
 
               <div className="space-y-2">
-                <Label>Timing</Label>
+                <Label id="drop-timing-label">Timing</Label>
                 <div className="flex flex-wrap gap-2">
                   {DROP_TIMING_OPTIONS.map((timing) => (
                     <button
                       key={timing}
                       type="button"
+                      aria-pressed={selectedTiming === timing}
+                      aria-labelledby="drop-timing-label"
                       className={`rounded-full border px-3 py-1.5 text-sm transition ${
                         selectedTiming === timing
                           ? "border-foreground bg-foreground text-background"
@@ -345,14 +382,18 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
               </div>
 
               <div className="space-y-2">
-                <Label>Optional note</Label>
+                <Label htmlFor="drop-note">Optional note</Label>
                 <Textarea
+                  id="drop-note"
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
                   rows={4}
                   maxLength={280}
                   placeholder="Add context, neighborhood, or energy so members can respond quickly."
                 />
+                <p className="text-xs text-muted-foreground" aria-live="polite">
+                  {note.trim().length}/280
+                </p>
               </div>
 
               <div className="rounded-lg border border-border/60 bg-oat/50 p-3 text-xs text-muted-foreground">

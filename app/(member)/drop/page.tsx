@@ -81,6 +81,9 @@ export default async function DropPage() {
                 Please refresh in a moment. Any existing requests remain saved.
               </p>
               <Button asChild variant="outline" size="sm">
+                <Link href="/drop">Retry The Drop</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
                 <Link href="/dashboard">Back to dashboard</Link>
               </Button>
             </CardContent>

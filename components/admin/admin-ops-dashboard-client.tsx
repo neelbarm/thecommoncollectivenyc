@@ -25,6 +25,74 @@ type FilterState = {
   dropRequestStatus: "ALL" | AdminDropRequestStatus;
 };
 
+function isAdminApplicationStatus(value: string): value is AdminApplicationStatus {
+  return ["DRAFT", "SUBMITTED", "REVIEWING", "ACCEPTED", "REJECTED"].includes(value);
+}
+
+function parseApplicationStatusOption(value: string): AdminApplicationStatus | null {
+  const validStatuses: AdminApplicationStatus[] = [
+    "DRAFT",
+    "SUBMITTED",
+    "REVIEWING",
+    "ACCEPTED",
+    "REJECTED",
+  ];
+  return isAdminApplicationStatus(value) && validStatuses.includes(value) ? value : null;
+}
+
+function isAdminCohortStatus(value: string): value is AdminCohortStatus {
+  return ["FORMING", "ACTIVE", "COMPLETED"].includes(value);
+}
+
+function parseCohortStatusOption(value: string): AdminCohortStatus | null {
+  return isAdminCohortStatus(value) ? value : null;
+}
+
+function isAdminSeasonStatus(value: string): value is AdminSeasonStatus {
+  return ["PLANNING", "LIVE", "CLOSED"].includes(value);
+}
+
+function parseSeasonStatusOption(value: string): AdminSeasonStatus | null {
+  return isAdminSeasonStatus(value) ? value : null;
+}
+
+function isAdminEventStatus(value: string): value is AdminEventStatus {
+  return ["DRAFT", "PUBLISHED", "COMPLETED", "CANCELLED"].includes(value);
+}
+
+function parseEventStatusOption(value: string): AdminEventStatus | null {
+  return isAdminEventStatus(value) ? value : null;
+}
+
+function isAdminDropRequestStatus(value: string): value is AdminDropRequestStatus {
+  return ["OPEN", "MATCHED", "WITHDRAWN", "CLOSED"].includes(value);
+}
+
+function parseDropRequestStatusOption(value: string): AdminDropRequestStatus | null {
+  return isAdminDropRequestStatus(value) ? value : null;
+}
+
+function parseApplicationStatus(value: string): FilterState["applicationStatus"] {
+  if (value === "ALL") {
+    return "ALL";
+  }
+  return parseApplicationStatusOption(value) ?? "ALL";
+}
+
+function parseEventStatus(value: string): FilterState["eventStatus"] {
+  if (value === "ALL") {
+    return "ALL";
+  }
+  return parseEventStatusOption(value) ?? "ALL";
+}
+
+function parseDropRequestStatus(value: string): FilterState["dropRequestStatus"] {
+  if (value === "ALL") {
+    return "ALL";
+  }
+  return parseDropRequestStatusOption(value) ?? "ALL";
+}
+
 function formatDate(dateIso: string | null) {
   if (!dateIso) {
     return "—";
@@ -517,6 +585,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
             value={filters.seasonId}
             onChange={(event) => setFilters((previous) => ({ ...previous, seasonId: event.target.value }))}
             className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            aria-label="Filter by season"
           >
             <option value="ALL">All seasons</option>
             {data.filterOptions.seasons.map((season) => (
@@ -529,6 +598,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
             value={filters.cohortId}
             onChange={(event) => setFilters((previous) => ({ ...previous, cohortId: event.target.value }))}
             className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            aria-label="Filter by cohort"
           >
             <option value="ALL">All cohorts</option>
             {data.filterOptions.cohorts.map((cohort) => (
@@ -542,10 +612,11 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
             onChange={(event) =>
               setFilters((previous) => ({
                 ...previous,
-                applicationStatus: event.target.value as FilterState["applicationStatus"],
+                applicationStatus: parseApplicationStatus(event.target.value),
               }))
             }
             className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            aria-label="Filter by application status"
           >
             <option value="ALL">All application statuses</option>
             {data.filterOptions.applicationStatuses.map((status) => (
@@ -559,10 +630,11 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
             onChange={(event) =>
               setFilters((previous) => ({
                 ...previous,
-                eventStatus: event.target.value as FilterState["eventStatus"],
+                eventStatus: parseEventStatus(event.target.value),
               }))
             }
             className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            aria-label="Filter by event status"
           >
             <option value="ALL">All event statuses</option>
             {data.filterOptions.eventStatuses.map((status) => (
@@ -576,10 +648,11 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
             onChange={(event) =>
               setFilters((previous) => ({
                 ...previous,
-                dropRequestStatus: event.target.value as FilterState["dropRequestStatus"],
+                dropRequestStatus: parseDropRequestStatus(event.target.value),
               }))
             }
             className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            aria-label="Filter by Drop request status"
           >
             <option value="ALL">All Drop statuses</option>
             {data.filterOptions.dropRequestStatuses.map((status) => (
@@ -592,12 +665,21 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
             value={filters.query}
             onChange={(event) => setFilters((previous) => ({ ...previous, query: event.target.value }))}
             placeholder="Search member, event, note..."
+            aria-label="Search operations data"
           />
         </CardContent>
       </Card>
 
-      {feedback ? <p className="text-sm text-emerald-700">{feedback}</p> : null}
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {feedback ? (
+        <p role="status" aria-live="polite" className="text-sm text-emerald-700">
+          {feedback}
+        </p>
+      ) : null}
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
       {isPending ? <p className="text-xs text-muted-foreground">Saving updates…</p> : null}
 
       <SectionCard
@@ -619,13 +701,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                     <Badge variant={statusTone(application.status)}>{application.status}</Badge>
                     <select
                       value={application.status}
-                      onChange={(event) =>
-                        onUpdateApplicationStatus(
-                          application.id,
-                          event.target.value as AdminApplicationStatus,
-                        )
-                      }
+                      onChange={(event) => {
+                        const nextStatus = parseApplicationStatusOption(event.target.value);
+                        if (!nextStatus) return;
+                        onUpdateApplicationStatus(application.id, nextStatus);
+                      }}
                       disabled={isPending}
+                      aria-label={`Update status for ${application.memberName}`}
                       className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
                     >
                       {data.filterOptions.applicationStatuses.map((status) => (
@@ -747,10 +829,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                       <Badge variant={statusTone(cohort.status)}>{cohort.status}</Badge>
                       <select
                         value={cohort.status}
-                        onChange={(event) =>
-                          onUpdateCohortStatus(cohort.id, event.target.value as AdminCohortStatus)
-                        }
+                        onChange={(event) => {
+                          const nextStatus = parseCohortStatusOption(event.target.value);
+                          if (!nextStatus) return;
+                          onUpdateCohortStatus(cohort.id, nextStatus);
+                        }}
                         disabled={isPending}
+                        aria-label={`Update status for ${cohort.name}`}
                         className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
                       >
                         {data.filterOptions.cohortStatuses.map((status) => (
@@ -794,10 +879,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                       <Badge variant={statusTone(season.status)}>{season.status}</Badge>
                       <select
                         value={season.status}
-                        onChange={(event) =>
-                          onUpdateSeasonStatus(season.id, event.target.value as AdminSeasonStatus)
-                        }
+                        onChange={(event) => {
+                          const nextStatus = parseSeasonStatusOption(event.target.value);
+                          if (!nextStatus) return;
+                          onUpdateSeasonStatus(season.id, nextStatus);
+                        }}
                         disabled={isPending}
+                        aria-label={`Update status for ${season.code}`}
                         className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
                       >
                         {data.filterOptions.seasonStatuses.map((status) => (
@@ -839,10 +927,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                     <Badge variant={statusTone(event.status)}>{event.status}</Badge>
                     <select
                       value={event.status}
-                      onChange={(eventTarget) =>
-                        onUpdateEventStatus(event.id, eventTarget.target.value as AdminEventStatus)
-                      }
+                      onChange={(eventTarget) => {
+                        const nextStatus = parseEventStatusOption(eventTarget.target.value);
+                        if (!nextStatus) return;
+                        onUpdateEventStatus(event.id, nextStatus);
+                      }}
                       disabled={isPending}
+                      aria-label={`Update status for ${event.title}`}
                       className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
                     >
                       {data.filterOptions.eventStatuses.map((status) => (
@@ -884,13 +975,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                     <Badge variant={statusTone(request.status)}>{request.status}</Badge>
                     <select
                       value={request.status}
-                      onChange={(event) =>
-                        onUpdateDropRequestStatus(
-                          request.id,
-                          event.target.value as AdminDropRequestStatus,
-                        )
-                      }
+                      onChange={(event) => {
+                        const nextStatus = parseDropRequestStatusOption(event.target.value);
+                        if (!nextStatus) return;
+                        onUpdateDropRequestStatus(request.id, nextStatus);
+                      }}
                       disabled={isPending}
+                      aria-label={`Update status for Drop request by ${request.requesterName}`}
                       className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
                     >
                       {data.filterOptions.dropRequestStatuses.map((status) => (
@@ -955,12 +1046,14 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
               onChange={(event) => setNoteDraft(event.target.value)}
               maxLength={420}
               rows={3}
+              aria-label="Admin note body"
               placeholder="Add context for another admin..."
             />
             <div className="grid gap-2 sm:grid-cols-2">
               <select
                 value={noteSubjectUserId}
                 onChange={(event) => setNoteSubjectUserId(event.target.value)}
+                aria-label="Note subject member"
                 className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
               >
                 <option value="NONE">No subject member</option>
@@ -973,6 +1066,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
               <select
                 value={noteApplicationId}
                 onChange={(event) => setNoteApplicationId(event.target.value)}
+                aria-label="Linked application"
                 className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
               >
                 <option value="NONE">No linked application</option>

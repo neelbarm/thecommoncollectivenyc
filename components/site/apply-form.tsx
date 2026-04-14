@@ -42,6 +42,7 @@ export function ApplyForm() {
       <CardContent>
         <form
           className="space-y-5"
+          noValidate
           onSubmit={(event) => {
             event.preventDefault();
             setStatus("idle");
@@ -116,7 +117,13 @@ export function ApplyForm() {
           ))}
 
           {message ? (
-            <p className={status === "success" ? "text-sm text-emerald-700" : "text-sm text-destructive"}>{message}</p>
+            <p
+              role={status === "error" ? "alert" : "status"}
+              aria-live="polite"
+              className={status === "success" ? "text-sm text-emerald-700" : "text-sm text-destructive"}
+            >
+              {message}
+            </p>
           ) : null}
 
           <Button type="submit" disabled={isPending} className="w-full">

@@ -37,7 +37,7 @@ export default async function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button asChild variant="outline" size="sm">
+              <Button asChild variant="outline" size="sm">
                   <Link href="/onboarding">Go to onboarding</Link>
                 </Button>
               </CardContent>
@@ -74,7 +74,7 @@ export default async function DashboardPage() {
                 Please refresh in a moment. Your account and onboarding progress are safe.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/onboarding">Return to onboarding</Link>
+                <Link href="/dashboard">Refresh dashboard</Link>
               </Button>
             </CardContent>
           </Card>

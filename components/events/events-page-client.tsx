@@ -73,6 +73,10 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
     });
   }
 
+  function clearError() {
+    setError(null);
+  }
+
   if (events.length === 0) {
     if (!initialData.hasAnyPublishedEvents) {
       return (
@@ -122,7 +126,12 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
         </Card>
       ) : null}
 
-      {error ? <p className="text-sm text-destructive">{error}</p> : null}
+      {error ? (
+        <p role="alert" className="text-sm text-destructive">
+          {error}
+        </p>
+      ) : null}
+      {isPending ? <p className="text-xs text-muted-foreground">Updating RSVP...</p> : null}
 
       <div className="space-y-4">
         {events.map((event) => (
@@ -139,7 +148,10 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
       <EventDetailPanel
         event={activeEvent}
         open={Boolean(activeEvent)}
-        onClose={() => setActiveEventId(null)}
+        onClose={() => {
+          setActiveEventId(null);
+          clearError();
+        }}
         onRsvp={(status) => {
           if (!activeEvent) return;
           updateRsvp(activeEvent.id, status);

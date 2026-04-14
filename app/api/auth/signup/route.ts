@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
+import { ZodError } from "zod";
 
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
 import { signupSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
-  const body = await request.json();
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Request body must be valid JSON." }, { status: 400 });
+  }
   const parsed = signupSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -33,17 +39,24 @@ export async function POST(request: Request) {
 
   const passwordHash = await hashPassword(parsed.data.password);
 
-  await prisma.user.create({
-    data: {
-      email,
-      passwordHash,
-      firstName: parsed.data.firstName,
-      lastName: parsed.data.lastName,
-      profile: {
-        create: {},
+  try {
+    await prisma.user.create({
+      data: {
+        email,
+        passwordHash,
+        firstName: parsed.data.firstName,
+        lastName: parsed.data.lastName,
+        profile: {
+          create: {},
+        },
       },
-    },
-  });
+    });
+  } catch (error) {
+    if (error instanceof ZodError) {
+      return NextResponse.json({ error: "Invalid signup details." }, { status: 400 });
+    }
+    return NextResponse.json({ error: "Unable to create account right now." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true }, { status: 201 });
 }

@@ -53,9 +53,14 @@ export default async function AdminPage() {
                 We hit an issue loading your operational snapshot. Please refresh in a moment.
               </CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Existing member and event data remain safe. This is likely a temporary fetch problem.
+              </p>
+              <p className="text-sm">
+                <a className="font-medium text-foreground underline underline-offset-4" href="/admin">
+                  Retry admin dashboard
+                </a>
               </p>
             </CardContent>
           </Card>

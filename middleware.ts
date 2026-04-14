@@ -23,7 +23,8 @@ export default auth((req) => {
 
   if (isProtected && !isAuthenticated) {
     const loginUrl = new URL("/login", nextUrl.origin);
-    loginUrl.searchParams.set("callbackUrl", pathname);
+    const callbackUrl = pathname + nextUrl.search;
+    loginUrl.searchParams.set("callbackUrl", callbackUrl);
     return NextResponse.redirect(loginUrl);
   }
 

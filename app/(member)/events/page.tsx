@@ -84,7 +84,7 @@ export default async function EventsPage() {
                 Please refresh in a moment. Your RSVP history remains saved.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard">Back to dashboard</Link>
+                <Link href="/events">Refresh events</Link>
               </Button>
             </CardContent>
           </Card>

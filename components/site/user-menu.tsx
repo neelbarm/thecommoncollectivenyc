@@ -22,15 +22,21 @@ export function UserMenu({ session }: { session: Session | null }) {
 
   return (
     <div className="flex items-center gap-2">
-      <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+      <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
         <Link href="/dashboard">Dashboard</Link>
       </Button>
       {session.user.role === "ADMIN" ? (
-        <Button asChild variant="ghost" size="sm" className="hidden sm:inline-flex">
+        <Button asChild variant="ghost" size="sm" className="hidden md:inline-flex">
           <Link href="/admin">Admin</Link>
         </Button>
       ) : null}
-      <Button variant="outline" size="sm" onClick={() => signOut({ callbackUrl: "/" })}>
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        onClick={() => signOut({ callbackUrl: "/" })}
+        aria-label="Log out of your account"
+      >
         Log out
       </Button>
     </div>

@@ -60,6 +60,13 @@ const defaultFormValues: OnboardingDraftInput = {
   idealWeek: "",
 };
 
+const stepTitles = [
+  "Basics and profile context",
+  "Interests and social vibe",
+  "Preferences and planning cadence",
+  "People and ideal weekly rhythm",
+] as const;
+
 export function OnboardingForm() {
   const router = useRouter();
   const [stepIndex, setStepIndex] = useState(0);
@@ -72,6 +79,8 @@ export function OnboardingForm() {
   const [isEditingCompleted, setIsEditingCompleted] = useState(false);
   const [isSubmitting, startSubmitting] = useTransition();
   const [isSavingDraft, startSavingDraft] = useTransition();
+  const [isContinuing, setIsContinuing] = useState(false);
+  const [isGoingBack, setIsGoingBack] = useState(false);
 
   const progress = useMemo(() => ((stepIndex + 1) / TOTAL_STEPS) * 100, [stepIndex]);
 
@@ -211,14 +220,24 @@ export function OnboardingForm() {
     if (!validateCurrentStep()) {
       return;
     }
-
+    setIsContinuing(true);
     setStepIndex((current) => Math.min(current + 1, TOTAL_STEPS - 1));
   }
 
   function previousStep() {
     setPageError(null);
+    setIsGoingBack(true);
     setStepIndex((current) => Math.max(current - 1, 0));
   }
+
+  useEffect(() => {
+    if (isContinuing) {
+      setIsContinuing(false);
+    }
+    if (isGoingBack) {
+      setIsGoingBack(false);
+    }
+  }, [isContinuing, isGoingBack, stepIndex]);
 
   function submitOnboarding() {
     const parsed = onboardingSchema.safeParse(values);
@@ -280,8 +299,11 @@ export function OnboardingForm() {
   if (pageError && !values.email) {
     return (
       <Card className="border-border/70 bg-card/90 shadow-soft">
-        <CardContent className="py-10">
+        <CardContent className="space-y-4 py-10">
           <p className="text-sm text-destructive">{pageError}</p>
+          <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+            Retry loading onboarding
+          </Button>
         </CardContent>
       </Card>
     );
@@ -322,6 +344,7 @@ export function OnboardingForm() {
           <CardDescription>
             Step {stepIndex + 1} of {TOTAL_STEPS}. Slow and thoughtful is perfect.
           </CardDescription>
+          <p className="text-sm text-muted-foreground">{stepTitles[stepIndex]}</p>
         </div>
 
         <div className="space-y-2">
@@ -331,6 +354,7 @@ export function OnboardingForm() {
           </div>
           <div className="h-2 rounded-full bg-oat">
             <div
+              aria-hidden="true"
               className="h-2 rounded-full bg-muted-gold transition-all duration-300"
               style={{ width: `${progress}%` }}
             />
@@ -342,20 +366,41 @@ export function OnboardingForm() {
         {stepIndex === 0 ? (
           <section className="space-y-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormField label="First name" error={errors.firstName}>
-                <Input value={values.firstName ?? ""} onChange={(event) => setField("firstName", event.target.value)} />
+              <FormField label="First name" error={errors.firstName} htmlFor="onboarding-first-name">
+                <Input
+                  id="onboarding-first-name"
+                  aria-invalid={Boolean(errors.firstName)}
+                  value={values.firstName ?? ""}
+                  onChange={(event) => setField("firstName", event.target.value)}
+                />
               </FormField>
-              <FormField label="Last name" error={errors.lastName}>
-                <Input value={values.lastName ?? ""} onChange={(event) => setField("lastName", event.target.value)} />
+              <FormField label="Last name" error={errors.lastName} htmlFor="onboarding-last-name">
+                <Input
+                  id="onboarding-last-name"
+                  aria-invalid={Boolean(errors.lastName)}
+                  value={values.lastName ?? ""}
+                  onChange={(event) => setField("lastName", event.target.value)}
+                />
               </FormField>
             </div>
 
-            <FormField label="Email" error={errors.email}>
-              <Input type="email" value={values.email ?? ""} onChange={(event) => setField("email", event.target.value)} />
+            <FormField label="Email" error={errors.email} htmlFor="onboarding-email">
+              <Input
+                id="onboarding-email"
+                type="email"
+                aria-invalid={Boolean(errors.email)}
+                value={values.email ?? ""}
+                onChange={(event) => setField("email", event.target.value)}
+              />
             </FormField>
 
-            <FormField label="Neighborhood" error={errors.neighborhood}>
-              <Input value={values.neighborhood ?? ""} onChange={(event) => setField("neighborhood", event.target.value)} />
+            <FormField label="Neighborhood" error={errors.neighborhood} htmlFor="onboarding-neighborhood">
+              <Input
+                id="onboarding-neighborhood"
+                aria-invalid={Boolean(errors.neighborhood)}
+                value={values.neighborhood ?? ""}
+                onChange={(event) => setField("neighborhood", event.target.value)}
+              />
             </FormField>
 
             <ChoiceGroup
@@ -366,8 +411,13 @@ export function OnboardingForm() {
               error={errors.ageRange}
             />
 
-            <FormField label="Occupation or role" error={errors.occupation}>
-              <Input value={values.occupation ?? ""} onChange={(event) => setField("occupation", event.target.value)} />
+            <FormField label="Occupation or role" error={errors.occupation} htmlFor="onboarding-occupation">
+              <Input
+                id="onboarding-occupation"
+                aria-invalid={Boolean(errors.occupation)}
+                value={values.occupation ?? ""}
+                onChange={(event) => setField("occupation", event.target.value)}
+              />
             </FormField>
 
             <ChoiceGroup
@@ -471,18 +521,27 @@ export function OnboardingForm() {
             <FormField
               label="What kind of people are you hoping to meet?"
               error={errors.peopleToMeet}
+              htmlFor="onboarding-people-to-meet"
             >
               <Textarea
+                id="onboarding-people-to-meet"
                 rows={6}
+                aria-invalid={Boolean(errors.peopleToMeet)}
                 value={values.peopleToMeet ?? ""}
                 onChange={(event) => setField("peopleToMeet", event.target.value)}
                 placeholder="Tell us about values, energy, and personalities that feel aligned."
               />
             </FormField>
 
-            <FormField label="What would your ideal NYC week look like?" error={errors.idealWeek}>
+            <FormField
+              label="What would your ideal NYC week look like?"
+              error={errors.idealWeek}
+              htmlFor="onboarding-ideal-week"
+            >
               <Textarea
+                id="onboarding-ideal-week"
                 rows={6}
+                aria-invalid={Boolean(errors.idealWeek)}
                 value={values.idealWeek ?? ""}
                 onChange={(event) => setField("idealWeek", event.target.value)}
                 placeholder="Paint a realistic rhythm: movement, social plans, culture, and rest."
@@ -491,18 +550,37 @@ export function OnboardingForm() {
           </section>
         ) : null}
 
-        {pageError ? <p className="text-sm text-destructive">{pageError}</p> : null}
-        {statusMessage ? <p className="text-xs text-muted-foreground">{statusMessage}</p> : null}
-        {isSavingDraft ? <p className="text-xs text-muted-foreground">Saving draft...</p> : null}
+        {pageError ? (
+          <p
+            role="alert"
+            className="rounded-md border border-destructive/40 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+          >
+            {pageError}
+          </p>
+        ) : null}
+        {statusMessage ? (
+          <p className="text-xs text-muted-foreground" aria-live="polite">
+            {statusMessage}
+          </p>
+        ) : null}
+        {isSavingDraft ? (
+          <p className="text-xs text-muted-foreground" aria-live="polite">
+            Saving draft...
+          </p>
+        ) : null}
 
-        <div className="flex items-center justify-between gap-3">
-          <Button variant="outline" onClick={previousStep} disabled={stepIndex === 0 || isSubmitting}>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+          <Button
+            variant="outline"
+            onClick={previousStep}
+            disabled={stepIndex === 0 || isSubmitting || isContinuing}
+          >
             Back
           </Button>
 
           {stepIndex < TOTAL_STEPS - 1 ? (
-            <Button onClick={nextStep} disabled={isSubmitting}>
-              Continue
+            <Button onClick={nextStep} disabled={isSubmitting || isGoingBack}>
+              {isContinuing ? "Continuing..." : "Continue"}
             </Button>
           ) : (
             <Button onClick={submitOnboarding} disabled={isSubmitting}>
@@ -526,14 +604,16 @@ function FormField({
   label,
   error,
   children,
+  htmlFor,
 }: {
   label: string;
   error?: string;
   children: React.ReactNode;
+  htmlFor?: string;
 }) {
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
+      <Label htmlFor={htmlFor}>{label}</Label>
       {children}
       {error ? <p className="text-xs text-destructive">{error}</p> : null}
     </div>
@@ -555,14 +635,18 @@ function ChoiceGroup<T extends string>({
   error?: string;
   capitalize?: boolean;
 }) {
+  const groupLabelId = `choice-group-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className="space-y-2">
-      <Label>{label}</Label>
-      <div className="flex flex-wrap gap-2">
+      <Label id={groupLabelId}>{label}</Label>
+      <div className="flex flex-wrap gap-2" role="radiogroup" aria-labelledby={groupLabelId}>
         {options.map((option) => (
           <button
             key={option}
             type="button"
+            role="radio"
+            aria-checked={value === option}
+            tabIndex={value === option ? 0 : -1}
             className={cn(
               "rounded-full border px-3 py-1.5 text-sm transition",
               capitalize ? "capitalize" : "",
@@ -598,13 +682,14 @@ function MultiChoiceGroup<T extends string>({
   error?: string;
   capitalize?: boolean;
 }) {
+  const groupLabelId = `multi-choice-group-${label.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`;
   return (
     <div className="space-y-2">
       <div className="flex items-center justify-between gap-3">
-        <Label>{label}</Label>
+        <Label id={groupLabelId}>{label}</Label>
         {helper ? <p className="text-xs text-muted-foreground">{helper}</p> : null}
       </div>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-2" role="group" aria-labelledby={groupLabelId}>
         {options.map((option) => {
           const selected = values.includes(option);
 
@@ -612,6 +697,8 @@ function MultiChoiceGroup<T extends string>({
             <button
               key={option}
               type="button"
+              role="checkbox"
+              aria-checked={selected}
               className={cn(
                 "rounded-full border px-3 py-1.5 text-sm transition",
                 capitalize ? "capitalize" : "",

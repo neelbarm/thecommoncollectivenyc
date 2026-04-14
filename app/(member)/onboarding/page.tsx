@@ -1,8 +1,10 @@
 import { Sparkles } from "lucide-react";
+import Link from "next/link";
 
 import { OnboardingForm } from "@/components/onboarding/onboarding-form";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
+import { Button } from "@/components/ui/button";
 
 export default function OnboardingPage() {
   return (
@@ -21,6 +23,17 @@ export default function OnboardingPage() {
             This questionnaire helps us tune your cohort chemistry and recurring experiences. Share what feels true to
             your week, your energy, and your social intentions.
           </p>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild size="sm" variant="outline">
+              <Link href="/dashboard">Dashboard</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/events">Events</Link>
+            </Button>
+            <Button asChild size="sm" variant="outline">
+              <Link href="/drop">The Drop</Link>
+            </Button>
+          </div>
         </div>
 
         <OnboardingForm />
