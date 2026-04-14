@@ -25,26 +25,33 @@ export async function getAssignmentData(seasonId?: string): Promise<AssignmentPa
   });
   const cohortIdSet = new Set(seasonCohortIds.map((c) => c.id));
 
-  const candidateCount = await prisma.user.count({
-    where: {
-      role: "MEMBER",
-      isActive: true,
-      applications: {
-        some: { status: "ACCEPTED" },
-      },
-      profile: {
-        isNot: null,
-        is: {
-          onboardingCompletedAt: { not: null },
-        },
-      },
-      cohortMemberships: {
-        none: {
-          status: { in: ["ACTIVE", "INVITED"] },
-          cohortId: { in: [...cohortIdSet] },
-        },
+  const cohortIdArray = [...cohortIdSet];
+
+  const candidateWhere = {
+    role: "MEMBER" as const,
+    isActive: true,
+    applications: {
+      some: { status: "ACCEPTED" as const },
+    },
+    profile: {
+      is: {
+        onboardingCompletedAt: { not: null },
       },
     },
+    ...(cohortIdArray.length > 0
+      ? {
+          cohortMemberships: {
+            none: {
+              status: { in: ["ACTIVE" as const, "INVITED" as const] },
+              cohortId: { in: cohortIdArray },
+            },
+          },
+        }
+      : {}),
+  };
+
+  const candidateCount = await prisma.user.count({
+    where: candidateWhere,
   });
 
   const rawRuns = await prisma.assignmentRun.findMany({

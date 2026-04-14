@@ -38,7 +38,6 @@ export async function generateAssignmentRun(
         },
       },
       profile: {
-        isNot: null,
         is: {
           onboardingCompletedAt: { not: null },
         },
