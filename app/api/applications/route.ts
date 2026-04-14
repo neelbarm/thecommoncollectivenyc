@@ -30,24 +30,29 @@ export async function POST(request: Request) {
     );
   }
 
-  const application = await prisma.memberApplication.create({
-    data: {
-      userId: session.user.id,
-      headline: parsed.data.headline,
-      aboutText: parsed.data.aboutText,
-      availability: parsed.data.availability,
-      status: "SUBMITTED",
-      submittedAt: new Date(),
-      responses: {
-        createMany: {
-          data: parsed.data.responses,
+  let application: { id: string };
+  try {
+    application = await prisma.memberApplication.create({
+      data: {
+        userId: session.user.id,
+        headline: parsed.data.headline,
+        aboutText: parsed.data.aboutText,
+        availability: parsed.data.availability,
+        status: "SUBMITTED",
+        submittedAt: new Date(),
+        responses: {
+          createMany: {
+            data: parsed.data.responses,
+          },
         },
       },
-    },
-    select: {
-      id: true,
-    },
-  });
+      select: {
+        id: true,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to submit application right now." }, { status: 500 });
+  }
 
   return NextResponse.json({ ok: true, applicationId: application.id }, { status: 201 });
 }

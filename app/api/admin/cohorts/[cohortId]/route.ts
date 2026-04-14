@@ -38,28 +38,32 @@ export async function PATCH(
     );
   }
 
-  const existing = await prisma.cohort.findUnique({
-    where: { id: cohortId },
-    select: { id: true },
-  });
+  try {
+    const existing = await prisma.cohort.findUnique({
+      where: { id: cohortId },
+      select: { id: true },
+    });
 
-  if (!existing) {
-    return NextResponse.json({ error: "Cohort not found." }, { status: 404 });
+    if (!existing) {
+      return NextResponse.json({ error: "Cohort not found." }, { status: 404 });
+    }
+
+    const updated = await prisma.cohort.update({
+      where: { id: cohortId },
+      data: {
+        status: parsed.data.status,
+        capacity: parsed.data.capacity,
+      },
+      select: {
+        id: true,
+        status: true,
+        capacity: true,
+        updatedAt: true,
+      },
+    });
+
+    return NextResponse.json({ cohort: updated });
+  } catch {
+    return NextResponse.json({ error: "Unable to update cohort right now." }, { status: 500 });
   }
-
-  const updated = await prisma.cohort.update({
-    where: { id: cohortId },
-    data: {
-      status: parsed.data.status,
-      capacity: parsed.data.capacity,
-    },
-    select: {
-      id: true,
-      status: true,
-      capacity: true,
-      updatedAt: true,
-    },
-  });
-
-  return NextResponse.json({ cohort: updated });
 }

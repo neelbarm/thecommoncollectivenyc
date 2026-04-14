@@ -23,6 +23,7 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({ error: "Invalid JSON body." }, { status: 400 });
   }
+
   const parsed = createAdminNoteSchema.safeParse(body);
 
   if (!parsed.success) {
@@ -32,46 +33,50 @@ export async function POST(request: Request) {
     );
   }
 
-  const note = await prisma.adminNote.create({
-    data: {
-      adminId: session.user.id,
-      body: parsed.data.body,
-      subjectUserId: parsed.data.subjectUserId,
-      applicationId: parsed.data.applicationId,
-    },
-    select: {
-      id: true,
-      body: true,
-      createdAt: true,
-      applicationId: true,
-      admin: {
-        select: {
-          firstName: true,
-          lastName: true,
+  try {
+    const note = await prisma.adminNote.create({
+      data: {
+        adminId: session.user.id,
+        body: parsed.data.body,
+        subjectUserId: parsed.data.subjectUserId,
+        applicationId: parsed.data.applicationId,
+      },
+      select: {
+        id: true,
+        body: true,
+        createdAt: true,
+        applicationId: true,
+        admin: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        subjectUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+          },
         },
       },
-      subjectUser: {
-        select: {
-          id: true,
-          firstName: true,
-          lastName: true,
-        },
-      },
-    },
-  });
+    });
 
-  return NextResponse.json({
-    ok: true,
-    note: {
-      id: note.id,
-      body: note.body,
-      createdAt: note.createdAt.toISOString(),
-      applicationId: note.applicationId,
-      adminName: `${note.admin.firstName} ${note.admin.lastName}`,
-      subjectUserId: note.subjectUser?.id ?? null,
-      subjectUserName: note.subjectUser
-        ? `${note.subjectUser.firstName} ${note.subjectUser.lastName}`
-        : null,
-    },
-  });
+    return NextResponse.json({
+      ok: true,
+      note: {
+        id: note.id,
+        body: note.body,
+        createdAt: note.createdAt.toISOString(),
+        applicationId: note.applicationId,
+        adminName: `${note.admin.firstName} ${note.admin.lastName}`,
+        subjectUserId: note.subjectUser?.id ?? null,
+        subjectUserName: note.subjectUser
+          ? `${note.subjectUser.firstName} ${note.subjectUser.lastName}`
+          : null,
+      },
+    });
+  } catch {
+    return NextResponse.json({ error: "Unable to save note right now." }, { status: 500 });
+  }
 }

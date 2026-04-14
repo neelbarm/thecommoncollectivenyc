@@ -34,42 +34,46 @@ export async function POST(request: Request) {
     );
   }
 
-  const existingActive = await prisma.dropRequest.findFirst({
-    where: {
-      requesterId: session.user.id,
-      status: {
-        in: [DropRequestStatus.OPEN, DropRequestStatus.MATCHED],
+  try {
+    const existingActive = await prisma.dropRequest.findFirst({
+      where: {
+        requesterId: session.user.id,
+        status: {
+          in: [DropRequestStatus.OPEN, DropRequestStatus.MATCHED],
+        },
       },
-    },
-    select: {
-      id: true,
-    },
-  });
+      select: {
+        id: true,
+      },
+    });
 
-  if (existingActive) {
-    return NextResponse.json(
-      {
-        error: "You already have an active Drop request.",
+    if (existingActive) {
+      return NextResponse.json(
+        {
+          error: "You already have an active Drop request.",
+        },
+        { status: 409 },
+      );
+    }
+
+    const created = await prisma.dropRequest.create({
+      data: {
+        requesterId: session.user.id,
+        title: `${parsed.data.activityType} | ${parsed.data.timing}`,
+        context: parsed.data.note ?? "",
+        status: DropRequestStatus.OPEN,
       },
-      { status: 409 },
-    );
+      select: {
+        id: true,
+        title: true,
+        context: true,
+        status: true,
+        createdAt: true,
+      },
+    });
+
+    return NextResponse.json({ ok: true, request: created }, { status: 201 });
+  } catch {
+    return NextResponse.json({ error: "Unable to create Drop request right now." }, { status: 500 });
   }
-
-  const created = await prisma.dropRequest.create({
-    data: {
-      requesterId: session.user.id,
-      title: `${parsed.data.activityType} | ${parsed.data.timing}`,
-      context: parsed.data.note ?? "",
-      status: DropRequestStatus.OPEN,
-    },
-    select: {
-      id: true,
-      title: true,
-      context: true,
-      status: true,
-      createdAt: true,
-    },
-  });
-
-  return NextResponse.json({ ok: true, request: created }, { status: 201 });
 }
