@@ -1,5 +1,4 @@
 import type { Role } from "@prisma/client";
-import { PrismaAdapter } from "@auth/prisma-adapter";
 import type { NextAuthConfig } from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 
@@ -12,7 +11,6 @@ function resolveRole(value: unknown): Role {
 }
 
 export const authConfig = {
-  adapter: PrismaAdapter(prisma),
   trustHost: true,
   session: {
     strategy: "jwt",
