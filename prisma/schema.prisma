@@ -1,0 +1,410 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MEMBER
+}
+
+enum ApplicationStatus {
+  DRAFT
+  SUBMITTED
+  REVIEWING
+  ACCEPTED
+  REJECTED
+}
+
+enum QuestionnaireSection {
+  VALUES
+  EXPERIENCE
+  COMMUNITY
+}
+
+enum SeasonStatus {
+  PLANNING
+  LIVE
+  CLOSED
+}
+
+enum CohortStatus {
+  FORMING
+  ACTIVE
+  COMPLETED
+}
+
+enum CohortMembershipStatus {
+  INVITED
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum EventStatus {
+  DRAFT
+  PUBLISHED
+  COMPLETED
+  CANCELLED
+}
+
+enum RSVPStatus {
+  GOING
+  MAYBE
+  DECLINED
+  WAITLISTED
+}
+
+enum DropRequestStatus {
+  OPEN
+  MATCHED
+  WITHDRAWN
+  CLOSED
+}
+
+enum DropResponseStatus {
+  PENDING
+  ACCEPTED
+  DECLINED
+}
+
+enum BookingStatus {
+  HOLD
+  CONFIRMED
+  CANCELLED
+}
+
+enum ReminderChannel {
+  EMAIL
+  SMS
+}
+
+enum ReminderStatus {
+  SCHEDULED
+  SENT
+  FAILED
+}
+
+model User {
+  id                   String              @id @default(cuid())
+  email                String              @unique
+  passwordHash         String
+  firstName            String
+  lastName             String
+  role                 Role                @default(MEMBER)
+  isActive             Boolean             @default(true)
+  lastLoginAt          DateTime?
+  emailVerified        DateTime?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  accounts             Account[]
+  sessions             Session[]
+  profile              Profile?
+  applications         MemberApplication[] @relation("ApplicationOwner")
+  reviewedApplications MemberApplication[] @relation("ApplicationReviewer")
+  cohortMemberships    CohortMembership[]
+  rsvps                RSVP[]
+  dropRequests         DropRequest[]
+  dropResponses        DropResponse[]      @relation("DropResponsesFromUser")
+  bookings             Booking[]
+  reminders            Reminder[]          @relation("ReminderRecipient")
+  adminNotes           AdminNote[]         @relation("AdminAuthor")
+  adminNotesAboutUser  AdminNote[]         @relation("AdminSubject")
+
+  @@index([role, isActive])
+  @@index([createdAt])
+}
+
+model MemberApplication {
+  id           String                  @id @default(cuid())
+  userId       String
+  status       ApplicationStatus       @default(DRAFT)
+  headline     String
+  aboutText    String
+  availability String
+  submittedAt  DateTime?
+  reviewedAt   DateTime?
+  reviewedById String?
+  createdAt    DateTime                @default(now())
+  updatedAt    DateTime                @updatedAt
+  user         User                    @relation("ApplicationOwner", fields: [userId], references: [id], onDelete: Cascade)
+  reviewedBy   User?                   @relation("ApplicationReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  responses    QuestionnaireResponse[]
+  notes        AdminNote[]
+
+  @@index([userId, status])
+  @@index([status, submittedAt])
+}
+
+model QuestionnaireResponse {
+  id            String               @id @default(cuid())
+  applicationId String
+  questionKey   String
+  section       QuestionnaireSection
+  response      String
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+  application   MemberApplication    @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  @@unique([applicationId, questionKey])
+  @@index([section])
+}
+
+model Profile {
+  id                    String    @id @default(cuid())
+  userId                String    @unique
+  bio                   String?
+  neighborhood          String?
+  ageRange              String?
+  occupation            String?
+  socialGoal            String?
+  preferredNights       String?
+  budgetComfort         String?
+  drinkingPreference    String?
+  smokingPreference     String?
+  physicalActivityLevel String?
+  timePreference        String?
+  plansFrequency        String?
+  idealGroupEnergy      String?
+  peopleToMeet          String?
+  idealWeek             String?
+  interests             String[]  @default([])
+  preferredVibe         String[]  @default([])
+  onboardingDraft       Json?
+  instagramHandle       String?
+  onboardingCompletedAt DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Season {
+  id        String       @id @default(cuid())
+  name      String
+  code      String       @unique
+  startsAt  DateTime
+  endsAt    DateTime
+  status    SeasonStatus @default(PLANNING)
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  cohorts   Cohort[]
+  events    Event[]
+
+  @@index([status, startsAt])
+}
+
+model Cohort {
+  id          String             @id @default(cuid())
+  seasonId    String
+  name        String
+  slug        String             @unique
+  status      CohortStatus       @default(FORMING)
+  capacity    Int
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  season      Season             @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  memberships CohortMembership[]
+  events      Event[]
+
+  @@index([seasonId, status])
+}
+
+model CohortMembership {
+  id        String                 @id @default(cuid())
+  userId    String
+  cohortId  String
+  status    CohortMembershipStatus @default(INVITED)
+  joinedAt  DateTime?
+  leftAt    DateTime?
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+  user      User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cohort    Cohort                 @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, cohortId])
+  @@index([cohortId, status])
+}
+
+model Venue {
+  id           String   @id @default(cuid())
+  name         String
+  slug         String   @unique
+  addressLine1 String
+  addressLine2 String?
+  city         String
+  state        String
+  postalCode   String
+  capacity     Int
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  events       Event[]
+
+  @@index([city, state])
+}
+
+model Event {
+  id           String        @id @default(cuid())
+  seasonId     String
+  cohortId     String?
+  venueId      String
+  title        String
+  slug         String        @unique
+  description  String
+  startsAt     DateTime
+  endsAt       DateTime
+  status       EventStatus   @default(DRAFT)
+  capacity     Int
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  season       Season        @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  cohort       Cohort?       @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  venue        Venue         @relation(fields: [venueId], references: [id], onDelete: Restrict)
+  rsvps        RSVP[]
+  bookings     Booking[]
+  reminders    Reminder[]
+  dropRequests DropRequest[]
+
+  @@index([seasonId, startsAt])
+  @@index([cohortId, startsAt])
+  @@index([status])
+}
+
+model RSVP {
+  id          String     @id @default(cuid())
+  userId      String
+  eventId     String
+  status      RSVPStatus
+  guestsCount Int        @default(0)
+  note        String?
+  respondedAt DateTime   @default(now())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event       Event      @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, eventId])
+  @@index([eventId, status])
+}
+
+model DropRequest {
+  id          String            @id @default(cuid())
+  requesterId String
+  eventId     String?
+  title       String
+  context     String
+  status      DropRequestStatus @default(OPEN)
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  requester   User              @relation(fields: [requesterId], references: [id], onDelete: Cascade)
+  event       Event?            @relation(fields: [eventId], references: [id], onDelete: SetNull)
+  responses   DropResponse[]
+
+  @@index([requesterId, status])
+  @@index([createdAt])
+}
+
+model DropResponse {
+  id          String             @id @default(cuid())
+  requestId   String
+  responderId String
+  status      DropResponseStatus @default(PENDING)
+  message     String?
+  respondedAt DateTime?
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  request     DropRequest        @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  responder   User               @relation("DropResponsesFromUser", fields: [responderId], references: [id], onDelete: Cascade)
+
+  @@unique([requestId, responderId])
+  @@index([status])
+}
+
+model Booking {
+  id          String        @id @default(cuid())
+  userId      String
+  eventId     String
+  seats       Int           @default(1)
+  status      BookingStatus @default(HOLD)
+  confirmedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event       Event         @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([eventId, status])
+}
+
+model Reminder {
+  id           String          @id @default(cuid())
+  userId       String
+  eventId      String
+  channel      ReminderChannel
+  status       ReminderStatus  @default(SCHEDULED)
+  scheduledFor DateTime
+  sentAt       DateTime?
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  recipient    User            @relation("ReminderRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  event        Event           @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([userId, status])
+  @@index([eventId, scheduledFor])
+}
+
+model AdminNote {
+  id            String             @id @default(cuid())
+  adminId       String
+  subjectUserId String?
+  applicationId String?
+  body          String
+  createdAt     DateTime           @default(now())
+  updatedAt     DateTime           @updatedAt
+  admin         User               @relation("AdminAuthor", fields: [adminId], references: [id], onDelete: Cascade)
+  subjectUser   User?              @relation("AdminSubject", fields: [subjectUserId], references: [id], onDelete: SetNull)
+  application   MemberApplication? @relation(fields: [applicationId], references: [id], onDelete: SetNull)
+
+  @@index([adminId, createdAt])
+  @@index([subjectUserId])
+  @@index([applicationId])
+}
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([sessionToken])
+  @@index([userId])
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@id([identifier, token])
+}
