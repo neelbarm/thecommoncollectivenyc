@@ -88,6 +88,21 @@ enum ReminderStatus {
   FAILED
 }
 
+enum AssignmentRunStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  SUPERSEDED
+}
+
+enum AssignmentMemberDecision {
+  PROPOSED
+  LOCKED
+  MOVED
+  REMOVED
+}
+
 model User {
   id                   String              @id @default(cuid())
   email                String              @unique
@@ -100,19 +115,22 @@ model User {
   emailVerified        DateTime?
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
-  accounts             Account[]
-  sessions             Session[]
-  profile              Profile?
-  applications         MemberApplication[] @relation("ApplicationOwner")
-  reviewedApplications MemberApplication[] @relation("ApplicationReviewer")
-  cohortMemberships    CohortMembership[]
-  rsvps                RSVP[]
-  dropRequests         DropRequest[]
-  dropResponses        DropResponse[]      @relation("DropResponsesFromUser")
-  bookings             Booking[]
-  reminders            Reminder[]          @relation("ReminderRecipient")
-  adminNotes           AdminNote[]         @relation("AdminAuthor")
-  adminNotesAboutUser  AdminNote[]         @relation("AdminSubject")
+  accounts               Account[]
+  sessions               Session[]
+  profile                Profile?
+  applications           MemberApplication[] @relation("ApplicationOwner")
+  reviewedApplications   MemberApplication[] @relation("ApplicationReviewer")
+  cohortMemberships      CohortMembership[]
+  rsvps                  RSVP[]
+  dropRequests           DropRequest[]
+  dropResponses          DropResponse[]      @relation("DropResponsesFromUser")
+  bookings               Booking[]
+  reminders              Reminder[]          @relation("ReminderRecipient")
+  adminNotes             AdminNote[]         @relation("AdminAuthor")
+  adminNotesAboutUser    AdminNote[]         @relation("AdminSubject")
+  assignmentMembers      AssignmentMember[]
+  assignmentRunsCreated  AssignmentRun[]     @relation("AssignmentRunCreator")
+  assignmentRunsApproved AssignmentRun[]     @relation("AssignmentRunApprover")
 
   @@index([role, isActive])
   @@index([createdAt])
@@ -190,8 +208,9 @@ model Season {
   status    SeasonStatus @default(PLANNING)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
-  cohorts   Cohort[]
-  events    Event[]
+  cohorts        Cohort[]
+  events         Event[]
+  assignmentRuns AssignmentRun[]
 
   @@index([status, startsAt])
 }
@@ -205,9 +224,10 @@ model Cohort {
   capacity    Int
   createdAt   DateTime           @default(now())
   updatedAt   DateTime           @updatedAt
-  season      Season             @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-  memberships CohortMembership[]
-  events      Event[]
+  season              Season               @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  memberships         CohortMembership[]
+  events              Event[]
+  assignmentProposals AssignmentProposal[]
 
   @@index([seasonId, status])
 }
@@ -371,6 +391,58 @@ model AdminNote {
   @@index([adminId, createdAt])
   @@index([subjectUserId])
   @@index([applicationId])
+}
+
+model AssignmentRun {
+  id            String              @id @default(cuid())
+  seasonId      String
+  status        AssignmentRunStatus @default(DRAFT)
+  configJson    Json
+  scoreSnapshot Json?
+  errorMessage  String?
+  createdById   String
+  approvedAt    DateTime?
+  approvedById  String?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  season     Season               @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  createdBy  User                 @relation("AssignmentRunCreator", fields: [createdById], references: [id])
+  approvedBy User?                @relation("AssignmentRunApprover", fields: [approvedById], references: [id])
+  proposals  AssignmentProposal[]
+
+  @@index([seasonId, status])
+  @@index([createdAt])
+}
+
+model AssignmentProposal {
+  id            String  @id @default(cuid())
+  runId         String
+  cohortId      String
+  score         Float?
+  rationaleJson Json?
+  createdAt     DateTime @default(now())
+
+  run     AssignmentRun      @relation(fields: [runId], references: [id], onDelete: Cascade)
+  cohort  Cohort             @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  members AssignmentMember[]
+
+  @@unique([runId, cohortId])
+  @@index([cohortId])
+}
+
+model AssignmentMember {
+  id              String                   @id @default(cuid())
+  proposalId      String
+  userId          String
+  decision        AssignmentMemberDecision @default(PROPOSED)
+  signalBreakdown Json?
+
+  proposal AssignmentProposal @relation(fields: [proposalId], references: [id], onDelete: Cascade)
+  user     User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([proposalId, userId])
+  @@index([userId])
 }
 
 model Account {

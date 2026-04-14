@@ -40,3 +40,5 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+exports/
+thecommoncollective-phase1-8-source.zip
