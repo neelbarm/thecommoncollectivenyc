@@ -5,6 +5,8 @@ import { z } from "zod";
 import { sendEmail } from "@/lib/email/sender";
 import { prisma } from "@/lib/prisma";
 
+const MAX_SEND_ATTEMPTS = 3;
+
 const dispatchSchema = z.object({
   limit: z.number().int().min(1).max(100).optional().default(25),
 });
@@ -41,7 +43,10 @@ export async function POST(request: Request) {
   }
 
   const pending = await prisma.emailOutbox.findMany({
-    where: { status: EmailOutboxStatus.PENDING },
+    where: {
+      status: { in: [EmailOutboxStatus.PENDING, EmailOutboxStatus.FAILED] },
+      attempts: { lt: MAX_SEND_ATTEMPTS },
+    },
     orderBy: { createdAt: "asc" },
     take: parsed.data.limit,
     select: {
@@ -76,11 +81,15 @@ export async function POST(request: Request) {
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown email send error";
+      const nextAttempts = item.attempts + 1;
       await prisma.emailOutbox.update({
         where: { id: item.id },
         data: {
-          status: EmailOutboxStatus.FAILED,
-          attempts: item.attempts + 1,
+          status:
+            nextAttempts >= MAX_SEND_ATTEMPTS
+              ? EmailOutboxStatus.FAILED
+              : EmailOutboxStatus.PENDING,
+          attempts: nextAttempts,
           lastError: message.slice(0, 1000),
         },
       });

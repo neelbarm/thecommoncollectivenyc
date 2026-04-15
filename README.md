@@ -45,7 +45,18 @@ The Common Collective is a production-minded Next.js MVP with:
   - adding a member to a cohort enqueues a `COHORT_WELCOME` outbox email
   - publishing an event (create as `PUBLISHED` or status transition to `PUBLISHED`) enqueues `EVENT_PUBLISHED` emails for relevant members
 - Delivery model: outbox rows are created during admin writes; actual SMTP sending is done by `POST /api/internal/email/dispatch` (authorized by bearer token).
-- Outbox table tracks status (`PENDING` / `SENT` / `FAILED`), attempts, and dedupe keys to prevent duplicate sends.
+- Outbox table tracks status (`PENDING` / `SENT` / `FAILED`), attempts (auto-retries up to 3 sends), and dedupe keys to prevent duplicate sends.
+
+#### Manual email dispatch run (outbox)
+
+Use this from a secure runner/cron after setting `EMAIL_DISPATCH_TOKEN`:
+
+```bash
+curl -X POST "https://your-domain.com/api/internal/email/dispatch" \
+  -H "Authorization: Bearer $EMAIL_DISPATCH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"limit":25}'
+```
 
 ### Manual concierge operations (primary workflow)
 - **Seasons:** `/admin/seasons` — list program windows, **create** seasons (unique code), **edit** name/code/status/dates; shrinking dates blocked if any event would fall outside the new window
