@@ -59,8 +59,8 @@ export function EventCard({
   onOpenDetail: () => void;
 }) {
   return (
-    <Card className="border-border/70 bg-card/90 shadow-soft">
-      <CardHeader className="space-y-3">
+    <Card className="surface-panel">
+      <CardHeader className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           {isPriority ? <Badge variant="default">Cohort priority</Badge> : null}
           {event.cohortTag ? <Badge variant="outline">{event.cohortTag}</Badge> : <Badge variant="outline">Open event</Badge>}
@@ -68,7 +68,7 @@ export function EventCard({
           <Badge variant={event.rsvpStatus === "GOING" ? "default" : "outline"}>{rsvpDisplay(event.rsvpStatus)}</Badge>
         </div>
         <CardTitle className="text-2xl">{event.title}</CardTitle>
-        <CardDescription className="leading-7">{event.description}</CardDescription>
+        <CardDescription className="prose-calm">{event.description}</CardDescription>
       </CardHeader>
 
       <CardContent className="space-y-4">

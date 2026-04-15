@@ -9,6 +9,7 @@ import {
   enqueueEmailOutbox,
   eventPublishedEmailTemplate,
 } from "@/lib/email/outbox";
+import { trackEvent } from "@/lib/analytics/track";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -171,6 +172,19 @@ export async function POST(request: Request) {
           });
         }),
       );
+
+      await trackEvent({
+        name: "event_published",
+        actorUserId: session.user.id,
+        path: "/api/admin/events",
+        metadata: {
+          eventId: event.id,
+          seasonId: event.seasonId,
+          cohortId: event.cohortId,
+          recipientCount: recipients.length,
+        },
+        dedupeKey: `event-published:create:${event.id}`,
+      });
     }
 
     return NextResponse.json({ ok: true, event }, { status: 201 });

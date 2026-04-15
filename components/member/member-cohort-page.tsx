@@ -57,7 +57,7 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
     const ctaLabel = needsProfile ? "Set up my profile" : needsOnboarding ? "Continue onboarding" : "Back to dashboard";
 
     return (
-      <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
+      <Card className="surface-dashed">
         <CardHeader>
           <CardTitle>{title}</CardTitle>
           <CardDescription className="text-sm leading-7 text-muted-foreground">{description}</CardDescription>
@@ -72,8 +72,8 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
   }
 
   return (
-    <div className="space-y-6">
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+    <div className="space-y-7">
+      <Card className="surface-panel">
         <CardHeader className="space-y-2">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
@@ -83,7 +83,7 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
             <Badge variant="outline">{data.cohort.membershipStatus}</Badge>
           </div>
           <CardTitle className="text-3xl leading-tight sm:text-4xl">{data.cohort.name}</CardTitle>
-          <CardDescription className="max-w-3xl text-sm leading-7 text-muted-foreground">
+          <CardDescription className="prose-calm max-w-3xl">
             {data.cohort.seasonName}
             {data.cohort.joinedAt
               ? ` · Joined ${new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric", year: "numeric" }).format(new Date(data.cohort.joinedAt))}`
@@ -103,15 +103,18 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-lg">Members</CardTitle>
           <CardDescription>Your cohort roster ({data.members.length}).</CardDescription>
         </CardHeader>
         <CardContent>
-          <ul className="divide-y divide-border/60 rounded-lg border border-border/60">
+          <ul className="rounded-xl border border-border/60 bg-background/35">
             {data.members.map((m) => (
-              <li key={m.id} className="flex flex-wrap items-baseline justify-between gap-2 px-3 py-2.5 text-sm">
+              <li
+                key={m.id}
+                className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border/45 px-4 py-3 text-sm last:border-b-0"
+              >
                 <span className="font-medium text-foreground">
                   {m.firstName} {m.lastName}
                 </span>
@@ -122,14 +125,14 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-lg">Upcoming cohort events</CardTitle>
           <CardDescription>Published events tied to your cohort.</CardDescription>
         </CardHeader>
         <CardContent>
           {data.upcomingEvents.length === 0 ? (
-            <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
+            <div className="surface-dashed space-y-3 p-4">
               <p className="font-medium text-foreground">No published plans yet</p>
               <p className="text-sm text-muted-foreground">
                 When your cohort’s next gathering is live, it will appear here. You can also RSVP from the main events
@@ -142,10 +145,7 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
           ) : (
             <ul className="space-y-3">
               {data.upcomingEvents.map((ev) => (
-                <li
-                  key={ev.id}
-                  className="rounded-lg border border-border/60 bg-background/40 p-3 text-sm"
-                >
+                <li key={ev.id} className="dense-row text-sm">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div>
                       <p className="font-medium text-foreground">{ev.title}</p>

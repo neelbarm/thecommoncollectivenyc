@@ -165,17 +165,17 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
   return (
     <div className="space-y-6">
       {error ? (
-        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="status-banner border-destructive/30 bg-destructive/6 text-destructive" role="alert">
           {error}
         </p>
       ) : null}
       {feedback ? (
-        <p className="rounded-md border border-emerald-400/30 bg-emerald-50/50 px-3 py-2 text-sm text-emerald-800" role="status">
+        <p className="status-banner border-emerald-400/35 bg-emerald-50/55 text-emerald-800" role="status">
           {feedback}
         </p>
       ) : null}
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Create cohort</CardTitle>
           <CardDescription className="text-xs">New cohort in a season. Slug is generated from the name.</CardDescription>
@@ -189,7 +189,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
               id="new-season"
               value={newSeasonId}
               onChange={(e) => setNewSeasonId(e.target.value)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               {data.seasons.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -237,7 +237,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
               id="new-status"
               value={newStatus}
               onChange={(e) => setNewStatus(e.target.value as typeof newStatus)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               <option value="FORMING">FORMING</option>
               <option value="ACTIVE">ACTIVE</option>
@@ -252,7 +252,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">All cohorts</CardTitle>
           <CardDescription className="text-xs">{data.cohorts.length} cohorts</CardDescription>
@@ -262,7 +262,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
             <p className="text-sm text-muted-foreground">No cohorts yet.</p>
           ) : (
             data.cohorts.map((c) => (
-              <div key={c.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <div key={c.id} className="dense-row">
                 <button
                   type="button"
                   className="flex w-full items-start justify-between gap-2 text-left"
@@ -297,7 +297,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
                         <div className="space-y-1">
                           <label className="text-xs text-muted-foreground">Status</label>
                           <select
-                            className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                            className="luxury-select"
                             defaultValue={c.status}
                             id={`st-${c.id}`}
                           >
@@ -338,7 +338,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
                       <p className="text-xs font-medium text-muted-foreground">Add member</p>
                       <div className="flex flex-wrap gap-2">
                         <select
-                          className="h-9 min-w-[200px] rounded-md border border-input bg-transparent px-2 text-sm"
+                          className="luxury-select min-w-[220px]"
                           value={addUserByCohort[c.id] ?? ""}
                           onChange={(e) =>
                             setAddUserByCohort((p) => ({ ...p, [c.id]: e.target.value }))
@@ -358,8 +358,8 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
                       </div>
                     </div>
 
-                    <div className="overflow-x-auto">
-                      <table className="w-full text-xs">
+                    <div className="surface-subtle overflow-x-auto p-2">
+                      <table className="w-full text-xs [th]:font-medium [th]:tracking-wide [th]:text-muted-foreground/90">
                         <thead>
                           <tr className="border-b text-left text-muted-foreground">
                             <th className="pb-2 pr-2">Member</th>
@@ -369,14 +369,14 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
                         </thead>
                         <tbody>
                           {c.members.map((m) => (
-                            <tr key={m.membershipId} className="border-b border-border/30">
+                            <tr key={m.membershipId} className="border-b border-border/30 transition-colors hover:bg-oat/35">
                               <td className="py-2 pr-2">
                                 <span className="font-medium">{m.name}</span>
                                 <span className="block text-muted-foreground">{m.email}</span>
                               </td>
                               <td className="py-2 pr-2">
                                 <select
-                                  className="h-8 rounded-md border border-input bg-transparent px-1 text-xs"
+                                  className="luxury-select h-8 px-2 text-xs"
                                   value={m.status}
                                   onChange={(e) =>
                                     onMembershipStatus(c.id, m.membershipId, e.target.value)
@@ -393,7 +393,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
                                 <Button
                                   size="sm"
                                   variant="ghost"
-                                  className="h-7 text-xs text-destructive"
+                                  className="h-7 text-xs text-destructive hover:bg-destructive/8"
                                   onClick={() => onRemoveMember(c.id, m.membershipId)}
                                   disabled={isPending}
                                 >

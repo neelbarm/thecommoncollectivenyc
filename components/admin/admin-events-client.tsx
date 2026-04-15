@@ -299,7 +299,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                     setEditSeasonId(e.target.value);
                     setEditCohortId("");
                   }}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                  className="luxury-select"
                 >
                   {data.seasons.map((s) => (
                     <option key={s.id} value={s.id}>
@@ -324,7 +324,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                 <select
                   value={editVenueId}
                   onChange={(e) => setEditVenueId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                  className="luxury-select"
                 >
                   {data.venues.map((v) => (
                     <option key={v.id} value={v.id}>
@@ -338,7 +338,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                 <select
                   value={editCohortId}
                   onChange={(e) => setEditCohortId(e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                  className="luxury-select"
                 >
                   <option value="">All season / no cohort</option>
                   {cohortsForEditSeason.map((c) => (
@@ -363,7 +363,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                  className="luxury-select"
                 >
                   <option value="DRAFT">DRAFT</option>
                   <option value="PUBLISHED">PUBLISHED</option>
@@ -393,17 +393,17 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
       ) : null}
 
       {error ? (
-        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="status-banner border-destructive/30 bg-destructive/6 text-destructive" role="alert">
           {error}
         </p>
       ) : null}
       {feedback ? (
-        <p className="rounded-md border border-emerald-400/30 bg-emerald-50/50 px-3 py-2 text-sm text-emerald-800" role="status">
+        <p className="status-banner border-emerald-400/35 bg-emerald-50/55 text-emerald-800" role="status">
           {feedback}
         </p>
       ) : null}
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Create event</CardTitle>
           <CardDescription className="text-xs">
@@ -419,7 +419,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                 setSeasonId(e.target.value);
                 setCohortId("");
               }}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               {data.seasons.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -433,7 +433,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
             <select
               value={cohortId}
               onChange={(e) => setCohortId(e.target.value)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               <option value="">All season / no cohort</option>
               {cohortsForSeason.map((c) => (
@@ -448,7 +448,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
             <select
               value={venueId}
               onChange={(e) => setVenueId(e.target.value)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               {data.venues.map((v) => (
                 <option key={v.id} value={v.id}>
@@ -474,7 +474,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
             <select
               value={createStatus}
               onChange={(e) => setCreateStatus(e.target.value as typeof createStatus)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               <option value="DRAFT">DRAFT</option>
               <option value="PUBLISHED">PUBLISHED</option>
@@ -501,7 +501,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Recent events</CardTitle>
           <CardDescription className="text-xs">
@@ -512,8 +512,8 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
           {data.events.length === 0 ? (
             <p className="text-sm text-muted-foreground">No events yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+            <div className="surface-subtle overflow-x-auto p-2">
+              <table className="w-full text-xs [th]:font-medium [th]:tracking-wide [th]:text-muted-foreground/90">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="pb-2 pr-2">Title</th>
@@ -526,7 +526,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                 </thead>
                 <tbody>
                   {data.events.map((ev) => (
-                    <tr key={ev.id} className="border-b border-border/30">
+                    <tr key={ev.id} className="border-b border-border/30 transition-colors hover:bg-oat/35">
                       <td className="py-2 pr-2 font-medium">{ev.title}</td>
                       <td className="py-2 pr-2 text-muted-foreground">
                         {new Intl.DateTimeFormat("en-US", {

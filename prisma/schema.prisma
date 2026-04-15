@@ -114,6 +114,23 @@ enum EmailOutboxStatus {
   FAILED
 }
 
+enum AnalyticsEventName {
+  signup_started
+  signup_completed
+  onboarding_started
+  onboarding_step_completed
+  onboarding_completed
+  cohort_assigned
+  event_published
+  event_rsvped
+  drop_posted
+}
+
+enum AnalyticsEventSource {
+  SERVER
+  CLIENT
+}
+
 model User {
   id                   String              @id @default(cuid())
   email                String              @unique
@@ -142,6 +159,7 @@ model User {
   assignmentMembers      AssignmentMember[]
   assignmentRunsCreated  AssignmentRun[]     @relation("AssignmentRunCreator")
   assignmentRunsApproved AssignmentRun[]     @relation("AssignmentRunApprover")
+  analyticsEvents        AnalyticsEvent[]
 
   @@index([role, isActive])
   @@index([createdAt])
@@ -473,6 +491,24 @@ model EmailOutbox {
   updatedAt      DateTime         @updatedAt
 
   @@index([status, createdAt])
+}
+
+model AnalyticsEvent {
+  id          String               @id @default(cuid())
+  name        AnalyticsEventName
+  source      AnalyticsEventSource @default(SERVER)
+  actorUserId String?
+  anonymousId String?
+  path        String?
+  metadata    Json?
+  dedupeKey   String?              @unique
+  createdAt   DateTime             @default(now())
+
+  actorUser User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([name, createdAt])
+  @@index([source, createdAt])
+  @@index([actorUserId, createdAt])
 }
 
 model Account {

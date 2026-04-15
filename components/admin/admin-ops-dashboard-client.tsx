@@ -129,6 +129,9 @@ function statusTone(status: string) {
   return "outline" as const;
 }
 
+const filterSelectClass = "luxury-select";
+const inlineSelectClass = "luxury-select h-8 rounded-lg px-2.5 text-xs";
+
 function SectionCard({
   title,
   description,
@@ -139,10 +142,10 @@ function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <Card className="border-border/70 bg-card/90 shadow-soft">
+    <Card className="surface-panel">
       <CardHeader>
-        <CardTitle>{title}</CardTitle>
-        <CardDescription>{description}</CardDescription>
+        <CardTitle className="text-xl">{title}</CardTitle>
+        <CardDescription className="prose-calm max-w-3xl text-sm">{description}</CardDescription>
       </CardHeader>
       <CardContent>{children}</CardContent>
     </Card>
@@ -542,33 +545,33 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
   }
 
   return (
-    <div className="space-y-6">
-      <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-5">
-        <Card className="border-border/70 bg-card/90">
+    <div className="space-y-7">
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+        <Card className="surface-panel">
           <CardHeader className="pb-2">
             <CardDescription>Total members</CardDescription>
             <CardTitle className="text-3xl">{data.overview.totalMembers}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-border/70 bg-card/90">
+        <Card className="surface-panel">
           <CardHeader className="pb-2">
             <CardDescription>Total applications</CardDescription>
             <CardTitle className="text-3xl">{data.overview.totalApplications}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-border/70 bg-card/90">
+        <Card className="surface-panel">
           <CardHeader className="pb-2">
             <CardDescription>Total cohorts</CardDescription>
             <CardTitle className="text-3xl">{data.overview.totalCohorts}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-border/70 bg-card/90">
+        <Card className="surface-panel">
           <CardHeader className="pb-2">
             <CardDescription>Upcoming events</CardDescription>
             <CardTitle className="text-3xl">{data.overview.upcomingEvents}</CardTitle>
           </CardHeader>
         </Card>
-        <Card className="border-border/70 bg-card/90">
+        <Card className="surface-panel">
           <CardHeader className="pb-2">
             <CardDescription>Active Drop requests</CardDescription>
             <CardTitle className="text-3xl">{data.overview.activeDropRequests}</CardTitle>
@@ -576,7 +579,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         </Card>
       </section>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="surface-subtle flex flex-wrap gap-2 p-3">
         <Button asChild size="sm" variant="outline">
           <Link href="/admin/seasons">Seasons (programs) →</Link>
         </Button>
@@ -594,7 +597,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         </Button>
       </div>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle>Filters</CardTitle>
           <CardDescription>Slice by season, cohort, status, or quick text match.</CardDescription>
@@ -603,7 +606,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           <select
             value={filters.seasonId}
             onChange={(event) => setFilters((previous) => ({ ...previous, seasonId: event.target.value }))}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className={filterSelectClass}
             aria-label="Filter by season"
           >
             <option value="ALL">All seasons</option>
@@ -616,7 +619,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           <select
             value={filters.cohortId}
             onChange={(event) => setFilters((previous) => ({ ...previous, cohortId: event.target.value }))}
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className={filterSelectClass}
             aria-label="Filter by cohort"
           >
             <option value="ALL">All cohorts</option>
@@ -634,7 +637,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                 applicationStatus: parseApplicationStatus(event.target.value),
               }))
             }
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className={filterSelectClass}
             aria-label="Filter by application status"
           >
             <option value="ALL">All application statuses</option>
@@ -652,7 +655,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                 eventStatus: parseEventStatus(event.target.value),
               }))
             }
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className={filterSelectClass}
             aria-label="Filter by event status"
           >
             <option value="ALL">All event statuses</option>
@@ -670,7 +673,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                 dropRequestStatus: parseDropRequestStatus(event.target.value),
               }))
             }
-            className="h-9 rounded-lg border border-input bg-transparent px-2 text-sm"
+            className={filterSelectClass}
             aria-label="Filter by Drop request status"
           >
             <option value="ALL">All Drop statuses</option>
@@ -690,16 +693,16 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
       </Card>
 
       {feedback ? (
-        <p role="status" aria-live="polite" className="text-sm text-emerald-700">
+        <p role="status" aria-live="polite" className="status-banner border-emerald-700/20 bg-emerald-700/8 text-emerald-800 dark:text-emerald-300">
           {feedback}
         </p>
       ) : null}
       {error ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="status-banner border-destructive/30 bg-destructive/6 text-destructive">
           {error}
         </p>
       ) : null}
-      {isPending ? <p className="text-xs text-muted-foreground">Saving updates…</p> : null}
+      {isPending ? <p className="status-banner border-border/55 bg-card/55 text-xs text-muted-foreground">Saving updates…</p> : null}
 
       <SectionCard
         title="Applications"
@@ -710,7 +713,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         ) : (
           <div className="space-y-3">
             {filtered.applications.map((application) => (
-              <div key={application.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <div key={application.id} className="dense-row">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-medium text-foreground">{application.memberName}</p>
@@ -727,7 +730,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                       }}
                       disabled={isPending}
                       aria-label={`Update status for ${application.memberName}`}
-                      className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                      className={inlineSelectClass}
                     >
                       {data.filterOptions.applicationStatuses.map((status) => (
                         <option key={status} value={status}>
@@ -757,7 +760,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         ) : (
           <div className="space-y-3">
             {filtered.members.map((member) => (
-              <div key={member.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <div key={member.id} className="dense-row">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-medium text-foreground">{member.name}</p>
                   <div className="flex gap-2">
@@ -814,7 +817,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           </div>
           <div className="mt-3 space-y-2">
             {filtered.rsvps.slice(0, 12).map((rsvp) => (
-              <div key={rsvp.id} className="rounded-md border border-border/60 px-2 py-1.5 text-xs">
+              <div key={rsvp.id} className="dense-row px-3 py-2 text-xs">
                 <span className="font-medium">{rsvp.memberName}</span> · {rsvp.status} · {rsvp.eventTitle} ·{" "}
                 {formatDateTime(rsvp.respondedAt)}
               </div>
@@ -836,7 +839,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           ) : (
             <div className="space-y-2">
               {filtered.cohorts.map((cohort) => (
-                <div key={cohort.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+                <div key={cohort.id} className="dense-row">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="font-medium text-foreground">{cohort.name}</p>
@@ -855,7 +858,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                         }}
                         disabled={isPending}
                         aria-label={`Update status for ${cohort.name}`}
-                        className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                        className={inlineSelectClass}
                       >
                         {data.filterOptions.cohortStatuses.map((status) => (
                           <option key={status} value={status}>
@@ -884,7 +887,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           ) : (
             <div className="space-y-2">
               {filtered.seasons.map((season) => (
-                <div key={season.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+                <div key={season.id} className="dense-row">
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <p className="font-medium text-foreground">
@@ -905,7 +908,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                         }}
                         disabled={isPending}
                         aria-label={`Update status for ${season.code}`}
-                        className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                        className={inlineSelectClass}
                       >
                         {data.filterOptions.seasonStatuses.map((status) => (
                           <option key={status} value={status}>
@@ -934,7 +937,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         ) : (
           <div className="space-y-2">
             {filtered.events.map((event) => (
-              <div key={event.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <div key={event.id} className="dense-row">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-medium text-foreground">{event.title}</p>
@@ -953,7 +956,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                       }}
                       disabled={isPending}
                       aria-label={`Update status for ${event.title}`}
-                      className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                      className={inlineSelectClass}
                     >
                       {data.filterOptions.eventStatuses.map((status) => (
                         <option key={status} value={status}>
@@ -982,7 +985,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         ) : (
           <div className="space-y-2">
             {filtered.dropRequests.map((request) => (
-              <div key={request.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <div key={request.id} className="dense-row">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <p className="font-medium text-foreground">{request.title}</p>
@@ -1001,7 +1004,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                       }}
                       disabled={isPending}
                       aria-label={`Update status for Drop request by ${request.requesterName}`}
-                      className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                      className={inlineSelectClass}
                     >
                       {data.filterOptions.dropRequestStatuses.map((status) => (
                         <option key={status} value={status}>
@@ -1059,7 +1062,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           title="Admin notes"
           description="Operational context and member/application annotations."
         >
-          <div className="space-y-2 rounded-lg border border-border/60 bg-background/40 p-3">
+          <div className="surface-subtle space-y-2 p-3">
             <Textarea
               value={noteDraft}
               onChange={(event) => setNoteDraft(event.target.value)}
@@ -1073,7 +1076,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                 value={noteSubjectUserId}
                 onChange={(event) => setNoteSubjectUserId(event.target.value)}
                 aria-label="Note subject member"
-                className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                className={inlineSelectClass}
               >
                 <option value="NONE">No subject member</option>
                 {data.members.map((member) => (
@@ -1086,7 +1089,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                 value={noteApplicationId}
                 onChange={(event) => setNoteApplicationId(event.target.value)}
                 aria-label="Linked application"
-                className="h-8 rounded-md border border-input bg-transparent px-2 text-xs"
+                className={inlineSelectClass}
               >
                 <option value="NONE">No linked application</option>
                 {data.applications.map((application) => (
@@ -1106,7 +1109,7 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
               <p className="text-sm text-muted-foreground">No notes yet.</p>
             ) : (
               data.adminNotes.slice(0, 12).map((note) => (
-                <div key={note.id} className="rounded-md border border-border/60 bg-background/40 p-2.5">
+                <div key={note.id} className="dense-row p-3">
                   <p className="text-sm text-foreground">{note.body}</p>
                   <p className="mt-1 text-xs text-muted-foreground">
                     {note.adminName} · {formatDateTime(note.createdAt)} ·{" "}
