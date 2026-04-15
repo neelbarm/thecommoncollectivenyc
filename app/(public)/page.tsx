@@ -30,31 +30,61 @@ export default function HomePage() {
   return (
     <main>
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-24">
-        <div className="space-y-8">
-          <Badge
-            variant="outline"
-            className="border-muted-gold/35 bg-transparent px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.28em] text-muted-foreground"
-          >
-            New York City Membership
-          </Badge>
-          <h1 className="max-w-[18ch] font-heading text-[2.5rem] leading-[1.06] text-foreground sm:text-5xl lg:text-[3.35rem]">
-            A live members club for people who want real social rhythm.
-          </h1>
-          <p className="prose-calm max-w-2xl">
-            The Common Collective is a non-exclusive NYC membership designed around recurring gatherings, small cohorts,
-            and meaningful city connection.
-          </p>
-          <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
-            <Button asChild size="lg" className="h-12 rounded-full px-8 text-[0.8125rem] tracking-[0.12em] uppercase">
-              <Link href="/apply">
-                Start your application
-                <ArrowRight className="ml-2 h-4 w-4 opacity-80" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-8 text-[0.8125rem] tracking-wide">
-              <Link href="/login">Member login</Link>
-            </Button>
+        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+          <div className="space-y-8">
+            <Badge
+              variant="outline"
+              className="border-muted-gold/35 bg-transparent px-3 py-1 text-[0.65rem] font-medium uppercase tracking-[0.28em] text-muted-foreground"
+            >
+              New York City Membership
+            </Badge>
+            <h1 className="max-w-[18ch] font-heading text-[2.5rem] leading-[1.06] text-foreground sm:text-5xl lg:text-[3.35rem]">
+              A live members club for people who want real social rhythm.
+            </h1>
+            <p className="prose-calm max-w-2xl">
+              The Common Collective is a non-exclusive NYC membership designed around recurring gatherings, small cohorts,
+              and meaningful city connection.
+            </p>
+            <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
+              <Button asChild size="lg" className="h-12 rounded-full px-8 text-[0.8125rem] tracking-[0.12em] uppercase">
+                <Link href="/apply">
+                  Start your application
+                  <ArrowRight className="ml-2 h-4 w-4 opacity-80" />
+                </Link>
+              </Button>
+              <Button
+                asChild
+                size="lg"
+                variant="outline"
+                className="h-12 rounded-full px-8 text-[0.8125rem] tracking-wide"
+              >
+                <Link href="/login">Member login</Link>
+              </Button>
+            </div>
           </div>
+
+          <Card className="surface-panel overflow-hidden border-border/65 bg-card/85">
+            <CardContent className="relative p-0">
+              <div className="relative h-[280px] w-full bg-[radial-gradient(circle_at_70%_22%,oklch(0.95_0.03_75_/0.7),transparent_56%),linear-gradient(to_bottom,oklch(0.97_0.02_80),oklch(0.9_0.02_85))]">
+                <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,oklch(0.24_0.02_65_/0.9),transparent)]" />
+                <svg
+                  viewBox="0 0 820 280"
+                  aria-hidden="true"
+                  className="absolute inset-x-0 bottom-0 h-[58%] w-full text-[oklch(0.24_0.02_65_/_0.9)]"
+                >
+                  <path
+                    d="M0 280V206h30v-52h28v34h24v-64h26v40h22v-84h34v66h20v-46h24v34h18v-56h30v76h26v-30h22v42h28v-72h24v54h18v-32h34v50h22v-86h30v60h24v-44h20v28h30v-62h34v52h18v-30h26v46h28v-24h24v38h26v-60h30v44h24v-34h20v50h26v-38h24v56h34v-66h26v86h26v-34h28v44h34v-60h26v74h28v-30h30v46h42V280Z"
+                    fill="currentColor"
+                  />
+                </svg>
+              </div>
+              <div className="surface-subtle grid gap-2 border-t border-border/40 p-5 text-xs text-muted-foreground sm:grid-cols-3">
+                <p className="uppercase tracking-[0.18em]">Downtown dinners</p>
+                <p className="uppercase tracking-[0.18em]">Neighborhood salons</p>
+                <p className="uppercase tracking-[0.18em]">Recurring cohorts</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 
