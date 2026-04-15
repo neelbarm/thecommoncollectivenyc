@@ -10,6 +10,7 @@ import {
   enqueueEmailOutbox,
   eventPublishedEmailTemplate,
 } from "@/lib/email/outbox";
+import { trackEvent } from "@/lib/analytics/track";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -208,6 +209,21 @@ export async function PATCH(
           });
         }),
       );
+
+      await trackEvent({
+        name: "event_published",
+        source: "SERVER",
+        actorUserId: session.user.id,
+        dedupeKey: `event-published:${updated.id}`,
+        metadata: {
+          eventId: updated.id,
+          seasonId: updated.seasonId,
+          cohortId: updated.cohortId,
+          venueId: updated.venueId,
+          recipientCount: recipients.length,
+          publishedVia: "update",
+        },
+      });
     }
 
     return NextResponse.json({ ok: true, event: updated });

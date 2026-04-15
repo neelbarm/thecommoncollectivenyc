@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { prisma } from "@/lib/prisma";
 import { hashPassword } from "@/lib/auth/password";
+import { trackEvent } from "@/lib/analytics/track";
 import { signupSchema } from "@/lib/validations/auth";
 
 export async function POST(request: Request) {
@@ -39,7 +40,7 @@ export async function POST(request: Request) {
   const passwordHash = await hashPassword(parsed.data.password);
 
   try {
-    await prisma.user.create({
+    const user = await prisma.user.create({
       data: {
         email,
         passwordHash,
@@ -49,6 +50,16 @@ export async function POST(request: Request) {
           create: {},
         },
       },
+      select: { id: true },
+    });
+
+    await trackEvent({
+      name: "signup_completed",
+      actorUserId: user.id,
+      metadata: {
+        source: "credentials",
+      },
+      dedupeKey: `signup-completed:${user.id}`,
     });
   } catch {
     return NextResponse.json({ error: "Unable to create account right now." }, { status: 500 });

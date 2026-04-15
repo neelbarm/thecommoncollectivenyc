@@ -8,6 +8,7 @@ import {
 } from "@/lib/onboarding/constants";
 import { prisma } from "@/lib/prisma";
 import { onboardingDraftSchema, onboardingSchema } from "@/lib/validations/onboarding";
+import { trackEvent } from "@/lib/analytics/track";
 
 type OnboardingPayload = {
   firstName?: string;
@@ -471,6 +472,20 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ error: "Unable to complete onboarding." }, { status: 500 });
   }
+
+  await trackEvent({
+    name: "onboarding_completed",
+    actorUserId: session.user.id,
+    path: "/api/onboarding",
+    metadata: {
+      applicationId,
+      interestsCount: data.interests.length,
+      preferredVibeCount: data.preferredVibe.length,
+      preferredNights: data.preferredNights,
+      plansFrequency: data.plansFrequency,
+    },
+    dedupeKey: `onboarding-completed:${session.user.id}:${applicationId}`,
+  });
 
   return NextResponse.json({ ok: true });
 }

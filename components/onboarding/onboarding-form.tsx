@@ -1,7 +1,7 @@
 "use client";
 
 import { CheckCircle2, Loader2 } from "lucide-react";
-import { useEffect, useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
@@ -81,8 +81,31 @@ export function OnboardingForm() {
   const [isSavingDraft, startSavingDraft] = useTransition();
   const [isContinuing, setIsContinuing] = useState(false);
   const [isGoingBack, setIsGoingBack] = useState(false);
+  const onboardingStartTrackedRef = useRef(false);
 
   const progress = useMemo(() => ((stepIndex + 1) / TOTAL_STEPS) * 100, [stepIndex]);
+
+  async function trackClientEvent(
+    name: "onboarding_started" | "onboarding_step_completed",
+    metadata?: Record<string, unknown>,
+  ) {
+    try {
+      await fetch("/api/internal/analytics/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          metadata,
+          path: window.location.pathname,
+          anonymousId: `${window.location.pathname}:${Date.now()}`,
+        }),
+      });
+    } catch {
+      // best-effort telemetry
+    }
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -126,6 +149,17 @@ export function OnboardingForm() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (isLoading || onboardingStartTrackedRef.current) {
+      return;
+    }
+    onboardingStartTrackedRef.current = true;
+    void trackClientEvent("onboarding_started", {
+      currentStep: stepIndex + 1,
+      totalSteps: TOTAL_STEPS,
+    });
+  }, [isLoading, stepIndex]);
 
   useEffect(() => {
     if (isLoading || (isCompleted && !isEditingCompleted)) {
@@ -220,6 +254,10 @@ export function OnboardingForm() {
     if (!validateCurrentStep()) {
       return;
     }
+    void trackClientEvent("onboarding_step_completed", {
+      completedStep: stepIndex + 1,
+      totalSteps: TOTAL_STEPS,
+    });
     setIsContinuing(true);
     setStepIndex((current) => Math.min(current + 1, TOTAL_STEPS - 1));
   }

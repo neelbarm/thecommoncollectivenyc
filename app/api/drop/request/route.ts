@@ -5,6 +5,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { DROP_ACTIVITY_OPTIONS, DROP_TIMING_OPTIONS } from "@/lib/drop/constants";
 import { prisma } from "@/lib/prisma";
+import { trackEvent } from "@/lib/analytics/track";
 
 const createDropRequestSchema = z.object({
   activityType: z.enum(DROP_ACTIVITY_OPTIONS),
@@ -70,6 +71,19 @@ export async function POST(request: Request) {
         status: true,
         createdAt: true,
       },
+    });
+
+    await trackEvent({
+      name: "drop_posted",
+      actorUserId: session.user.id,
+      path: "/api/drop/request",
+      metadata: {
+        requestId: created.id,
+        activityType: parsed.data.activityType,
+        timing: parsed.data.timing,
+        hasNote: Boolean(parsed.data.note?.trim()),
+      },
+      dedupeKey: `drop-posted:${created.id}`,
     });
 
     return NextResponse.json({ ok: true, request: created }, { status: 201 });

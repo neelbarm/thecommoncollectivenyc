@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { trackEvent } from "@/lib/analytics/track";
 import { prisma } from "@/lib/prisma";
 
 const rsvpSchema = z.object({
@@ -108,6 +109,19 @@ export async function POST(request: Request) {
         eventId,
         status: RSVPStatus.GOING,
       },
+    });
+
+    await trackEvent({
+      name: "event_rsvped",
+      actorUserId: session.user.id,
+      path: "/api/events/rsvp",
+      metadata: {
+        eventId,
+        requestedStatus: status,
+        appliedStatus,
+        eventCapacity: event.capacity,
+      },
+      dedupeKey: `event-rsvped:${session.user.id}:${eventId}:${appliedStatus}`,
     });
 
     return NextResponse.json({
