@@ -48,6 +48,9 @@ export default async function AdminEventsPage() {
               <Button asChild size="sm" variant="outline">
                 <Link href="/admin/venues">Venues</Link>
               </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/admin/analytics">Analytics</Link>
+              </Button>
             </div>
           </section>
           <AdminEventsClient initialData={data} />
