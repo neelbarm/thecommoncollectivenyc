@@ -1,22 +1,23 @@
 import Link from "next/link";
 
-import { AdminCohortsClient } from "@/components/admin/admin-cohorts-client";
+import { AdminAnalyticsClient } from "@/components/admin/admin-analytics-client";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getAdminAnalyticsDashboardData } from "@/lib/admin/get-analytics-dashboard-data";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { getCohortManagementData } from "@/lib/admin/get-cohort-management-data";
 
-export default async function AdminCohortsPage() {
+export default async function AdminAnalyticsPage() {
   const session = await requireAdmin();
   if (!session?.user?.id) {
     return null;
   }
 
   try {
-    const data = await getCohortManagementData();
+    const data = await getAdminAnalyticsDashboardData();
+
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
@@ -26,34 +27,31 @@ export default async function AdminCohortsPage() {
               <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
                 Admin
               </Badge>
-              <Badge variant="outline">Cohorts</Badge>
+              <Badge variant="outline">Analytics</Badge>
             </div>
             <h1 className="font-heading text-4xl leading-tight text-foreground sm:text-5xl">
-              Manual cohort management
+              Launch instrumentation
             </h1>
             <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-              Create cohorts, edit details, and add or adjust members. No automation — concierge
-              control only.
+              Internal activation and engagement readout from the product event log. Lightweight,
+              durable, and manual-first.
             </p>
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline">
                 <Link href="/admin">Dashboard</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link href="/admin/seasons">Seasons</Link>
+                <Link href="/admin/cohorts">Cohorts</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
                 <Link href="/admin/events">Events</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link href="/admin/venues">Venues</Link>
-              </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link href="/admin/analytics">Analytics</Link>
+                <Link href="/admin/assignments">Assignments</Link>
               </Button>
             </div>
           </section>
-          <AdminCohortsClient initialData={data} />
+          <AdminAnalyticsClient data={data} />
         </main>
         <SiteFooter />
       </div>
@@ -63,14 +61,16 @@ export default async function AdminCohortsPage() {
       <div className="min-h-screen bg-background">
         <SiteHeader />
         <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-          <Card className="border-border/70 bg-card/90 shadow-soft">
+          <Card className="surface-panel">
             <CardHeader>
-              <CardTitle>Cohorts temporarily unavailable</CardTitle>
-              <CardDescription>Please refresh in a moment.</CardDescription>
+              <CardTitle>Analytics temporarily unavailable</CardTitle>
+              <CardDescription>
+                We hit an issue loading analytics data. Please refresh in a moment.
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline" size="sm">
-                <Link href="/admin/cohorts">Retry</Link>
+                <Link href="/admin/analytics">Retry</Link>
               </Button>
             </CardContent>
           </Card>
@@ -80,3 +80,4 @@ export default async function AdminCohortsPage() {
     );
   }
 }
+
