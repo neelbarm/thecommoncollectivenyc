@@ -6,8 +6,12 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
 const updateCohortSchema = z.object({
-  status: z.nativeEnum(CohortStatus),
+  status: z.nativeEnum(CohortStatus).optional(),
   capacity: z.number().int().min(1).max(100).optional(),
+  name: z.string().trim().min(2).max(80).optional(),
+  description: z.string().trim().max(400).nullable().optional(),
+}).refine((d) => Object.values(d).some((v) => v !== undefined), {
+  message: "At least one field must be provided.",
 });
 
 export async function PATCH(
@@ -51,11 +55,15 @@ export async function PATCH(
     const updated = await prisma.cohort.update({
       where: { id: cohortId },
       data: {
-        status: parsed.data.status,
-        capacity: parsed.data.capacity,
+        ...(parsed.data.status !== undefined && { status: parsed.data.status }),
+        ...(parsed.data.capacity !== undefined && { capacity: parsed.data.capacity }),
+        ...(parsed.data.name !== undefined && { name: parsed.data.name }),
+        ...(parsed.data.description !== undefined && { description: parsed.data.description }),
       },
       select: {
         id: true,
+        name: true,
+        description: true,
         status: true,
         capacity: true,
         updatedAt: true,

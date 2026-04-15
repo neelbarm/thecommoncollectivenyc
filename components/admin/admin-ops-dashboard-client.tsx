@@ -578,7 +578,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
 
       <div className="flex flex-wrap gap-2">
         <Button asChild size="sm" variant="outline">
-          <Link href="/admin/assignments">Cohort assignment engine →</Link>
+          <Link href="/admin/cohorts">Cohorts (manual) →</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/admin/events">Events (manual) →</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/admin/assignments">Assignment proposals →</Link>
         </Button>
       </div>
 

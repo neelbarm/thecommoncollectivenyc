@@ -220,6 +220,7 @@ model Cohort {
   seasonId    String
   name        String
   slug        String             @unique
+  description String?
   status      CohortStatus       @default(FORMING)
   capacity    Int
   createdAt   DateTime           @default(now())
