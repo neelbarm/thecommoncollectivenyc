@@ -6,6 +6,10 @@ import {
   assertCohortBelongsToSeason,
   assertEventTimesWithinSeason,
 } from "@/lib/admin/validate-event-program";
+import {
+  enqueueEmailOutbox,
+  eventPublishedEmailTemplate,
+} from "@/lib/email/outbox";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -61,6 +65,7 @@ export async function PATCH(
         cohortId: true,
         startsAt: true,
         endsAt: true,
+        status: true,
       },
     });
 
@@ -151,6 +156,59 @@ export async function PATCH(
         venueId: true,
       },
     });
+
+    const justPublished = existing.status !== "PUBLISHED" && updated.status === "PUBLISHED";
+
+    if (justPublished) {
+      const venue = await prisma.venue.findUnique({
+        where: { id: updated.venueId },
+        select: { name: true },
+      });
+
+      const recipients = await prisma.user.findMany({
+        where: {
+          isActive: true,
+          ...(updated.cohortId
+            ? {
+                cohortMemberships: {
+                  some: {
+                    cohortId: updated.cohortId,
+                    status: { in: ["ACTIVE", "INVITED"] },
+                  },
+                },
+              }
+            : {
+                cohortMemberships: {
+                  some: {
+                    status: { in: ["ACTIVE", "INVITED"] },
+                    cohort: { seasonId: updated.seasonId },
+                  },
+                },
+              }),
+        },
+        select: { id: true, firstName: true, lastName: true, email: true },
+      });
+
+      await Promise.all(
+        recipients.map((recipient) => {
+          const email = eventPublishedEmailTemplate({
+            memberFirstName: recipient.firstName,
+            eventTitle: updated.title,
+            startsAt: updated.startsAt,
+            venueName: venue?.name ?? "your venue",
+          });
+
+          return enqueueEmailOutbox({
+            type: "EVENT_PUBLISHED",
+            recipientEmail: recipient.email,
+            recipientName: `${recipient.firstName} ${recipient.lastName}`,
+            subject: email.subject,
+            htmlBody: email.htmlBody,
+            dedupeKey: `event-published:${updated.id}:${recipient.id}`,
+          });
+        }),
+      );
+    }
 
     return NextResponse.json({ ok: true, event: updated });
   } catch {
