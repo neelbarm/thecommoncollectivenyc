@@ -203,7 +203,7 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
                 <select
                   value={editStatus}
                   onChange={(e) => setEditStatus(e.target.value)}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                  className="luxury-select"
                 >
                   <option value="PLANNING">PLANNING</option>
                   <option value="LIVE">LIVE</option>
@@ -232,17 +232,17 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
       ) : null}
 
       {error ? (
-        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="status-banner border-destructive/30 bg-destructive/6 text-destructive" role="alert">
           {error}
         </p>
       ) : null}
       {feedback ? (
-        <p className="rounded-md border border-emerald-400/30 bg-emerald-50/50 px-3 py-2 text-sm text-emerald-800" role="status">
+        <p className="status-banner border-emerald-400/35 bg-emerald-50/55 text-emerald-800" role="status">
           {feedback}
         </p>
       ) : null}
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Create season</CardTitle>
           <CardDescription className="text-xs">
@@ -263,7 +263,7 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
             <select
               value={createStatus}
               onChange={(e) => setCreateStatus(e.target.value)}
-              className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+              className="luxury-select"
             >
               <option value="PLANNING">PLANNING</option>
               <option value="LIVE">LIVE</option>
@@ -286,7 +286,7 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Seasons</CardTitle>
           <CardDescription className="text-xs">Cohorts and events attach to a season.</CardDescription>
@@ -295,8 +295,8 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
           {data.seasons.length === 0 ? (
             <p className="text-sm text-muted-foreground">No seasons yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+            <div className="surface-subtle overflow-x-auto p-2">
+              <table className="w-full text-xs [th]:font-medium [th]:tracking-wide [th]:text-muted-foreground/90">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="pb-2 pr-2">Code</th>
@@ -310,7 +310,7 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
                 </thead>
                 <tbody>
                   {data.seasons.map((s) => (
-                    <tr key={s.id} className="border-b border-border/30">
+                    <tr key={s.id} className="border-b border-border/30 transition-colors hover:bg-oat/35">
                       <td className="py-2 pr-2 font-mono font-medium">{s.code}</td>
                       <td className="py-2 pr-2">{s.name}</td>
                       <td className="py-2 pr-2 text-muted-foreground">{formatWindow(s.startsAt, s.endsAt)}</td>

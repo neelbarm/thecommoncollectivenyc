@@ -239,17 +239,17 @@ export function AdminVenuesClient({ initialData }: { initialData: VenueManagemen
       ) : null}
 
       {error ? (
-        <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <p className="status-banner border-destructive/30 bg-destructive/6 text-destructive" role="alert">
           {error}
         </p>
       ) : null}
       {feedback ? (
-        <p className="rounded-md border border-emerald-400/30 bg-emerald-50/50 px-3 py-2 text-sm text-emerald-800" role="status">
+        <p className="status-banner border-emerald-400/35 bg-emerald-50/55 text-emerald-800" role="status">
           {feedback}
         </p>
       ) : null}
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Add venue</CardTitle>
           <CardDescription className="text-xs">
@@ -297,7 +297,7 @@ export function AdminVenuesClient({ initialData }: { initialData: VenueManagemen
         </CardContent>
       </Card>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-base">Venues</CardTitle>
           <CardDescription className="text-xs">
@@ -308,8 +308,8 @@ export function AdminVenuesClient({ initialData }: { initialData: VenueManagemen
           {data.venues.length === 0 ? (
             <p className="text-sm text-muted-foreground">No venues yet.</p>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-xs">
+            <div className="surface-subtle overflow-x-auto p-2">
+              <table className="w-full text-xs [th]:font-medium [th]:tracking-wide [th]:text-muted-foreground/90">
                 <thead>
                   <tr className="border-b text-left text-muted-foreground">
                     <th className="pb-2 pr-2">Name</th>
@@ -322,7 +322,7 @@ export function AdminVenuesClient({ initialData }: { initialData: VenueManagemen
                 </thead>
                 <tbody>
                   {data.venues.map((v) => (
-                    <tr key={v.id} className="border-b border-border/30">
+                    <tr key={v.id} className="border-b border-border/30 transition-colors hover:bg-oat/35">
                       <td className="py-2 pr-2 font-medium">{v.name}</td>
                       <td className="py-2 pr-2 text-muted-foreground">
                         {v.addressLine1}, {v.city} {v.state}
