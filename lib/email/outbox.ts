@@ -180,3 +180,49 @@ export function eventPublishedEmailTemplate({
     }),
   };
 }
+
+export function eventReminderEmailTemplate({
+  memberFirstName,
+  eventTitle,
+  startsAt,
+  venueName,
+}: {
+  memberFirstName: string;
+  eventTitle: string;
+  startsAt: Date;
+  venueName: string;
+}) {
+  const safeFirst = memberFirstName || "there";
+  const safeTitle = eventTitle || "Your upcoming event";
+  const safeVenue = venueName || "your venue";
+  const appBaseUrl = process.env.NEXTAUTH_URL?.trim() || "http://localhost:3000";
+  const safeFirstHtml = escapeHtml(safeFirst);
+  const safeTitleHtml = escapeHtml(safeTitle);
+  const safeVenueHtml = escapeHtml(safeVenue);
+  const when = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(startsAt);
+
+  return {
+    subject: `Reminder: ${safeTitle} starts soon`,
+    htmlBody: transactionalEmailShell({
+      preheader: `${safeTitle} starts soon.`,
+      eyebrow: "Event reminder",
+      title: "Upcoming event reminder",
+      bodyHtml: `
+        <p style="margin:0 0 12px;">Hi ${safeFirstHtml},</p>
+        <p style="margin:0 0 12px;">This is your reminder for the event you RSVP'd to:</p>
+        <p style="margin:0 0 4px;"><strong>${safeTitleHtml}</strong></p>
+        <p style="margin:0 0 4px;">${escapeHtml(when)}</p>
+        <p style="margin:0 0 12px;">${safeVenueHtml}</p>
+        <p style="margin:0;">See you there.</p>
+      `.trim(),
+      actionLabel: "View event",
+      actionHref: `${appBaseUrl}/events`,
+    }),
+  };
+}

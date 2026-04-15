@@ -46,6 +46,10 @@ The Common Collective is a production-minded Next.js MVP with:
   - publishing an event (create as `PUBLISHED` or status transition to `PUBLISHED`) enqueues `EVENT_PUBLISHED` emails for relevant members
 - Delivery model: outbox rows are created during admin writes; actual SMTP sending is done by `POST /api/internal/email/dispatch` (authorized by bearer token).
 - Outbox table tracks status (`PENDING` / `SENT` / `FAILED`), attempts (auto-retries up to 3 sends), and dedupe keys to prevent duplicate sends.
+- Event reminders:
+  - RSVP `GOING` schedules one reminder at 24 hours before event start (or immediate if already inside the 24h window)
+  - changing RSVP away from `GOING` unschedules pending reminder
+  - reminder dispatch enqueues `EVENT_REMINDER` emails to outbox and marks `Reminder` rows `SENT` / `FAILED`
 
 #### Manual email dispatch run (outbox)
 
@@ -56,6 +60,17 @@ curl -X POST "https://your-domain.com/api/internal/email/dispatch" \
   -H "Authorization: Bearer $EMAIL_DISPATCH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"limit":25}'
+```
+
+#### Manual reminder dispatch run (cron-safe)
+
+Use this from a secure runner/cron after setting `EMAIL_REMINDER_DISPATCH_TOKEN`:
+
+```bash
+curl -X POST "https://your-domain.com/api/internal/email/reminders/dispatch" \
+  -H "Authorization: Bearer $EMAIL_REMINDER_DISPATCH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"limit":100}'
 ```
 
 ### Manual concierge operations (primary workflow)
@@ -112,6 +127,7 @@ Optional variables:
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: SMTP transport for outbox email sending
 - `EMAIL_FROM`: sender address for outbox emails
 - `EMAIL_DISPATCH_TOKEN`: bearer token required by `POST /api/internal/email/dispatch`
+- `EMAIL_REMINDER_DISPATCH_TOKEN`: bearer token required by `POST /api/internal/email/reminders/dispatch`
 
 Generate a secure secret:
 
