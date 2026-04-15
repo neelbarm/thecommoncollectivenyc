@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import { auth } from "@/auth";
@@ -40,9 +41,17 @@ export async function SiteHeader({
       <div className="mx-auto flex h-[4.25rem] w-full max-w-6xl items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link
           href="/"
-          className="font-heading text-[1.05rem] font-normal tracking-[-0.02em] text-foreground transition-opacity duration-300 hover:opacity-80 motion-reduce:transition-none"
+          aria-label="The Common Collective home"
+          className="inline-flex items-center transition-opacity duration-300 hover:opacity-80 motion-reduce:transition-none"
         >
-          The Common Collective
+          <Image
+            src="/brand/common-collective-wordmark.svg"
+            alt="The Common Collective"
+            width={300}
+            height={56}
+            priority
+            className="h-8 w-auto sm:h-9"
+          />
         </Link>
 
         <nav className="hidden items-center gap-1 md:flex" aria-label="Primary navigation">
