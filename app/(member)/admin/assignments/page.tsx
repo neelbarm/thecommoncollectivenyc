@@ -48,6 +48,9 @@ export default async function AdminAssignmentsPage() {
               <Button asChild size="sm" variant="outline">
                 <Link href="/admin/seasons">Seasons</Link>
               </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link href="/admin/analytics">Analytics</Link>
+              </Button>
             </div>
           </section>
 
