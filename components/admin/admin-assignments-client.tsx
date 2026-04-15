@@ -51,7 +51,7 @@ function SectionCard({
   children: React.ReactNode;
 }) {
   return (
-    <Card className="border-border/70 bg-card/90 shadow-soft">
+    <Card className="surface-panel">
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
         {description ? (
@@ -83,7 +83,7 @@ function ProposalTable({ proposal }: { proposal: AssignmentProposalView }) {
         <p className="text-xs text-muted-foreground">No members assigned.</p>
       ) : (
         <div className="overflow-x-auto">
-          <table className="w-full text-xs">
+          <table className="w-full text-xs [th]:font-medium [th]:tracking-wide [th]:text-muted-foreground/90">
             <thead>
               <tr className="border-b border-border/50 text-left text-muted-foreground">
                 <th className="pb-2 pr-3 font-medium">Name</th>
@@ -95,7 +95,7 @@ function ProposalTable({ proposal }: { proposal: AssignmentProposalView }) {
             </thead>
             <tbody>
               {proposal.members.map((member) => (
-                <tr key={member.id} className="border-b border-border/30">
+                <tr key={member.id} className="border-b border-border/30 transition-colors hover:bg-oat/35">
                   <td className="py-2 pr-3 font-medium text-foreground">{member.name}</td>
                   <td className="py-2 pr-3 text-muted-foreground">
                     {member.neighborhood ?? "—"}
@@ -158,7 +158,7 @@ function RunDetail({
       </div>
 
       {run.errorMessage ? (
-        <div className="rounded-md border border-red-300/60 bg-red-50/50 px-3 py-2 text-xs text-red-800" role="alert">
+        <div className="status-banner border-red-300/60 bg-red-50/55 text-xs text-red-800" role="alert">
           {run.errorMessage}
         </div>
       ) : null}
@@ -325,7 +325,7 @@ export function AdminAssignmentsClient({
                 setSelectedSeasonId(e.target.value);
                 refreshData(e.target.value);
               }}
-              className="h-9 rounded-md border border-input bg-transparent px-3 text-sm"
+              className="luxury-select min-w-[240px]"
               aria-label="Select season"
             >
               {data.seasons.map((season) => (
@@ -344,12 +344,12 @@ export function AdminAssignmentsClient({
 
       {/* Feedback */}
       {error ? (
-        <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
+        <div className="status-banner border-destructive/30 bg-destructive/6 text-destructive" role="alert">
           {error}
         </div>
       ) : null}
       {feedback ? (
-        <div className="rounded-md border border-emerald-400/30 bg-emerald-50/50 px-3 py-2 text-sm text-emerald-800" role="status">
+        <div className="status-banner border-emerald-400/35 bg-emerald-50/55 text-emerald-800" role="status">
           {feedback}
         </div>
       ) : null}
@@ -366,7 +366,7 @@ export function AdminAssignmentsClient({
         ) : (
           <div className="space-y-3">
             {data.runs.map((run) => (
-              <div key={run.id} className="rounded-lg border border-border/60 bg-background/40 p-3">
+              <div key={run.id} className="dense-row">
                 <button
                   type="button"
                   className="flex w-full items-center justify-between text-left"
