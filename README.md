@@ -20,7 +20,8 @@ The Common Collective is a production-minded Next.js MVP with:
   - multi-step questionnaire
   - draft autosave
   - completion/edit mode
-  - persistence to `Profile` + `QuestionnaireResponse`
+  - persistence to `Profile` + `QuestionnaireResponse` (linked to the member’s **DRAFT** `MemberApplication` when present, so questionnaire data stays attached after a separate `/apply` submission)
+  - on submit, promotes that application from **DRAFT** → **SUBMITTED** (admin review) when appropriate; does not downgrade **ACCEPTED** applications
 - Member dashboard with cohort/event/drop context
 - Events page with RSVP + optimistic updates
 - Drop flow with create/cancel request states
