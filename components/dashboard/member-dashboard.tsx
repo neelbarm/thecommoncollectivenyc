@@ -47,9 +47,9 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
   const needsOnboarding = data.hasProfile && !data.onboardingCompleted;
 
   return (
-    <div className="space-y-6">
-      <Card className="border-border/70 bg-card/90 shadow-soft">
-        <CardHeader className="space-y-3">
+    <div className="space-y-7">
+      <Card className="surface-panel">
+        <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
               Member Dashboard
@@ -59,14 +59,14 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
             </Badge>
           </div>
           <CardTitle className="text-3xl leading-tight sm:text-4xl">Welcome back, {data.firstName}.</CardTitle>
-          <CardDescription className="max-w-3xl text-sm leading-7">
+          <CardDescription className="prose-calm max-w-3xl">
             Your living snapshot of cohort rhythm, upcoming experiences, and concierge support.
           </CardDescription>
         </CardHeader>
       </Card>
 
       {needsProfileRepair || needsOnboarding ? (
-        <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
+        <Card className="surface-dashed">
           <CardHeader className="space-y-2">
             <CardTitle className="text-lg">
               {needsProfileRepair ? "Let’s finish setting up your member profile" : "Almost there — complete your onboarding"}
@@ -85,8 +85,8 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
         </Card>
       ) : null}
 
-      <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card className="border-border/70 bg-card/90 shadow-soft">
+      <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
+        <Card className="surface-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <Users className="h-4 w-4 text-muted-gold" />
@@ -131,7 +131,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
                 </div>
               </>
             ) : (
-              <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
+              <div className="surface-dashed space-y-3 p-4">
                 <p className="font-medium text-foreground">No cohort yet</p>
                 <p className="text-sm text-muted-foreground">
                   {data.onboardingCompleted
@@ -148,7 +148,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-card/90 shadow-soft">
+        <Card className="surface-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <Compass className="h-4 w-4 text-muted-gold" />
@@ -165,8 +165,8 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
         </Card>
       </div>
 
-      <div className="grid gap-4 lg:grid-cols-[1.2fr_1fr]">
-        <Card className="border-border/70 bg-card/90 shadow-soft">
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <Card className="surface-panel">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
               <CalendarDays className="h-4 w-4 text-muted-gold" />
@@ -203,7 +203,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
                 </div>
               </div>
             ) : (
-              <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
+              <div className="surface-dashed space-y-3 p-4">
                 <p className="font-medium text-foreground">Nothing on the calendar yet</p>
                 <p className="text-sm text-muted-foreground">
                   {hasCohort
@@ -218,7 +218,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
           </CardContent>
         </Card>
 
-        <Card className="border-border/70 bg-card/90 shadow-soft">
+        <Card className="surface-panel">
           <CardHeader>
             <CardTitle className="text-xl">The Drop</CardTitle>
           </CardHeader>
@@ -234,7 +234,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
         </Card>
       </div>
 
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle className="text-xl">Past events</CardTitle>
           <CardDescription>Recent gatherings from your season rhythm.</CardDescription>
@@ -243,10 +243,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
           {data.pastEvents.length > 0 ? (
             <div className="space-y-3">
               {data.pastEvents.map((event) => (
-                <div
-                  key={event.id}
-                  className="rounded-xl border border-border/60 bg-background/50 p-4"
-                >
+                <div key={event.id} className="dense-row">
                   <p className="font-medium text-foreground">{event.title}</p>
                   <p className="mt-1 text-sm text-muted-foreground">{formatDateTime(event.startsAt)}</p>
                   <p className="mt-2 text-sm leading-7 text-muted-foreground">{event.description}</p>
@@ -254,7 +251,7 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
               ))}
             </div>
           ) : (
-            <div className="rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
+            <div className="surface-dashed p-4">
               <p className="font-medium text-foreground">No past gatherings yet</p>
               <p className="text-sm text-muted-foreground">
                 After your first experiences, a short history will live here for easy reference.

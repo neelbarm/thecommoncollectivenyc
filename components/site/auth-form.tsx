@@ -23,12 +23,13 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const isSignup = mode === "signup";
 
   return (
-    <Card className="border-border/70 bg-card/90 shadow-soft">
-      <CardHeader>
-        <CardTitle className="font-heading text-2xl text-foreground">
+    <Card className="surface-panel motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1 motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]">
+      <CardHeader className="space-y-3">
+        <p className="eyebrow">{isSignup ? "Member account" : "Private member access"}</p>
+        <CardTitle className="font-heading text-3xl text-foreground">
           {isSignup ? "Create your account" : "Welcome back"}
         </CardTitle>
-        <CardDescription>
+        <CardDescription className="prose-calm">
           {isSignup
             ? "Start your application and unlock member onboarding."
             : "Log in to access your cohort, events, and drop requests."}
@@ -36,7 +37,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       </CardHeader>
       <CardContent>
         <form
-          className="space-y-4"
+          className="space-y-5"
           onSubmit={(event) => {
             event.preventDefault();
             setError(null);
@@ -121,7 +122,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         >
           {isSignup ? (
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <Label htmlFor="firstName">First name</Label>
                 <Input
                   id="firstName"
@@ -137,7 +138,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
                   </p>
                 ) : null}
               </div>
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <Label htmlFor="lastName">Last name</Label>
                 <Input
                   id="lastName"
@@ -156,12 +157,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
             </div>
           ) : null}
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <Label htmlFor="email">Email</Label>
             <Input id="email" name="email" type="email" required autoComplete="email" />
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2.5">
             <Label htmlFor="password">Password</Label>
             <Input
               id="password"
@@ -180,7 +181,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           </div>
 
           {isSignup ? (
-            <div className="space-y-2">
+            <div className="space-y-2.5">
               <Label htmlFor="confirmPassword">Confirm password</Label>
               <Input
                 id="confirmPassword"
@@ -200,13 +201,17 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           ) : null}
 
           {error ? (
-            <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            <p className="status-banner border-destructive/30 bg-destructive/6 text-destructive">
               {error}
             </p>
           ) : null}
-          {success ? <p className="text-sm text-emerald-700">{success}</p> : null}
+          {success ? (
+            <p className="status-banner border-emerald-700/20 bg-emerald-700/8 text-emerald-800 dark:text-emerald-300">
+              {success}
+            </p>
+          ) : null}
 
-          <Button type="submit" disabled={isPending} className="w-full">
+          <Button type="submit" disabled={isPending} className="h-11 w-full text-[0.8rem] tracking-[0.12em] uppercase">
             {isPending ? "Please wait..." : isSignup ? "Create account" : "Log in"}
           </Button>
         </form>
