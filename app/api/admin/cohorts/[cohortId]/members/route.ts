@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  cohortWelcomeEmailTemplate,
+  enqueueEmailOutbox,
+} from "@/lib/email/outbox";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -38,7 +42,17 @@ export async function POST(
   try {
     const cohort = await prisma.cohort.findUnique({
       where: { id: cohortId },
-      select: { id: true, capacity: true, _count: { select: { memberships: { where: { status: { in: ["ACTIVE", "INVITED"] } } } } } },
+      select: {
+        id: true,
+        name: true,
+        season: { select: { name: true } },
+        capacity: true,
+        _count: {
+          select: {
+            memberships: { where: { status: { in: ["ACTIVE", "INVITED"] } } },
+          },
+        },
+      },
     });
     if (!cohort) {
       return NextResponse.json({ error: "Cohort not found." }, { status: 404 });
@@ -50,7 +64,7 @@ export async function POST(
 
     const user = await prisma.user.findUnique({
       where: { id: parsed.data.userId },
-      select: { id: true, firstName: true, lastName: true },
+      select: { id: true, firstName: true, lastName: true, email: true },
     });
     if (!user) {
       return NextResponse.json({ error: "Member not found." }, { status: 404 });
@@ -81,6 +95,21 @@ export async function POST(
         status: true,
         joinedAt: true,
       },
+    });
+
+    const welcomeEmail = cohortWelcomeEmailTemplate({
+      memberFirstName: user.firstName,
+      cohortName: cohort.name,
+      seasonName: cohort.season.name,
+    });
+
+    await enqueueEmailOutbox({
+      type: "COHORT_WELCOME",
+      recipientEmail: user.email,
+      recipientName: `${user.firstName} ${user.lastName}`,
+      subject: welcomeEmail.subject,
+      htmlBody: welcomeEmail.htmlBody,
+      dedupeKey: `cohort-welcome:${cohortId}:${user.id}:${membership.status}`,
     });
 
     return NextResponse.json({ ok: true, membership }, { status: 201 });

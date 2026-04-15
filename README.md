@@ -40,6 +40,13 @@ The Common Collective is a production-minded Next.js MVP with:
   - `PATCH /api/admin/drop-requests/[requestId]`
   - `POST /api/admin/notes`
 
+### Email outbox notifications (manual-first)
+- Trigger points:
+  - adding a member to a cohort enqueues a `COHORT_WELCOME` outbox email
+  - publishing an event (create as `PUBLISHED` or status transition to `PUBLISHED`) enqueues `EVENT_PUBLISHED` emails for relevant members
+- Delivery model: outbox rows are created during admin writes; actual SMTP sending is done by `POST /api/internal/email/dispatch` (authorized by bearer token).
+- Outbox table tracks status (`PENDING` / `SENT` / `FAILED`), attempts, and dedupe keys to prevent duplicate sends.
+
 ### Manual concierge operations (primary workflow)
 - **Seasons:** `/admin/seasons` — list program windows, **create** seasons (unique code), **edit** name/code/status/dates; shrinking dates blocked if any event would fall outside the new window
 - **Cohorts:** `/admin/cohorts` — create cohorts (name, description, season, capacity), edit details, add members by picker, change membership status, remove members
@@ -91,6 +98,9 @@ Required variables:
 Optional variables:
 
 - `DATABASE_URL_NON_POOLING`: direct DB URL for migration workflows on hosts that use pooled runtime connections
+- `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: SMTP transport for outbox email sending
+- `EMAIL_FROM`: sender address for outbox emails
+- `EMAIL_DISPATCH_TOKEN`: bearer token required by `POST /api/internal/email/dispatch`
 
 Generate a secure secret:
 

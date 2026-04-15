@@ -5,6 +5,10 @@ import {
   assertCohortBelongsToSeason,
   assertEventTimesWithinSeason,
 } from "@/lib/admin/validate-event-program";
+import {
+  enqueueEmailOutbox,
+  eventPublishedEmailTemplate,
+} from "@/lib/email/outbox";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -64,7 +68,7 @@ export async function POST(request: Request) {
   try {
     const [season, venue] = await Promise.all([
       prisma.season.findUnique({ where: { id: parsed.data.seasonId }, select: { id: true } }),
-      prisma.venue.findUnique({ where: { id: parsed.data.venueId }, select: { id: true } }),
+      prisma.venue.findUnique({ where: { id: parsed.data.venueId }, select: { id: true, name: true } }),
     ]);
     if (!season) return NextResponse.json({ error: "Season not found." }, { status: 404 });
     if (!venue) return NextResponse.json({ error: "Venue not found." }, { status: 404 });
@@ -82,7 +86,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: cohortCheck.error }, { status: 400 });
     }
 
-    // Unique slug
     let slug = baseSlug;
     let attempt = 0;
     while (true) {
@@ -118,6 +121,57 @@ export async function POST(request: Request) {
         venueId: true,
       },
     });
+
+    if (event.status === "PUBLISHED") {
+      const recipients = await prisma.user.findMany({
+        where: {
+          isActive: true,
+          ...(event.cohortId
+            ? {
+                cohortMemberships: {
+                  some: {
+                    cohortId: event.cohortId,
+                    status: { in: ["ACTIVE", "INVITED"] },
+                  },
+                },
+              }
+            : {
+                cohortMemberships: {
+                  some: {
+                    status: { in: ["ACTIVE", "INVITED"] },
+                    cohort: { seasonId: event.seasonId },
+                  },
+                },
+              }),
+        },
+        select: {
+          id: true,
+          firstName: true,
+          lastName: true,
+          email: true,
+        },
+      });
+
+      await Promise.all(
+        recipients.map((recipient) => {
+          const email = eventPublishedEmailTemplate({
+            memberFirstName: recipient.firstName,
+            eventTitle: event.title,
+            startsAt: event.startsAt,
+            venueName: venue.name,
+          });
+
+          return enqueueEmailOutbox({
+            type: "EVENT_PUBLISHED",
+            recipientEmail: recipient.email,
+            recipientName: `${recipient.firstName} ${recipient.lastName}`,
+            subject: email.subject,
+            htmlBody: email.htmlBody,
+            dedupeKey: `event-published:${event.id}:${recipient.id}`,
+          });
+        }),
+      );
+    }
 
     return NextResponse.json({ ok: true, event }, { status: 201 });
   } catch {
