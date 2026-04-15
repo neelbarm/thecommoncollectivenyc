@@ -201,6 +201,33 @@ npm run start
 
 If your host runs its own process manager, use the equivalent start command in that environment.
 
+### Railway (and similar PaaS) — order matters
+
+If deploy logs show **`DriverAdapterError: ColumnNotFound`** (or Prisma errors about a missing column), the database **has not run migrations** for the code you deployed. The app and seed use the Prisma schema from Git; Postgres must be updated **before** those run.
+
+**Correct order every deploy:**
+
+1. **`npx prisma migrate deploy`** — applies pending SQL in `prisma/migrations/` (adds columns like `Cohort.description`, assignment tables, etc.)
+2. **`npm run start`** — runs the Next.js server
+
+This repo includes a convenience script that does both in one command:
+
+```bash
+npm run start:railway
+```
+
+Set your **Railway web service Start Command** to:
+
+`npm run start:railway`
+
+(or explicitly: `npx prisma migrate deploy && npm run start`)
+
+**Do not** set production’s default start command to **`npm run db:seed`** or **`npm run prisma:seed`**. Seed is for **empty demo databases** only: it **deletes and recreates** demo data and will wipe production if you run it on every deploy.
+
+**Optional seed** (once, manually): open a **one-off shell** on the web service and run `npm run db:seed` only when you intentionally want to reset demo content — never as the automatic deploy step.
+
+**SIGTERM / health check failures** often happen when the process **exits** (e.g. seed finishes and the container has nothing left to run). Fix the start command so the **long-running** process is `next start` (with migrate before it as above).
+
 ---
 
 ## Auth + routing production notes
@@ -242,8 +269,8 @@ Avoid `prisma migrate dev` in production; it is for local development only.
 - [ ] `npm ci`
 - [ ] `npm run lint`
 - [ ] `npm run build`
-- [ ] migrations applied
-- [ ] app started with `npm run start` (or host equivalent)
+- [ ] migrations applied (`npx prisma migrate deploy` before or via `npm run start:railway`)
+- [ ] app started with `npm run start` or **`npm run start:railway`** on Railway (migrate + start)
 
 ### Post-deploy smoke tests
 - [ ] Public pages render: `/`, `/apply`, `/login`, `/signup`
@@ -269,6 +296,7 @@ npm run dev
 npm run lint
 npm run build
 npm run start
+npm run start:railway
 npm run prisma:generate
 npm run prisma:migrate
 npm run prisma:seed
