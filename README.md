@@ -41,7 +41,7 @@ The Common Collective is a production-minded Next.js MVP with:
 
 ### Manual concierge operations (primary workflow)
 - **Cohorts:** `/admin/cohorts` — create cohorts (name, description, season, capacity), edit details, add members by picker, change membership status, remove members
-- **Events:** `/admin/events` — create events (season, optional cohort, venue, times, draft or published), list recent events, publish / unpublish (draft ↔ published)
+- **Events:** `/admin/events` — create events (season, optional cohort, venue, times, draft or published), list recent events, **edit** existing events (modal), publish / unpublish (draft ↔ published)
 - **Member cohort page:** `/cohort` — roster and upcoming published cohort events (links to `/events` for RSVP)
 - Admin APIs (manual):
   - `POST /api/admin/cohorts`, `GET /api/admin/cohorts/data`
@@ -273,6 +273,7 @@ Avoid `prisma migrate dev` in production; it is for local development only.
 - [ ] app started with `npm run start` or **`npm run start:railway`** on Railway (migrate + start)
 
 ### Post-deploy smoke tests
+- [ ] Run the focused checklist in [`docs/railway-smoke-test.md`](docs/railway-smoke-test.md) (visitor, member, admin)
 - [ ] Public pages render: `/`, `/apply`, `/login`, `/signup`
 - [ ] Auth works: signup/login/logout
 - [ ] Member routes accessible when logged in: `/onboarding`, `/dashboard`, `/events`, `/drop`
