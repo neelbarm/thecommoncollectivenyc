@@ -42,12 +42,14 @@ The Common Collective is a production-minded Next.js MVP with:
 
 ### Manual concierge operations (primary workflow)
 - **Cohorts:** `/admin/cohorts` — create cohorts (name, description, season, capacity), edit details, add members by picker, change membership status, remove members
+- **Venues:** `/admin/venues` — list venues (with event counts), create venues, edit details; slug from name; no delete (events reference venues)
 - **Events:** `/admin/events` — create events (season, optional cohort, venue, times, draft or published), list recent events, **edit** existing events (modal), publish / unpublish (draft ↔ published)
 - **Member cohort page:** `/cohort` — roster and upcoming published cohort events (links to `/events` for RSVP)
 - Admin APIs (manual):
   - `POST /api/admin/cohorts`, `GET /api/admin/cohorts/data`
   - `PATCH /api/admin/cohorts/[cohortId]` (status, capacity, name, description)
   - `POST /api/admin/cohorts/[cohortId]/members`, `PATCH` / `DELETE` on `.../members/[membershipId]`
+  - `POST /api/admin/venues`, `GET /api/admin/venues/data`, `PATCH /api/admin/venues/[venueId]`
   - `POST /api/admin/events`, `GET /api/admin/events/data` — cohort (if set) must belong to the event’s season (server-enforced)
   - `PATCH /api/admin/events/[eventId]` (status, title, description, times, capacity, cohort, venue) — same cohort/season rule on cohort changes
 

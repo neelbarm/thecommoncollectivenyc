@@ -584,6 +584,9 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           <Link href="/admin/events">Events (manual) →</Link>
         </Button>
         <Button asChild size="sm" variant="outline">
+          <Link href="/admin/venues">Venues (places) →</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
           <Link href="/admin/assignments">Assignment proposals →</Link>
         </Button>
       </div>
