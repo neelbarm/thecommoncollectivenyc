@@ -1,17 +1,19 @@
 import type { Metadata } from "next";
-import { Cormorant_Garamond, Inter } from "next/font/google";
+import { Instrument_Serif, Inter } from "next/font/google";
 
 import "./globals.css";
 
 const inter = Inter({
   variable: "--font-sans",
   subsets: ["latin"],
+  display: "swap",
 });
 
-const cormorant = Cormorant_Garamond({
+const instrumentSerif = Instrument_Serif({
   variable: "--font-heading",
   subsets: ["latin"],
-  weight: ["500", "600", "700"],
+  weight: "400",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -27,7 +29,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.variable} ${cormorant.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>{children}</body>
     </html>
   );
 }

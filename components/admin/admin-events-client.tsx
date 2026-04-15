@@ -15,6 +15,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import type { EventManagementData, EventManagementEvent } from "@/lib/admin/get-event-management-data";
+import { dialogBackdropClasses, dialogPanelEnterClasses } from "@/lib/motion";
 
 function toIso(local: string) {
   return new Date(local).toISOString();
@@ -262,13 +263,15 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
     <div className="space-y-6">
       {editingEvent ? (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center"
+          className={dialogBackdropClasses}
           role="dialog"
           aria-modal="true"
           aria-labelledby="admin-event-edit-title"
         >
           <button type="button" className="absolute inset-0" onClick={closeEdit} aria-label="Close edit panel" />
-          <Card className="relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border-border/70 bg-card/95 shadow-soft lg:max-w-2xl lg:rounded-2xl">
+          <Card
+            className={`relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border-border/60 bg-card/98 shadow-lift lg:max-w-2xl lg:rounded-2xl ${dialogPanelEnterClasses}`}
+          >
             <CardHeader className="border-b border-border/60 pb-4">
               <div className="flex items-start justify-between gap-3">
                 <div className="space-y-1">

@@ -287,10 +287,23 @@ export function OnboardingForm() {
 
   if (isLoading) {
     return (
-      <Card className="border-border/70 bg-card/90 shadow-soft">
-        <CardContent className="flex items-center gap-3 py-10">
-          <Loader2 className="h-5 w-5 animate-spin text-muted-gold" />
-          <p className="text-sm text-muted-foreground">Loading your onboarding profile...</p>
+      <Card className="border-border/60 bg-card/95">
+        <CardContent className="flex flex-col gap-5 py-12">
+          <div className="flex items-start gap-4">
+            <div
+              className="mt-0.5 size-10 shrink-0 rounded-full border border-border/50 bg-oat/60 motion-safe:animate-pulse"
+              aria-hidden
+            />
+            <div className="flex flex-1 flex-col gap-2.5 pt-1">
+              <div className="h-2.5 w-[28%] max-w-[200px] rounded-full bg-muted/55 motion-safe:animate-pulse" />
+              <div className="h-2.5 w-[55%] max-w-[320px] rounded-full bg-muted/40 motion-safe:animate-pulse" />
+              <div className="h-2.5 w-[42%] max-w-[260px] rounded-full bg-muted/35 motion-safe:animate-pulse" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <Loader2 className="h-4 w-4 motion-safe:animate-spin text-muted-gold/90" aria-hidden />
+            <p className="text-sm tracking-wide text-muted-foreground">Loading your onboarding profile...</p>
+          </div>
         </CardContent>
       </Card>
     );
@@ -355,7 +368,7 @@ export function OnboardingForm() {
           <div className="h-2 rounded-full bg-oat">
             <div
               aria-hidden="true"
-              className="h-2 rounded-full bg-muted-gold transition-all duration-300"
+              className="h-2 rounded-full bg-muted-gold/90 transition-[width] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none"
               style={{ width: `${progress}%` }}
             />
           </div>
