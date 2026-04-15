@@ -15,9 +15,27 @@ export const edgeAuthConfig = {
   },
   providers: [],
   callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      if (
+        (!token.id || (typeof token.id === "string" && token.id.length === 0)) &&
+        typeof token.sub === "string" &&
+        token.sub.length > 0
+      ) {
+        token.id = token.sub;
+      }
+      return token;
+    },
     async session({ session, token }) {
       if (session.user) {
-        session.user.id = typeof token.id === "string" ? token.id : "";
+        const idFromToken =
+          typeof token.id === "string" && token.id.length > 0 ? token.id : undefined;
+        const idFromSub =
+          typeof token.sub === "string" && token.sub.length > 0 ? token.sub : undefined;
+        session.user.id = idFromToken ?? idFromSub ?? "";
         session.user.role = token.role === "ADMIN" ? "ADMIN" : "MEMBER";
       }
       return session;
