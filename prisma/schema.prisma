@@ -106,6 +106,7 @@ enum AssignmentMemberDecision {
 enum EmailOutboxType {
   COHORT_WELCOME
   EVENT_PUBLISHED
+  EVENT_REMINDER
 }
 
 enum EmailOutboxStatus {

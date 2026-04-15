@@ -1,4 +1,4 @@
-import { RSVPStatus } from "@prisma/client";
+import { ReminderChannel, ReminderStatus, RSVPStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -10,6 +10,8 @@ const rsvpSchema = z.object({
   eventId: z.string().cuid(),
   status: z.enum([RSVPStatus.GOING, RSVPStatus.MAYBE, RSVPStatus.DECLINED]),
 });
+
+const REMINDER_LEAD_MS = 24 * 60 * 60 * 1000;
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -103,6 +105,41 @@ export async function POST(request: Request) {
         respondedAt: new Date(),
       },
     });
+
+    if (appliedStatus === RSVPStatus.GOING && event.startsAt.getTime() > Date.now()) {
+      const reminderAt = new Date(event.startsAt.getTime() - REMINDER_LEAD_MS);
+      const scheduledFor = reminderAt.getTime() > Date.now() ? reminderAt : new Date();
+
+      await prisma.$transaction([
+        prisma.reminder.deleteMany({
+          where: {
+            userId: session.user.id,
+            eventId,
+            channel: ReminderChannel.EMAIL,
+            status: ReminderStatus.SCHEDULED,
+          },
+        }),
+        prisma.reminder.create({
+          data: {
+            userId: session.user.id,
+            eventId,
+            channel: ReminderChannel.EMAIL,
+            status: ReminderStatus.SCHEDULED,
+            scheduledFor,
+          },
+          select: { id: true },
+        }),
+      ]);
+    } else {
+      await prisma.reminder.deleteMany({
+        where: {
+          userId: session.user.id,
+          eventId,
+          channel: ReminderChannel.EMAIL,
+          status: ReminderStatus.SCHEDULED,
+        },
+      });
+    }
 
     const updatedGoingCount = await prisma.rSVP.count({
       where: {
