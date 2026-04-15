@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Clock3, X } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 
@@ -59,6 +60,10 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
     () => Boolean(activeRequest || recentRequests.length > 0),
     [activeRequest, recentRequests],
   );
+
+  const needsProfileRepair = !initialData.hasProfile;
+  const needsOnboarding = initialData.hasProfile && !initialData.onboardingCompleted;
+  const dropLocked = needsProfileRepair || needsOnboarding;
 
   function openComposer() {
     setError(null);
@@ -167,6 +172,28 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
 
   return (
     <div className="space-y-6">
+      {dropLocked ? (
+        <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-lg">
+              {needsProfileRepair ? "Set up your profile to use The Drop" : "Finish onboarding first"}
+            </CardTitle>
+            <CardDescription className="text-sm leading-7 text-muted-foreground">
+              {needsProfileRepair
+                ? "Your account is active, but we don’t have your member questionnaire on file yet."
+                : "A few onboarding steps are still open. Once they’re done, you can post availability here."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild size="sm">
+              <Link href="/onboarding">
+                {needsProfileRepair ? "Set up my profile" : "Continue onboarding"}
+              </Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
+
       <Card className="border-border/70 bg-card/90 shadow-soft">
         <CardHeader className="space-y-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -181,10 +208,14 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
           </CardDescription>
 
           <div className="flex flex-wrap items-center gap-2">
-            <Button onClick={openComposer} disabled={Boolean(activeRequest) || isPending}>
+            <Button onClick={openComposer} disabled={Boolean(activeRequest) || isPending || dropLocked}>
               I&apos;m free right now
             </Button>
-            {activeRequest ? <Badge variant="outline">One active request at a time</Badge> : null}
+            {dropLocked ? (
+              <Badge variant="outline">Available after profile setup</Badge>
+            ) : activeRequest ? (
+              <Badge variant="outline">One active request at a time</Badge>
+            ) : null}
           </div>
         </CardHeader>
       </Card>

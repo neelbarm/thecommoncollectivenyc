@@ -29,16 +29,19 @@ export default async function DashboardPage() {
         <div className="min-h-screen bg-background">
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-            <Card className="border-border/70 bg-card/90 shadow-soft">
+            <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
               <CardHeader>
-                <CardTitle>Member not found</CardTitle>
-                <CardDescription>
-                  We could not locate your member profile yet.
+                <CardTitle>We could not load your account</CardTitle>
+                <CardDescription className="text-sm leading-7">
+                  Something interrupted the connection to your member record. This is usually temporary.
                 </CardDescription>
               </CardHeader>
-              <CardContent>
-              <Button asChild variant="outline" size="sm">
-                  <Link href="/onboarding">Go to onboarding</Link>
+              <CardContent className="space-y-3">
+                <p className="text-sm text-muted-foreground">
+                  If this keeps happening, sign out and back in, or continue onboarding to refresh your profile.
+                </p>
+                <Button asChild size="sm">
+                  <Link href="/onboarding">Continue to onboarding</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -64,17 +67,17 @@ export default async function DashboardPage() {
         <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <Card className="border-border/70 bg-card/90 shadow-soft">
             <CardHeader>
-              <CardTitle>Dashboard is temporarily unavailable</CardTitle>
+              <CardTitle>Having trouble loading the dashboard</CardTitle>
               <CardDescription>
-                We are having trouble loading your member snapshot right now.
+                Please try again in a moment — your sign-in and saved answers are still there.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Please refresh in a moment. Your account and onboarding progress are safe.
+                If the problem continues, refresh the page or open onboarding to confirm your profile is complete.
               </p>
               <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard">Refresh dashboard</Link>
+                <Link href="/dashboard">Try again</Link>
               </Button>
             </CardContent>
           </Card>

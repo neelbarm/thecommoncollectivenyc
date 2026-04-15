@@ -24,14 +24,19 @@ export default async function DropPage() {
         <div className="min-h-screen bg-background">
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-            <Card className="border-border/70 bg-card/90 shadow-soft">
+            <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
               <CardHeader>
-                <CardTitle>Member profile unavailable</CardTitle>
-                <CardDescription>We couldn&apos;t load your Drop feed yet.</CardDescription>
+                <CardTitle>We could not load The Drop</CardTitle>
+                <CardDescription className="text-sm leading-7">
+                  Your account is signed in, but we could not reach your Drop activity. This is usually temporary.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex flex-wrap gap-2">
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/dashboard">Back to dashboard</Link>
+                  <Link href="/drop">Try again</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/onboarding">Check onboarding</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -73,19 +78,21 @@ export default async function DropPage() {
         <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <Card className="border-border/70 bg-card/90 shadow-soft">
             <CardHeader>
-              <CardTitle>The Drop is temporarily unavailable</CardTitle>
-              <CardDescription>We&apos;re having trouble loading your Drop feed right now.</CardDescription>
+              <CardTitle>Having trouble loading The Drop</CardTitle>
+              <CardDescription>Please try again shortly — any requests you already posted are still saved.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
               <p className="text-sm text-muted-foreground">
-                Please refresh in a moment. Any existing requests remain saved.
+                If this keeps happening, refresh the page or return from the dashboard.
               </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/drop">Retry The Drop</Link>
-              </Button>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard">Back to dashboard</Link>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/drop">Try again</Link>
+                </Button>
+                <Button asChild variant="outline" size="sm">
+                  <Link href="/dashboard">Dashboard</Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </main>

@@ -22,6 +22,8 @@ export type MemberDropRequest = {
 export type MemberDropData = {
   memberName: string;
   firstName: string;
+  hasProfile: boolean;
+  onboardingCompleted: boolean;
   hasCohort: boolean;
   cohortName: string | null;
   cohortContext: string;

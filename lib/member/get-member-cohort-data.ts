@@ -16,6 +16,8 @@ export type MemberCohortEvent = {
 
 export type MemberCohortData = {
   firstName: string;
+  hasProfile: boolean;
+  onboardingCompleted: boolean;
   cohort: {
     id: string;
     name: string;
@@ -47,6 +49,9 @@ export async function getMemberCohortData(userId: string): Promise<MemberCohortD
     where: { id: userId },
     select: {
       firstName: true,
+      profile: {
+        select: { id: true, onboardingCompletedAt: true },
+      },
       cohortMemberships: {
         where: { status: { in: ["ACTIVE", "INVITED"] } },
         orderBy: [{ status: "asc" }, { createdAt: "asc" }],
@@ -84,11 +89,16 @@ export async function getMemberCohortData(userId: string): Promise<MemberCohortD
 
   if (!user) return null;
 
+  const hasProfile = Boolean(user.profile);
+  const onboardingCompleted = Boolean(user.profile?.onboardingCompletedAt);
+
   const membership = user.cohortMemberships[0];
   const cohort = membership?.cohort;
   if (!cohort) {
     return {
       firstName: user.firstName,
+      hasProfile,
+      onboardingCompleted,
       cohort: {
         id: "",
         name: "",
@@ -130,6 +140,8 @@ export async function getMemberCohortData(userId: string): Promise<MemberCohortD
 
   return {
     firstName: user.firstName,
+    hasProfile,
+    onboardingCompleted,
     cohort: {
       id: cohort.id,
       name: cohort.name,

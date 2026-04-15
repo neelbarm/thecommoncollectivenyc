@@ -3,6 +3,7 @@ import { prisma } from "@/lib/prisma";
 export type EventManagementEvent = {
   id: string;
   title: string;
+  description: string;
   status: string;
   startsAt: string;
   endsAt: string;
@@ -30,6 +31,7 @@ export async function getEventManagementData(): Promise<EventManagementData> {
       select: {
         id: true,
         title: true,
+        description: true,
         status: true,
         startsAt: true,
         endsAt: true,
@@ -65,6 +67,7 @@ export async function getEventManagementData(): Promise<EventManagementData> {
     events: events.map((e) => ({
       id: e.id,
       title: e.title,
+      description: e.description,
       status: e.status,
       startsAt: e.startsAt.toISOString(),
       endsAt: e.endsAt.toISOString(),

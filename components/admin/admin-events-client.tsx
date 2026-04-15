@@ -1,5 +1,6 @@
 "use client";
 
+import { X } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -13,10 +14,21 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import type { EventManagementData } from "@/lib/admin/get-event-management-data";
+import type { EventManagementData, EventManagementEvent } from "@/lib/admin/get-event-management-data";
 
 function toIso(local: string) {
   return new Date(local).toISOString();
+}
+
+function toDatetimeLocalValue(iso: string) {
+  const d = new Date(iso);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  const y = d.getFullYear();
+  const m = pad(d.getMonth() + 1);
+  const day = pad(d.getDate());
+  const h = pad(d.getHours());
+  const min = pad(d.getMinutes());
+  return `${y}-${m}-${day}T${h}:${min}`;
 }
 
 export function AdminEventsClient({ initialData }: { initialData: EventManagementData }) {
@@ -34,6 +46,16 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
   const [startsLocal, setStartsLocal] = useState("");
   const [endsLocal, setEndsLocal] = useState("");
   const [createStatus, setCreateStatus] = useState<"DRAFT" | "PUBLISHED">("DRAFT");
+
+  const [editingEvent, setEditingEvent] = useState<EventManagementEvent | null>(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editVenueId, setEditVenueId] = useState("");
+  const [editCohortId, setEditCohortId] = useState("");
+  const [editCapacity, setEditCapacity] = useState("");
+  const [editStartsLocal, setEditStartsLocal] = useState("");
+  const [editEndsLocal, setEditEndsLocal] = useState("");
+  const [editStatus, setEditStatus] = useState<string>("DRAFT");
 
   function refresh() {
     startTransition(async () => {
@@ -56,6 +78,10 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
     }
     if (Number.isNaN(cap)) {
       setError("Capacity must be a number.");
+      return;
+    }
+    if (new Date(endsLocal).getTime() <= new Date(startsLocal).getTime()) {
+      setError("End time must be after start time.");
       return;
     }
 
@@ -113,10 +139,193 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
     });
   }
 
+  function openEdit(ev: EventManagementEvent) {
+    setError(null);
+    setFeedback(null);
+    setEditingEvent(ev);
+    setEditTitle(ev.title);
+    setEditDescription(ev.description);
+    setEditVenueId(ev.venueId);
+    setEditCohortId(ev.cohortId ?? "");
+    setEditCapacity(String(ev.capacity));
+    setEditStartsLocal(toDatetimeLocalValue(ev.startsAt));
+    setEditEndsLocal(toDatetimeLocalValue(ev.endsAt));
+    setEditStatus(ev.status);
+  }
+
+  function closeEdit() {
+    setEditingEvent(null);
+  }
+
+  function onSaveEdit() {
+    if (!editingEvent) return;
+    setError(null);
+    setFeedback(null);
+
+    const titleTrim = editTitle.trim();
+    const descTrim = editDescription.trim();
+    if (titleTrim.length < 2 || titleTrim.length > 120) {
+      setError("Title must be between 2 and 120 characters.");
+      return;
+    }
+    if (descTrim.length < 2 || descTrim.length > 1200) {
+      setError("Description must be between 2 and 1200 characters.");
+      return;
+    }
+    if (!editVenueId || !editStartsLocal || !editEndsLocal) {
+      setError("Venue, start, and end are required.");
+      return;
+    }
+    const cap = Number.parseInt(editCapacity, 10);
+    if (Number.isNaN(cap) || cap < 2 || cap > 200) {
+      setError("Capacity must be a number from 2 to 200.");
+      return;
+    }
+    if (new Date(editEndsLocal).getTime() <= new Date(editStartsLocal).getTime()) {
+      setError("End time must be after start time.");
+      return;
+    }
+
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/admin/events/${editingEvent.id}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            title: titleTrim,
+            description: descTrim,
+            venueId: editVenueId,
+            cohortId: editCohortId || null,
+            capacity: cap,
+            startsAt: toIso(editStartsLocal),
+            endsAt: toIso(editEndsLocal),
+            status: editStatus,
+          }),
+        });
+        const body = (await res.json()) as { error?: string };
+        if (!res.ok) throw new Error(body.error ?? "Unable to save event.");
+        setFeedback("Event updated.");
+        closeEdit();
+        refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unable to save event.");
+      }
+    });
+  }
+
   const cohortsForSeason = data.cohorts.filter((c) => c.seasonId === seasonId);
+  const cohortsForEditSeason = editingEvent
+    ? data.cohorts.filter((c) => c.seasonId === editingEvent.seasonId)
+    : [];
 
   return (
     <div className="space-y-6">
+      {editingEvent ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="admin-event-edit-title"
+        >
+          <button type="button" className="absolute inset-0" onClick={closeEdit} aria-label="Close edit panel" />
+          <Card className="relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border-border/70 bg-card/95 shadow-soft lg:max-w-2xl lg:rounded-2xl">
+            <CardHeader className="border-b border-border/60 pb-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="space-y-1">
+                  <CardTitle id="admin-event-edit-title" className="text-lg">
+                    Edit event
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    {editingEvent.seasonName} · RSVPs going: {editingEvent.rsvpGoing}
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="icon" onClick={closeEdit} aria-label="Close">
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="grid gap-3 pt-4 md:grid-cols-2">
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs text-muted-foreground">Title</label>
+                <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs text-muted-foreground">Description</label>
+                <Textarea rows={4} value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs text-muted-foreground">Venue</label>
+                <select
+                  value={editVenueId}
+                  onChange={(e) => setEditVenueId(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                >
+                  {data.venues.map((v) => (
+                    <option key={v.id} value={v.id}>
+                      {v.name} — {v.addressLine1}, {v.city}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs text-muted-foreground">Cohort (optional)</label>
+                <select
+                  value={editCohortId}
+                  onChange={(e) => setEditCohortId(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                >
+                  <option value="">All season / no cohort</option>
+                  {cohortsForEditSeason.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Capacity</label>
+                <Input
+                  type="number"
+                  min={2}
+                  max={200}
+                  value={editCapacity}
+                  onChange={(e) => setEditCapacity(e.target.value)}
+                />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Status</label>
+                <select
+                  value={editStatus}
+                  onChange={(e) => setEditStatus(e.target.value)}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                >
+                  <option value="DRAFT">DRAFT</option>
+                  <option value="PUBLISHED">PUBLISHED</option>
+                  <option value="COMPLETED">COMPLETED</option>
+                  <option value="CANCELLED">CANCELLED</option>
+                </select>
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Starts</label>
+                <Input type="datetime-local" value={editStartsLocal} onChange={(e) => setEditStartsLocal(e.target.value)} />
+              </div>
+              <div className="space-y-1">
+                <label className="text-xs text-muted-foreground">Ends</label>
+                <Input type="datetime-local" value={editEndsLocal} onChange={(e) => setEditEndsLocal(e.target.value)} />
+              </div>
+              <div className="flex flex-wrap justify-end gap-2 md:col-span-2">
+                <Button type="button" variant="outline" size="sm" onClick={closeEdit} disabled={isPending}>
+                  Cancel
+                </Button>
+                <Button type="button" size="sm" onClick={onSaveEdit} disabled={isPending}>
+                  {isPending ? "Saving..." : "Save changes"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : null}
+
       {error ? (
         <p className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive" role="alert">
           {error}
@@ -224,7 +433,9 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
       <Card className="border-border/70 bg-card/90 shadow-soft">
         <CardHeader>
           <CardTitle className="text-base">Recent events</CardTitle>
-          <CardDescription className="text-xs">Toggle draft / published. Full edit in a follow-up if needed.</CardDescription>
+          <CardDescription className="text-xs">
+            Edit details, venue, cohort, and timing. Use Publish / Unpublish for a quick draft toggle.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
           {data.events.length === 0 ? (
@@ -238,7 +449,8 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                     <th className="pb-2 pr-2">When</th>
                     <th className="pb-2 pr-2">Cohort</th>
                     <th className="pb-2 pr-2">Going</th>
-                    <th className="pb-2">Status</th>
+                    <th className="pb-2 pr-2">Status</th>
+                    <th className="pb-2">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -255,19 +467,32 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                       </td>
                       <td className="py-2 pr-2">{ev.cohortName ?? "—"}</td>
                       <td className="py-2 pr-2">{ev.rsvpGoing}</td>
-                      <td className="py-2">
-                        <div className="flex items-center gap-2">
+                      <td className="py-2 pr-2">
+                        <div className="flex flex-wrap items-center gap-2">
                           <Badge variant="outline">{ev.status}</Badge>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="h-7 text-xs"
-                            onClick={() => onTogglePublish(ev.id, ev.status)}
-                            disabled={isPending}
-                          >
-                            {ev.status === "PUBLISHED" ? "Unpublish" : "Publish"}
-                          </Button>
+                          {(ev.status === "DRAFT" || ev.status === "PUBLISHED") ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 text-xs"
+                              onClick={() => onTogglePublish(ev.id, ev.status)}
+                              disabled={isPending}
+                            >
+                              {ev.status === "PUBLISHED" ? "Unpublish" : "Publish"}
+                            </Button>
+                          ) : null}
                         </div>
+                      </td>
+                      <td className="py-2">
+                        <Button
+                          size="sm"
+                          variant="secondary"
+                          className="h-7 text-xs"
+                          onClick={() => openEdit(ev)}
+                          disabled={isPending}
+                        >
+                          Edit
+                        </Button>
                       </td>
                     </tr>
                   ))}

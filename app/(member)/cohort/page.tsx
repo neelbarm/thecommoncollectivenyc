@@ -22,14 +22,20 @@ export default async function CohortPage() {
         <div className="min-h-screen bg-background">
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-            <Card className="border-border/70 bg-card/90 shadow-soft">
+            <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
               <CardHeader>
-                <CardTitle>Profile unavailable</CardTitle>
-                <CardDescription>We could not load your cohort information.</CardDescription>
+                <CardTitle>We could not load this page</CardTitle>
+                <CardDescription className="text-sm leading-7">
+                  Your sign-in is fine — something interrupted the cohort data. Try again, or open onboarding if you
+                  recently joined.
+                </CardDescription>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex flex-wrap gap-2">
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/dashboard">Back to dashboard</Link>
+                  <Link href="/cohort">Try again</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link href="/onboarding">Go to onboarding</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -67,12 +73,15 @@ export default async function CohortPage() {
         <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <Card className="border-border/70 bg-card/90 shadow-soft">
             <CardHeader>
-              <CardTitle>Cohort page temporarily unavailable</CardTitle>
-              <CardDescription>Please try again in a moment.</CardDescription>
+              <CardTitle>Having trouble loading your cohort</CardTitle>
+              <CardDescription>Please wait a moment and try again.</CardDescription>
             </CardHeader>
-            <CardContent>
+            <CardContent className="flex flex-wrap gap-2">
               <Button asChild variant="outline" size="sm">
-                <Link href="/cohort">Retry</Link>
+                <Link href="/cohort">Try again</Link>
+              </Button>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/dashboard">Dashboard</Link>
               </Button>
             </CardContent>
           </Card>

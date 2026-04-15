@@ -38,18 +38,33 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
   const hasCohort = Boolean(data.cohort.id);
 
   if (!hasCohort) {
+    const needsProfile = !data.hasProfile;
+    const needsOnboarding = data.hasProfile && !data.onboardingCompleted;
+
+    const title = needsProfile
+      ? "We need your member profile first"
+      : needsOnboarding
+        ? "Finish onboarding to unlock your cohort"
+        : "Your cohort is on the way";
+
+    const description = needsProfile
+      ? "You’re signed in, but your member questionnaire isn’t on file yet. A quick pass through onboarding fixes that."
+      : needsOnboarding
+        ? "A few questions are still open. Complete them so we can place you with the right small group."
+        : "You’re in the club — the team will assign your cohort soon. Your roster and cohort-only events will show here when that happens.";
+
+    const ctaHref = needsProfile || needsOnboarding ? "/onboarding" : "/dashboard";
+    const ctaLabel = needsProfile ? "Set up my profile" : needsOnboarding ? "Continue onboarding" : "Back to dashboard";
+
     return (
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
         <CardHeader>
-          <CardTitle>No cohort yet</CardTitle>
-          <CardDescription>
-            When you are placed in a cohort, this page will show your group, roster, and upcoming
-            cohort events.
-          </CardDescription>
+          <CardTitle>{title}</CardTitle>
+          <CardDescription className="text-sm leading-7 text-muted-foreground">{description}</CardDescription>
         </CardHeader>
         <CardContent>
-          <Button asChild variant="outline" size="sm">
-            <Link href="/dashboard">Back to dashboard</Link>
+          <Button asChild size="sm">
+            <Link href={ctaHref}>{ctaLabel}</Link>
           </Button>
         </CardContent>
       </Card>
@@ -114,7 +129,16 @@ export function MemberCohortPage({ data }: { data: MemberCohortData }) {
         </CardHeader>
         <CardContent>
           {data.upcomingEvents.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No upcoming published events yet.</p>
+            <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
+              <p className="font-medium text-foreground">No published plans yet</p>
+              <p className="text-sm text-muted-foreground">
+                When your cohort’s next gathering is live, it will appear here. You can also RSVP from the main events
+                list.
+              </p>
+              <Button asChild variant="outline" size="sm">
+                <Link href="/events">Open events</Link>
+              </Button>
+            </div>
           ) : (
             <ul className="space-y-3">
               {data.upcomingEvents.map((ev) => (
