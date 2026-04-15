@@ -74,6 +74,9 @@ export async function getMemberDropData(userId: string): Promise<MemberDropData 
     select: {
       firstName: true,
       lastName: true,
+      profile: {
+        select: { id: true, onboardingCompletedAt: true },
+      },
       cohortMemberships: {
         where: {
           status: {
@@ -144,6 +147,8 @@ export async function getMemberDropData(userId: string): Promise<MemberDropData 
   return {
     memberName: `${user.firstName} ${user.lastName}`,
     firstName: user.firstName,
+    hasProfile: Boolean(user.profile),
+    onboardingCompleted: Boolean(user.profile?.onboardingCompletedAt),
     hasCohort: Boolean(cohortName),
     cohortName,
     cohortContext: cohortContextCopy(cohortName),

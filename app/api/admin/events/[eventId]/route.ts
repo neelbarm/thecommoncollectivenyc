@@ -50,11 +50,26 @@ export async function PATCH(
   try {
     const existing = await prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true },
+      select: { id: true, startsAt: true, endsAt: true },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "Event not found." }, { status: 404 });
+    }
+
+    if (parsed.data.startsAt !== undefined || parsed.data.endsAt !== undefined) {
+      const nextStarts =
+        parsed.data.startsAt !== undefined
+          ? new Date(parsed.data.startsAt)
+          : existing.startsAt;
+      const nextEnds =
+        parsed.data.endsAt !== undefined ? new Date(parsed.data.endsAt) : existing.endsAt;
+      if (nextEnds.getTime() <= nextStarts.getTime()) {
+        return NextResponse.json(
+          { error: "End time must be after start time." },
+          { status: 400 },
+        );
+      }
     }
 
     const updateData: Record<string, unknown> = {};

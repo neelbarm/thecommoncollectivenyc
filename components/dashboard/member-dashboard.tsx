@@ -43,6 +43,8 @@ function initials(firstName: string, lastName: string) {
 export function MemberDashboard({ data }: { data: MemberDashboardData }) {
   const hasCohort = Boolean(data.cohort);
   const hasNextEvent = Boolean(data.nextEvent);
+  const needsProfileRepair = !data.hasProfile;
+  const needsOnboarding = data.hasProfile && !data.onboardingCompleted;
 
   return (
     <div className="space-y-6">
@@ -62,6 +64,26 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
           </CardDescription>
         </CardHeader>
       </Card>
+
+      {needsProfileRepair || needsOnboarding ? (
+        <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
+          <CardHeader className="space-y-2">
+            <CardTitle className="text-lg">
+              {needsProfileRepair ? "Let’s finish setting up your member profile" : "Almost there — complete your onboarding"}
+            </CardTitle>
+            <CardDescription className="text-sm leading-7 text-muted-foreground">
+              {needsProfileRepair
+                ? "Your account is signed in, but we don’t have your member questionnaire on file yet. That’s usually a quick fix."
+                : "A few onboarding questions are still open. Once they’re done, we can place you in a cohort and unlock your full dashboard."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button asChild size="sm">
+              <Link href="/onboarding">{needsProfileRepair ? "Set up my profile" : "Continue onboarding"}</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      ) : null}
 
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         <Card className="border-border/70 bg-card/90 shadow-soft">
@@ -110,13 +132,16 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
               </>
             ) : (
               <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
-                <p className="font-medium text-foreground">No cohort assigned yet</p>
+                <p className="font-medium text-foreground">No cohort yet</p>
                 <p className="text-sm text-muted-foreground">
-                  Once your onboarding profile is complete, we will match you into a cohort with aligned energy and
-                  social goals.
+                  {data.onboardingCompleted
+                    ? "You’re all set on paper — the team will add you to a cohort soon. Check back here for your group and rhythm."
+                    : "Finish onboarding first so we can match you into the right small group."}
                 </p>
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/onboarding">Complete onboarding</Link>
+                  <Link href={data.onboardingCompleted ? "/cohort" : "/onboarding"}>
+                    {data.onboardingCompleted ? "View cohort page" : "Continue onboarding"}
+                  </Link>
                 </Button>
               </div>
             )}
@@ -179,12 +204,14 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
               </div>
             ) : (
               <div className="space-y-3 rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
-                <p className="font-medium text-foreground">No upcoming event yet</p>
+                <p className="font-medium text-foreground">Nothing on the calendar yet</p>
                 <p className="text-sm text-muted-foreground">
-                  New events unlock as cohorts settle. Check back soon for your next shared plan.
+                  {hasCohort
+                    ? "When your cohort’s next gathering is published, it will show up here first."
+                    : "Once you’re in a cohort, your season’s plans will appear here."}
                 </p>
                 <Button asChild variant="outline" size="sm">
-                  <Link href="/events">Browse events</Link>
+                  <Link href="/events">See all events</Link>
                 </Button>
               </div>
             )}
@@ -228,9 +255,9 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
             </div>
           ) : (
             <div className="rounded-xl border border-dashed border-border/70 bg-oat/50 p-4">
-              <p className="font-medium text-foreground">No past events yet</p>
+              <p className="font-medium text-foreground">No past gatherings yet</p>
               <p className="text-sm text-muted-foreground">
-                Your event history will appear here after your first gatherings.
+                After your first experiences, a short history will live here for easy reference.
               </p>
             </div>
           )}
