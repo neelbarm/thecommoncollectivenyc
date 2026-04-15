@@ -1,22 +1,22 @@
 import Link from "next/link";
 
-import { AdminCohortsClient } from "@/components/admin/admin-cohorts-client";
+import { AdminVenuesClient } from "@/components/admin/admin-venues-client";
 import { SiteFooter } from "@/components/site/site-footer";
 import { SiteHeader } from "@/components/site/site-header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { requireAdmin } from "@/lib/auth/require-admin";
-import { getCohortManagementData } from "@/lib/admin/get-cohort-management-data";
+import { getVenueManagementData } from "@/lib/admin/get-venue-management-data";
 
-export default async function AdminCohortsPage() {
+export default async function AdminVenuesPage() {
   const session = await requireAdmin();
   if (!session?.user?.id) {
     return null;
   }
 
   try {
-    const data = await getCohortManagementData();
+    const data = await getVenueManagementData();
     return (
       <div className="min-h-screen bg-background">
         <SiteHeader />
@@ -26,14 +26,13 @@ export default async function AdminCohortsPage() {
               <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
                 Admin
               </Badge>
-              <Badge variant="outline">Cohorts</Badge>
+              <Badge variant="outline">Venues</Badge>
             </div>
             <h1 className="font-heading text-4xl leading-tight text-foreground sm:text-5xl">
-              Manual cohort management
+              Places
             </h1>
             <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-              Create cohorts, edit details, and add or adjust members. No automation — concierge
-              control only.
+              Add and edit venues used for events. No external directory — concierge-managed only.
             </p>
             <div className="flex flex-wrap gap-2">
               <Button asChild size="sm" variant="outline">
@@ -43,11 +42,11 @@ export default async function AdminCohortsPage() {
                 <Link href="/admin/events">Events</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
-                <Link href="/admin/venues">Venues</Link>
+                <Link href="/admin/cohorts">Cohorts</Link>
               </Button>
             </div>
           </section>
-          <AdminCohortsClient initialData={data} />
+          <AdminVenuesClient initialData={data} />
         </main>
         <SiteFooter />
       </div>
@@ -59,12 +58,12 @@ export default async function AdminCohortsPage() {
         <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
           <Card className="border-border/70 bg-card/90 shadow-soft">
             <CardHeader>
-              <CardTitle>Cohorts temporarily unavailable</CardTitle>
+              <CardTitle>Venues temporarily unavailable</CardTitle>
               <CardDescription>Please refresh in a moment.</CardDescription>
             </CardHeader>
             <CardContent>
               <Button asChild variant="outline" size="sm">
-                <Link href="/admin/cohorts">Retry</Link>
+                <Link href="/admin/venues">Retry</Link>
               </Button>
             </CardContent>
           </Card>

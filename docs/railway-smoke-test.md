@@ -24,6 +24,7 @@ Use an account with `ADMIN` role.
 
 - [ ] `/admin` loads
 - [ ] `/admin/cohorts` loads
+- [ ] `/admin/venues` loads; create a test venue and edit it (optional cleanup: rename only)
 - [ ] `/admin/events` loads; **Create event** still works; **Edit** saves; **Publish / Unpublish** still works for draft/published rows
 - [ ] `/admin/assignments` loads (optional helper)
 
