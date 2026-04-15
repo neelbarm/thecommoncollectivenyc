@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { dialogBackdropClasses, dialogPanelEnterClasses } from "@/lib/motion";
 
 function formatDateTime(dateIso: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -342,7 +343,7 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
 
       {isComposerOpen ? (
         <div
-          className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center"
+          className={dialogBackdropClasses}
           role="dialog"
           aria-modal="true"
           aria-labelledby="drop-composer-title"
@@ -353,7 +354,9 @@ export function DropPageClient({ initialData }: { initialData: MemberDropData })
             onClick={closeComposer}
             aria-label="Close composer panel"
           />
-          <Card className="relative z-10 w-full rounded-t-2xl border-border/70 bg-card/95 shadow-soft lg:max-w-xl lg:rounded-2xl">
+          <Card
+            className={`relative z-10 w-full rounded-t-2xl border-border/60 bg-card/98 shadow-lift lg:max-w-xl lg:rounded-2xl ${dialogPanelEnterClasses}`}
+          >
             <CardHeader className="border-b border-border/60 pb-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="space-y-1">

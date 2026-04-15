@@ -12,6 +12,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { dialogBackdropClasses, dialogPanelEnterClasses } from "@/lib/motion";
 
 function formatDateTime(dateIso: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -45,7 +46,7 @@ export function EventDetailPanel({
       role="dialog"
       aria-modal="true"
       aria-label={`Event details for ${event.title}`}
-      className="fixed inset-0 z-50 flex items-end bg-black/35 backdrop-blur-sm lg:items-center lg:justify-center"
+      className={dialogBackdropClasses}
     >
       <button
         aria-label="Close event details"
@@ -54,7 +55,9 @@ export function EventDetailPanel({
         type="button"
       />
 
-      <Card className="relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border-border/70 bg-card/95 shadow-soft lg:max-w-2xl lg:rounded-2xl">
+      <Card
+        className={`relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-t-2xl border-border/60 bg-card/98 shadow-lift lg:max-w-2xl lg:rounded-2xl ${dialogPanelEnterClasses}`}
+      >
         <CardHeader className="space-y-3 border-b border-border/60 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="space-y-1">
