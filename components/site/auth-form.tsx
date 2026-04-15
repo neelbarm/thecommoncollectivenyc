@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { signIn } from "next-auth/react";
 
@@ -19,8 +19,32 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get("callbackUrl") ?? "/dashboard";
+  const signupStartTrackedRef = useRef(false);
 
   const isSignup = mode === "signup";
+
+  async function trackClientEvent(name: "signup_started", metadata?: Record<string, unknown>) {
+    try {
+      await fetch("/api/internal/analytics/track", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name,
+          metadata,
+          path: window.location.pathname,
+          anonymousId: `${window.location.pathname}:${Date.now()}`,
+        }),
+      });
+    } catch {
+      // best-effort telemetry
+    }
+  }
+
+  useEffect(() => {
+    signupStartTrackedRef.current = false;
+  }, [isSignup]);
 
   return (
     <Card className="surface-panel motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-bottom-1 motion-safe:duration-500 motion-safe:ease-[cubic-bezier(0.22,1,0.36,1)]">
@@ -58,6 +82,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
               }
 
               if (isSignup) {
+                if (!signupStartTrackedRef.current) {
+                  signupStartTrackedRef.current = true;
+                  void trackClientEvent("signup_started", {
+                    mode: "signup",
+                  });
+                }
                 const nextFieldErrors: Record<string, string> = {};
                 if (firstName.length < 2) {
                   nextFieldErrors.firstName = "First name must be at least 2 characters.";

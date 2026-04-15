@@ -5,6 +5,7 @@ import {
   cohortWelcomeEmailTemplate,
   enqueueEmailOutbox,
 } from "@/lib/email/outbox";
+import { trackEvent } from "@/lib/analytics/track";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -110,6 +111,19 @@ export async function POST(
       subject: welcomeEmail.subject,
       htmlBody: welcomeEmail.htmlBody,
       dedupeKey: `cohort-welcome:${cohortId}:${user.id}:${membership.status}`,
+    });
+
+    await trackEvent({
+      name: "cohort_assigned",
+      source: "SERVER",
+      actorUserId: session.user.id,
+      dedupeKey: `cohort-assigned:${cohortId}:${user.id}:${membership.status}`,
+      metadata: {
+        cohortId,
+        memberUserId: user.id,
+        membershipId: membership.id,
+        membershipStatus: membership.status,
+      },
     });
 
     return NextResponse.json({ ok: true, membership }, { status: 201 });
