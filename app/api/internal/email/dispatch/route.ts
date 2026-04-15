@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { logNotificationAttempt } from "@/lib/notifications/log";
 import { sendEmail } from "@/lib/email/sender";
+import { getMissingEmailDispatchEnv } from "@/lib/env/production-checks";
 import { prisma } from "@/lib/prisma";
 
 const MAX_SEND_ATTEMPTS = 3;
@@ -24,6 +25,13 @@ function isAuthorized(request: Request) {
 export async function POST(request: Request) {
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  const missingEmailEnv = getMissingEmailDispatchEnv();
+  if (missingEmailEnv.length > 0) {
+    return NextResponse.json(
+      { error: `Missing required email dispatch env vars: ${missingEmailEnv.join(", ")}` },
+      { status: 503 },
+    );
   }
 
   let body: unknown = {};

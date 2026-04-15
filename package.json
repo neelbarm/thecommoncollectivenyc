@@ -11,7 +11,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:seed": "prisma db seed",
-    "db:seed": "tsx prisma/seed.ts"
+    "db:seed": "tsx prisma/seed.ts",
+    "admin:reset-password": "tsx scripts/admin-reset-password.ts"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.11.1",

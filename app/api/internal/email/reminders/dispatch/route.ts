@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { enqueueEmailOutbox, eventReminderEmailTemplate } from "@/lib/email/outbox";
+import { getMissingEmailDispatchEnv } from "@/lib/env/production-checks";
 import { logNotificationAttempt } from "@/lib/notifications/log";
 import { prisma } from "@/lib/prisma";
 
@@ -20,6 +21,14 @@ function isAuthorized(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const missingEnv = getMissingEmailDispatchEnv();
+  if (missingEnv.length > 0) {
+    return NextResponse.json(
+      { error: `Missing required email dispatch env vars: ${missingEnv.join(", ")}` },
+      { status: 503 },
+    );
+  }
+
   if (!isAuthorized(request)) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
