@@ -5,6 +5,7 @@ import {
   cohortWelcomeEmailTemplate,
   enqueueEmailOutbox,
 } from "@/lib/email/outbox";
+import { logNotificationAttempt } from "@/lib/notifications/log";
 import { trackEvent } from "@/lib/analytics/track";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
@@ -104,13 +105,22 @@ export async function POST(
       seasonName: cohort.season.name,
     });
 
-    await enqueueEmailOutbox({
+    const outboxRecord = await enqueueEmailOutbox({
       type: "COHORT_WELCOME",
       recipientEmail: user.email,
       recipientName: `${user.firstName} ${user.lastName}`,
       subject: welcomeEmail.subject,
       htmlBody: welcomeEmail.htmlBody,
       dedupeKey: `cohort-welcome:${cohortId}:${user.id}:${membership.status}`,
+    });
+
+    await logNotificationAttempt({
+      type: "COHORT_WELCOME",
+      recipientEmail: user.email,
+      triggerSource: "admin-cohort-member-add",
+      status: outboxRecord ? "QUEUED" : "DUPLICATE_PREVENTED",
+      dedupeKey: `cohort-welcome:${cohortId}:${user.id}:${membership.status}`,
+      outboxId: outboxRecord?.id ?? null,
     });
 
     await trackEvent({

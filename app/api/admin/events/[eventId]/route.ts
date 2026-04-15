@@ -12,6 +12,7 @@ import {
 } from "@/lib/email/outbox";
 import { trackEvent } from "@/lib/analytics/track";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { logNotificationAttempt } from "@/lib/notifications/log";
 import { prisma } from "@/lib/prisma";
 
 const updateEventSchema = z.object({
@@ -206,7 +207,16 @@ export async function PATCH(
             subject: email.subject,
             htmlBody: email.htmlBody,
             dedupeKey: `event-published:${updated.id}:${recipient.id}`,
-          });
+          }).then((outbox) =>
+            logNotificationAttempt({
+              type: "EVENT_PUBLISHED",
+              status: outbox ? "QUEUED" : "DUPLICATE_PREVENTED",
+              recipientEmail: recipient.email,
+              dedupeKey: `event-published:${updated.id}:${recipient.id}`,
+              triggerSource: "event-publish-update",
+              outboxId: outbox?.id ?? null,
+            }),
+          );
         }),
       );
 

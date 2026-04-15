@@ -17,6 +17,8 @@ Use a test member account (or create one via `/signup`).
 - [ ] `/cohort` loads (empty state is OK if not assigned)
 - [ ] `/events` lists events; opening an event and RSVP returns success
 - [ ] `/drop` loads; if onboarding is incomplete, composer stays gated with a clear CTA
+- [ ] Login failure shows clear inline error (invalid password / inactive account)
+- [ ] Admin recovery path verified in staging (see `npm run admin:reset-password -- --email=<admin-email> --password='<new-strong-password>'`)
 
 ## Admin
 
@@ -28,6 +30,14 @@ Use an account with `ADMIN` role.
 - [ ] `/admin/venues` loads; create a test venue and edit it (optional cleanup: rename only)
 - [ ] `/admin/events` loads; **Create event** still works (times within season window); **Edit** saves (season change + cohort); **Publish / Unpublish** still works for draft/published rows
 - [ ] `/admin/assignments` loads (optional helper)
+- [ ] `/admin/notifications` loads; failed outbox row can be set back to `PENDING` via Retry
+
+## Notifications delivery ops
+
+- [ ] `POST /api/internal/email/reminders/dispatch` returns 200 with valid bearer token
+- [ ] `POST /api/internal/email/dispatch` returns 200 with valid bearer token
+- [ ] Invalid token returns 401 for both endpoints
+- [ ] Outbox failure + retry path works end-to-end (FAILED -> Retry -> PENDING -> SENT)
 
 ## If something fails
 

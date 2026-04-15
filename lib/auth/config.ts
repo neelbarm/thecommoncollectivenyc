@@ -4,6 +4,7 @@ import Credentials from "next-auth/providers/credentials";
 
 import { prisma } from "@/lib/prisma";
 import { verifyPassword } from "@/lib/auth/password";
+import { assertCoreProductionEnv } from "@/lib/env/production-checks";
 import { loginSchema } from "@/lib/validations/auth";
 
 function resolveRole(value: unknown): Role {
@@ -26,6 +27,8 @@ export const authConfig = {
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
+        assertCoreProductionEnv();
+
         const parsed = loginSchema.safeParse(credentials);
 
         if (!parsed.success) {

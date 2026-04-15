@@ -1,5 +1,6 @@
 import { EmailOutboxType } from "@prisma/client";
 
+import { logNotificationAttempt } from "@/lib/notifications/log";
 import { prisma } from "@/lib/prisma";
 
 type EnqueueEmailInput = {
@@ -18,7 +19,7 @@ export async function enqueueEmailOutbox(input: EnqueueEmailInput) {
   }
 
   try {
-    return await prisma.emailOutbox.create({
+    const created = await prisma.emailOutbox.create({
       data: {
         type: input.type,
         recipientEmail: email,
@@ -29,6 +30,15 @@ export async function enqueueEmailOutbox(input: EnqueueEmailInput) {
       },
       select: { id: true },
     });
+    await logNotificationAttempt({
+      outboxId: created.id,
+      type: input.type,
+      status: "QUEUED",
+      recipientEmail: email,
+      triggerSource: "outbox-enqueue",
+      dedupeKey: input.dedupeKey,
+    });
+    return created;
   } catch (error) {
     if (
       error &&
@@ -36,6 +46,14 @@ export async function enqueueEmailOutbox(input: EnqueueEmailInput) {
       "code" in error &&
       (error as { code?: string }).code === "P2002"
     ) {
+      await logNotificationAttempt({
+        type: input.type,
+        status: "DUPLICATE_PREVENTED",
+        recipientEmail: email,
+        triggerSource: "outbox-enqueue",
+        dedupeKey: input.dedupeKey,
+        errorSummary: "Deduped by existing outbox dedupe key.",
+      });
       return null;
     }
 

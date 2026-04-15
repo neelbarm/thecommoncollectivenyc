@@ -115,6 +115,14 @@ enum EmailOutboxStatus {
   FAILED
 }
 
+enum NotificationAttemptStatus {
+  QUEUED
+  SENT
+  FAILED
+  SKIPPED
+  DUPLICATE_PREVENTED
+}
+
 enum AnalyticsEventName {
   signup_started
   signup_completed
@@ -490,8 +498,28 @@ model EmailOutbox {
   sentAt         DateTime?
   createdAt      DateTime         @default(now())
   updatedAt      DateTime         @updatedAt
+  attemptsLog    NotificationAttempt[]
 
   @@index([status, createdAt])
+}
+
+model NotificationAttempt {
+  id           String                    @id @default(cuid())
+  outboxId     String?
+  type         EmailOutboxType
+  status       NotificationAttemptStatus
+  recipientEmail String
+  dedupeKey    String?
+  triggerSource String?
+  errorSummary String?
+  createdAt    DateTime                  @default(now())
+
+  outbox EmailOutbox? @relation(fields: [outboxId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([status, createdAt])
+  @@index([type, createdAt])
+  @@index([outboxId, createdAt])
 }
 
 model AnalyticsEvent {

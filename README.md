@@ -44,8 +44,10 @@ The Common Collective is a production-minded Next.js MVP with:
 - Trigger points:
   - adding a member to a cohort enqueues a `COHORT_WELCOME` outbox email
   - publishing an event (create as `PUBLISHED` or status transition to `PUBLISHED`) enqueues `EVENT_PUBLISHED` emails for relevant members
+  - RSVP `GOING` schedules one `EVENT_REMINDER` email 24h before the event (or immediately if inside 24h)
 - Delivery model: outbox rows are created during admin writes; actual SMTP sending is done by `POST /api/internal/email/dispatch` (authorized by bearer token).
 - Outbox table tracks status (`PENDING` / `SENT` / `FAILED`), attempts (auto-retries up to 3 sends), and dedupe keys to prevent duplicate sends.
+- Durable operational visibility: every enqueue/send/skip/failure writes a `NotificationAttempt` record for admin operations at `/admin/notifications`.
 - Event reminders:
   - RSVP `GOING` schedules one reminder at 24 hours before event start (or immediate if already inside the 24h window)
   - changing RSVP away from `GOING` unschedules pending reminder
@@ -62,16 +64,38 @@ curl -X POST "https://your-domain.com/api/internal/email/dispatch" \
   -d '{"limit":25}'
 ```
 
-#### Manual reminder dispatch run (cron-safe)
-
-Use this from a secure runner/cron after setting `EMAIL_REMINDER_DISPATCH_TOKEN`:
+Reminder scheduler run (enqueue due reminder emails from `Reminder` records):
 
 ```bash
 curl -X POST "https://your-domain.com/api/internal/email/reminders/dispatch" \
-  -H "Authorization: Bearer $EMAIL_REMINDER_DISPATCH_TOKEN" \
+  -H "Authorization: Bearer $EMAIL_DISPATCH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"limit":50}'
+```
+
+#### Manual reminder dispatch run (cron-safe)
+
+Use this from a secure runner/cron after setting `EMAIL_DISPATCH_TOKEN`:
+
+```bash
+curl -X POST "https://your-domain.com/api/internal/email/reminders/dispatch" \
+  -H "Authorization: Bearer $EMAIL_DISPATCH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"limit":100}'
 ```
+
+#### Admin account recovery (CLI, no UI flow)
+
+If an admin is locked out or forgot their password, reset it safely via one-off command:
+
+```bash
+npm run admin:reset-password -- --email "admin@commoncollective.nyc" --password "NewStrongPass123!"
+```
+
+Notes:
+- This updates the password hash directly in DB and reactivates the user.
+- User should sign out/in afterward to refresh session/JWT.
+- Use only from trusted operator shells.
 
 ### Manual concierge operations (primary workflow)
 - **Seasons:** `/admin/seasons` — list program windows, **create** seasons (unique code), **edit** name/code/status/dates; shrinking dates blocked if any event would fall outside the new window
@@ -127,7 +151,7 @@ Optional variables:
 - `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`: SMTP transport for outbox email sending
 - `EMAIL_FROM`: sender address for outbox emails
 - `EMAIL_DISPATCH_TOKEN`: bearer token required by `POST /api/internal/email/dispatch`
-- `EMAIL_REMINDER_DISPATCH_TOKEN`: bearer token required by `POST /api/internal/email/reminders/dispatch`
+- same `EMAIL_DISPATCH_TOKEN` is also required by `POST /api/internal/email/reminders/dispatch`
 
 Generate a secure secret:
 
@@ -300,6 +324,8 @@ Avoid `prisma migrate dev` in production; it is for local development only.
 - [ ] `NEXTAUTH_URL` set to canonical public URL
 - [ ] `NEXTAUTH_SECRET` set to strong random value
 - [ ] (Optional) `DATABASE_URL_NON_POOLING` configured for migration pipeline
+- [ ] `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM` set for transactional/reminder sends
+- [ ] `EMAIL_DISPATCH_TOKEN` set and kept secret (used by both internal dispatch endpoints)
 
 ### Database
 - [ ] PostgreSQL reachable from deploy environment
@@ -329,6 +355,11 @@ Avoid `prisma migrate dev` in production; it is for local development only.
   - RSVP update
   - Drop create/cancel
   - admin status update + note create
+- [ ] Internal dispatch routes return auth failure without token and success with token:
+  - `POST /api/internal/email/dispatch`
+  - `POST /api/internal/email/reminders/dispatch`
+- [ ] `/admin/notifications` loads and shows recent attempt/outbox rows
+- [ ] retrying a failed outbox row from `/admin/notifications` transitions row to `PENDING`
 
 ---
 
