@@ -2,6 +2,7 @@ import { EventStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { assertCohortBelongsToSeason } from "@/lib/admin/validate-event-program";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -50,7 +51,7 @@ export async function PATCH(
   try {
     const existing = await prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true, startsAt: true, endsAt: true },
+      select: { id: true, seasonId: true, startsAt: true, endsAt: true },
     });
 
     if (!existing) {
@@ -69,6 +70,16 @@ export async function PATCH(
           { error: "End time must be after start time." },
           { status: 400 },
         );
+      }
+    }
+
+    if (parsed.data.cohortId !== undefined) {
+      const cohortCheck = await assertCohortBelongsToSeason(
+        parsed.data.cohortId,
+        existing.seasonId,
+      );
+      if (!cohortCheck.ok) {
+        return NextResponse.json({ error: cohortCheck.error }, { status: 400 });
       }
     }
 

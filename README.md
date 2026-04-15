@@ -48,8 +48,8 @@ The Common Collective is a production-minded Next.js MVP with:
   - `POST /api/admin/cohorts`, `GET /api/admin/cohorts/data`
   - `PATCH /api/admin/cohorts/[cohortId]` (status, capacity, name, description)
   - `POST /api/admin/cohorts/[cohortId]/members`, `PATCH` / `DELETE` on `.../members/[membershipId]`
-  - `POST /api/admin/events`, `GET /api/admin/events/data`
-  - `PATCH /api/admin/events/[eventId]` (status, title, description, times, capacity, cohort, venue)
+  - `POST /api/admin/events`, `GET /api/admin/events/data` — cohort (if set) must belong to the event’s season (server-enforced)
+  - `PATCH /api/admin/events/[eventId]` (status, title, description, times, capacity, cohort, venue) — same cohort/season rule on cohort changes
 
 ### Cohort assignment engine
 - Deterministic cohort matching at `/admin/assignments`
