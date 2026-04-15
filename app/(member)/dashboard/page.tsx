@@ -29,7 +29,7 @@ export default async function DashboardPage() {
         <div className="flex min-h-screen flex-col bg-background">
           <SiteHeader />
           <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-            <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
+            <Card className="surface-dashed">
               <CardHeader>
                 <CardTitle>We could not load your account</CardTitle>
                 <CardDescription className="text-sm leading-7">
@@ -65,7 +65,7 @@ export default async function DashboardPage() {
       <div className="flex min-h-screen flex-col bg-background">
         <SiteHeader />
         <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-          <Card className="border-border/70 bg-card/90 shadow-soft">
+          <Card className="surface-panel">
             <CardHeader>
               <CardTitle>Having trouble loading the dashboard</CardTitle>
               <CardDescription>

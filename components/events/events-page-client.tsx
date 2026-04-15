@@ -80,7 +80,7 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
   if (events.length === 0) {
     if (!initialData.hasAnyPublishedEvents) {
       return (
-        <Card className="border-border/70 bg-card/90 shadow-soft">
+        <Card className="surface-panel">
           <CardHeader>
             <CardTitle>No events yet</CardTitle>
             <CardDescription>
@@ -97,7 +97,7 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
     }
 
     return (
-      <Card className="border-border/70 bg-card/90 shadow-soft">
+      <Card className="surface-panel">
         <CardHeader>
           <CardTitle>No upcoming events for you yet</CardTitle>
           <CardDescription>
@@ -114,9 +114,9 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       {!initialData.hasCohort ? (
-        <Card className="border-border/70 bg-oat/70 shadow-soft">
+        <Card className="surface-subtle">
           <CardContent className="pt-4">
             <p className="text-sm leading-7 text-muted-foreground">
               You&apos;re seeing open community events first. Once you&apos;re matched into a cohort, this page will prioritize
@@ -127,11 +127,13 @@ export function EventsPageClient({ initialData }: { initialData: MemberEventsDat
       ) : null}
 
       {error ? (
-        <p role="alert" className="text-sm text-destructive">
+        <p role="alert" className="status-banner border-destructive/30 bg-destructive/6 text-destructive">
           {error}
         </p>
       ) : null}
-      {isPending ? <p className="text-xs text-muted-foreground">Updating RSVP...</p> : null}
+      {isPending ? (
+        <p className="status-banner border-border/55 bg-card/55 text-xs text-muted-foreground">Updating RSVP...</p>
+      ) : null}
 
       <div className="space-y-4">
         {events.map((event) => (

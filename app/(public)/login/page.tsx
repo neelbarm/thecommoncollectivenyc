@@ -5,13 +5,13 @@ import { AuthForm } from "@/components/site/auth-form";
 
 export default function LoginPage() {
   return (
-    <main className="mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-6xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[1fr_420px] lg:px-8">
-      <section className="space-y-4">
-        <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Member Access</p>
-        <h1 className="font-heading text-4xl leading-tight text-foreground sm:text-5xl">
+    <main className="mx-auto grid min-h-[calc(100vh-8rem)] w-full max-w-6xl items-center gap-12 px-4 py-14 sm:px-6 lg:grid-cols-[1fr_440px] lg:px-8">
+      <section className="space-y-5">
+        <p className="eyebrow">Member Access</p>
+        <h1 className="font-heading text-4xl leading-[1.08] text-foreground sm:text-5xl">
           Return to your cohort rhythm.
         </h1>
-        <p className="max-w-xl text-base leading-7 text-muted-foreground">
+        <p className="prose-calm max-w-xl">
           Access your dashboard, upcoming experiences, and The Drop to continue participating in community life.
         </p>
         <p className="text-sm text-muted-foreground">
