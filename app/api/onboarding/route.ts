@@ -78,6 +78,16 @@ function profileDraftToPayload(rawDraft: unknown): OnboardingPayload {
 }
 
 async function ensureApplication(userId: string) {
+  const draft = await prisma.memberApplication.findFirst({
+    where: { userId, status: "DRAFT" },
+    orderBy: { createdAt: "desc" },
+    select: { id: true },
+  });
+
+  if (draft) {
+    return draft.id;
+  }
+
   const existing = await prisma.memberApplication.findFirst({
     where: { userId },
     orderBy: { createdAt: "desc" },
@@ -100,6 +110,39 @@ async function ensureApplication(userId: string) {
   });
 
   return created.id;
+}
+
+const onboardingApplicationSelect = {
+  id: true,
+  responses: {
+    where: {
+      questionKey: {
+        in: ONBOARDING_RESPONSE_KEYS,
+      },
+    },
+    select: {
+      questionKey: true,
+      response: true,
+    },
+  },
+} as const;
+
+async function applicationForOnboardingState(userId: string) {
+  const draftApp = await prisma.memberApplication.findFirst({
+    where: { userId, status: "DRAFT" },
+    orderBy: { createdAt: "desc" },
+    select: onboardingApplicationSelect,
+  });
+
+  if (draftApp) {
+    return draftApp;
+  }
+
+  return prisma.memberApplication.findFirst({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    select: onboardingApplicationSelect,
+  });
 }
 
 async function buildOnboardingState(userId: string) {
@@ -135,24 +178,7 @@ async function buildOnboardingState(userId: string) {
         onboardingDraft: true,
       },
     }),
-    prisma.memberApplication.findFirst({
-      where: { userId },
-      orderBy: { createdAt: "desc" },
-      select: {
-        id: true,
-        responses: {
-          where: {
-            questionKey: {
-              in: ONBOARDING_RESPONSE_KEYS,
-            },
-          },
-          select: {
-            questionKey: true,
-            response: true,
-          },
-        },
-      },
-    }),
+    applicationForOnboardingState(userId),
   ]);
 
   const responseMap = new Map(
@@ -322,6 +348,14 @@ export async function POST(request: Request) {
   const data = parsed.data;
   const applicationId = await ensureApplication(session.user.id);
 
+  const applicationBeforeSubmit = await prisma.memberApplication.findUnique({
+    where: { id: applicationId },
+    select: { status: true },
+  });
+
+  const shouldPromoteApplicationToSubmitted =
+    applicationBeforeSubmit?.status === "DRAFT" || applicationBeforeSubmit?.status === "REJECTED";
+
   const responseValues = {
     ageRange: data.ageRange,
     socialGoal: data.socialGoal,
@@ -395,6 +429,9 @@ export async function POST(request: Request) {
       prisma.memberApplication.update({
         where: { id: applicationId },
         data: {
+          ...(shouldPromoteApplicationToSubmitted
+            ? { status: "SUBMITTED" as const, submittedAt: new Date() }
+            : {}),
           headline: `Onboarding complete: ${data.socialGoal}`,
           aboutText: `${data.peopleToMeet}\n\n${data.idealWeek}`,
           availability: `${data.preferredNights} / ${data.timePreference}`,
