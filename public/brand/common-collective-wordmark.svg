@@ -1,0 +1,11 @@
+<svg width="1024" height="262" viewBox="0 0 1024 262" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1024" height="262" fill="#E8E8E6"/>
+  <g fill="#1F1A17">
+    <circle cx="88" cy="131" r="57" stroke="#1F1A17" stroke-width="12" fill="none"/>
+    <circle cx="150" cy="131" r="57" stroke="#1F1A17" stroke-width="12" fill="none"/>
+    <circle cx="212" cy="131" r="57" stroke="#1F1A17" stroke-width="12" fill="none"/>
+  </g>
+  <text x="285" y="162" fill="#1F1A17" font-family="'Times New Roman', serif" font-size="82">
+    The Common Collective
+  </text>
+</svg>
