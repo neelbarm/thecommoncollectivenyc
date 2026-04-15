@@ -23,9 +23,10 @@ Use a test member account (or create one via `/signup`).
 Use an account with `ADMIN` role.
 
 - [ ] `/admin` loads
+- [ ] `/admin/seasons` loads; create/edit optional
 - [ ] `/admin/cohorts` loads
 - [ ] `/admin/venues` loads; create a test venue and edit it (optional cleanup: rename only)
-- [ ] `/admin/events` loads; **Create event** still works; **Edit** saves; **Publish / Unpublish** still works for draft/published rows
+- [ ] `/admin/events` loads; **Create event** still works (times within season window); **Edit** saves (season change + cohort); **Publish / Unpublish** still works for draft/published rows
 - [ ] `/admin/assignments` loads (optional helper)
 
 ## If something fails

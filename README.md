@@ -35,17 +35,19 @@ The Common Collective is a production-minded Next.js MVP with:
 - Admin APIs:
   - `PATCH /api/admin/applications/[applicationId]`
   - `PATCH /api/admin/cohorts/[cohortId]`
-  - `PATCH /api/admin/seasons/[seasonId]`
+  - `POST /api/admin/seasons`, `GET /api/admin/seasons/data`, `PATCH /api/admin/seasons/[seasonId]` (status and/or name, code, program window)
   - `PATCH /api/admin/events/[eventId]`
   - `PATCH /api/admin/drop-requests/[requestId]`
   - `POST /api/admin/notes`
 
 ### Manual concierge operations (primary workflow)
+- **Seasons:** `/admin/seasons` — list program windows, **create** seasons (unique code), **edit** name/code/status/dates; shrinking dates blocked if any event would fall outside the new window
 - **Cohorts:** `/admin/cohorts` — create cohorts (name, description, season, capacity), edit details, add members by picker, change membership status, remove members
 - **Venues:** `/admin/venues` — list venues (with event counts), create venues, edit details; slug from name; no delete (events reference venues)
-- **Events:** `/admin/events` — create events (season, optional cohort, venue, times, draft or published), list recent events, **edit** existing events (modal), publish / unpublish (draft ↔ published)
+- **Events:** `/admin/events` — create events (season, optional cohort, venue, times, draft or published), list recent events, **edit** existing events (modal, including **season** reassignment with cohort auto-clear when needed), publish / unpublish (draft ↔ published); **event start/end must fall within the selected season’s program window** (server + client hints)
 - **Member cohort page:** `/cohort` — roster and upcoming published cohort events (links to `/events` for RSVP)
 - Admin APIs (manual):
+  - `POST /api/admin/seasons`, `GET /api/admin/seasons/data`, `PATCH /api/admin/seasons/[seasonId]`
   - `POST /api/admin/cohorts`, `GET /api/admin/cohorts/data`
   - `PATCH /api/admin/cohorts/[cohortId]` (status, capacity, name, description)
   - `POST /api/admin/cohorts/[cohortId]/members`, `PATCH` / `DELETE` on `.../members/[membershipId]`

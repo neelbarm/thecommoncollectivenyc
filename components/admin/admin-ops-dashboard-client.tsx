@@ -578,6 +578,9 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
 
       <div className="flex flex-wrap gap-2">
         <Button asChild size="sm" variant="outline">
+          <Link href="/admin/seasons">Seasons (programs) →</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
           <Link href="/admin/cohorts">Cohorts (manual) →</Link>
         </Button>
         <Button asChild size="sm" variant="outline">
