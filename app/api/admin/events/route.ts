@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { assertCohortBelongsToSeason } from "@/lib/admin/validate-event-program";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -64,6 +65,14 @@ export async function POST(request: Request) {
     ]);
     if (!season) return NextResponse.json({ error: "Season not found." }, { status: 404 });
     if (!venue) return NextResponse.json({ error: "Venue not found." }, { status: 404 });
+
+    const cohortCheck = await assertCohortBelongsToSeason(
+      parsed.data.cohortId ?? null,
+      parsed.data.seasonId,
+    );
+    if (!cohortCheck.ok) {
+      return NextResponse.json({ error: cohortCheck.error }, { status: 400 });
+    }
 
     // Unique slug
     let slug = baseSlug;
