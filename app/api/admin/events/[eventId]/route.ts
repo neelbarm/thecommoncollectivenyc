@@ -2,11 +2,15 @@ import { EventStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { assertCohortBelongsToSeason } from "@/lib/admin/validate-event-program";
+import {
+  assertCohortBelongsToSeason,
+  assertEventTimesWithinSeason,
+} from "@/lib/admin/validate-event-program";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
 const updateEventSchema = z.object({
+  seasonId: z.string().cuid().optional(),
   status: z.nativeEnum(EventStatus).optional(),
   title: z.string().trim().min(2).max(120).optional(),
   description: z.string().trim().min(2).max(1200).optional(),
@@ -51,20 +55,38 @@ export async function PATCH(
   try {
     const existing = await prisma.event.findUnique({
       where: { id: eventId },
-      select: { id: true, seasonId: true, startsAt: true, endsAt: true },
+      select: {
+        id: true,
+        seasonId: true,
+        cohortId: true,
+        startsAt: true,
+        endsAt: true,
+      },
     });
 
     if (!existing) {
       return NextResponse.json({ error: "Event not found." }, { status: 404 });
     }
 
+    const nextSeasonId =
+      parsed.data.seasonId !== undefined ? parsed.data.seasonId : existing.seasonId;
+
+    if (parsed.data.seasonId !== undefined) {
+      const seasonRow = await prisma.season.findUnique({
+        where: { id: parsed.data.seasonId },
+        select: { id: true },
+      });
+      if (!seasonRow) {
+        return NextResponse.json({ error: "Season not found." }, { status: 404 });
+      }
+    }
+
+    const nextStarts =
+      parsed.data.startsAt !== undefined ? new Date(parsed.data.startsAt) : existing.startsAt;
+    const nextEnds =
+      parsed.data.endsAt !== undefined ? new Date(parsed.data.endsAt) : existing.endsAt;
+
     if (parsed.data.startsAt !== undefined || parsed.data.endsAt !== undefined) {
-      const nextStarts =
-        parsed.data.startsAt !== undefined
-          ? new Date(parsed.data.startsAt)
-          : existing.startsAt;
-      const nextEnds =
-        parsed.data.endsAt !== undefined ? new Date(parsed.data.endsAt) : existing.endsAt;
       if (nextEnds.getTime() <= nextStarts.getTime()) {
         return NextResponse.json(
           { error: "End time must be after start time." },
@@ -73,22 +95,43 @@ export async function PATCH(
       }
     }
 
-    if (parsed.data.cohortId !== undefined) {
-      const cohortCheck = await assertCohortBelongsToSeason(
-        parsed.data.cohortId,
-        existing.seasonId,
-      );
-      if (!cohortCheck.ok) {
-        return NextResponse.json({ error: cohortCheck.error }, { status: 400 });
-      }
+    const timeCheck = await assertEventTimesWithinSeason(nextSeasonId, nextStarts, nextEnds);
+    if (!timeCheck.ok) {
+      return NextResponse.json({ error: timeCheck.error }, { status: 400 });
+    }
+
+    let effectiveCohortId =
+      parsed.data.cohortId !== undefined ? parsed.data.cohortId : existing.cohortId;
+    let autoClearedCohort = false;
+
+    let cohortCheck = await assertCohortBelongsToSeason(effectiveCohortId, nextSeasonId);
+    if (
+      !cohortCheck.ok &&
+      parsed.data.seasonId !== undefined &&
+      parsed.data.seasonId !== existing.seasonId &&
+      parsed.data.cohortId === undefined &&
+      effectiveCohortId != null
+    ) {
+      effectiveCohortId = null;
+      autoClearedCohort = true;
+      cohortCheck = await assertCohortBelongsToSeason(null, nextSeasonId);
+    }
+
+    if (!cohortCheck.ok) {
+      return NextResponse.json({ error: cohortCheck.error }, { status: 400 });
     }
 
     const updateData: Record<string, unknown> = {};
+    if (parsed.data.seasonId !== undefined) updateData.seasonId = parsed.data.seasonId;
+    if (autoClearedCohort) {
+      updateData.cohortId = null;
+    } else if (parsed.data.cohortId !== undefined) {
+      updateData.cohortId = parsed.data.cohortId;
+    }
     if (parsed.data.status !== undefined) updateData.status = parsed.data.status;
     if (parsed.data.title !== undefined) updateData.title = parsed.data.title;
     if (parsed.data.description !== undefined) updateData.description = parsed.data.description;
     if (parsed.data.capacity !== undefined) updateData.capacity = parsed.data.capacity;
-    if (parsed.data.cohortId !== undefined) updateData.cohortId = parsed.data.cohortId;
     if (parsed.data.venueId !== undefined) updateData.venueId = parsed.data.venueId;
     if (parsed.data.startsAt !== undefined) updateData.startsAt = new Date(parsed.data.startsAt);
     if (parsed.data.endsAt !== undefined) updateData.endsAt = new Date(parsed.data.endsAt);
@@ -104,6 +147,7 @@ export async function PATCH(
         endsAt: true,
         capacity: true,
         cohortId: true,
+        seasonId: true,
         venueId: true,
       },
     });

@@ -31,6 +31,31 @@ function toDatetimeLocalValue(iso: string) {
   return `${y}-${m}-${day}T${h}:${min}`;
 }
 
+function formatSeasonWindow(isoStart: string, isoEnd: string) {
+  const fmt = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  });
+  return `${fmt.format(new Date(isoStart))} – ${fmt.format(new Date(isoEnd))}`;
+}
+
+function seasonWindowError(
+  season: { startsAt: string; endsAt: string } | undefined,
+  startLocal: string,
+  endLocal: string,
+): string | null {
+  if (!season) return null;
+  const w0 = new Date(season.startsAt).getTime();
+  const w1 = new Date(season.endsAt).getTime();
+  const s = new Date(startLocal).getTime();
+  const e = new Date(endLocal).getTime();
+  if (s < w0 || e > w1) {
+    return "Start and end must fall within the selected season window.";
+  }
+  return null;
+}
+
 export function AdminEventsClient({ initialData }: { initialData: EventManagementData }) {
   const [data, setData] = useState(initialData);
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +81,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
   const [editStartsLocal, setEditStartsLocal] = useState("");
   const [editEndsLocal, setEditEndsLocal] = useState("");
   const [editStatus, setEditStatus] = useState<string>("DRAFT");
+  const [editSeasonId, setEditSeasonId] = useState("");
 
   function refresh() {
     startTransition(async () => {
@@ -82,6 +108,12 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
     }
     if (new Date(endsLocal).getTime() <= new Date(startsLocal).getTime()) {
       setError("End time must be after start time.");
+      return;
+    }
+    const createSeason = data.seasons.find((s) => s.id === seasonId);
+    const winErr = seasonWindowError(createSeason, startsLocal, endsLocal);
+    if (winErr) {
+      setError(winErr);
       return;
     }
 
@@ -143,6 +175,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
     setError(null);
     setFeedback(null);
     setEditingEvent(ev);
+    setEditSeasonId(ev.seasonId);
     setEditTitle(ev.title);
     setEditDescription(ev.description);
     setEditVenueId(ev.venueId);
@@ -185,6 +218,12 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
       setError("End time must be after start time.");
       return;
     }
+    const editSeason = data.seasons.find((s) => s.id === editSeasonId);
+    const editWinErr = seasonWindowError(editSeason, editStartsLocal, editEndsLocal);
+    if (editWinErr) {
+      setError(editWinErr);
+      return;
+    }
 
     startTransition(async () => {
       try {
@@ -192,6 +231,7 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
+            seasonId: editSeasonId,
             title: titleTrim,
             description: descTrim,
             venueId: editVenueId,
@@ -214,9 +254,9 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
   }
 
   const cohortsForSeason = data.cohorts.filter((c) => c.seasonId === seasonId);
-  const cohortsForEditSeason = editingEvent
-    ? data.cohorts.filter((c) => c.seasonId === editingEvent.seasonId)
-    : [];
+  const cohortsForEditSeason = data.cohorts.filter((c) => c.seasonId === editSeasonId);
+  const createSeasonMeta = data.seasons.find((s) => s.id === seasonId);
+  const editSeasonMeta = data.seasons.find((s) => s.id === editSeasonId);
 
   return (
     <div className="space-y-6">
@@ -236,7 +276,10 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
                     Edit event
                   </CardTitle>
                   <CardDescription className="text-xs">
-                    {editingEvent.seasonName} · RSVPs going: {editingEvent.rsvpGoing}
+                    {editSeasonMeta
+                      ? `${editSeasonMeta.code} · ${formatSeasonWindow(editSeasonMeta.startsAt, editSeasonMeta.endsAt)} · `
+                      : `${editingEvent.seasonName} · `}
+                    RSVPs going: {editingEvent.rsvpGoing}
                   </CardDescription>
                 </div>
                 <Button variant="ghost" size="icon" onClick={closeEdit} aria-label="Close">
@@ -245,6 +288,26 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
               </div>
             </CardHeader>
             <CardContent className="grid gap-3 pt-4 md:grid-cols-2">
+              <div className="space-y-1 md:col-span-2">
+                <label className="text-xs text-muted-foreground">Season</label>
+                <select
+                  value={editSeasonId}
+                  onChange={(e) => {
+                    setEditSeasonId(e.target.value);
+                    setEditCohortId("");
+                  }}
+                  className="h-9 w-full rounded-md border border-input bg-transparent px-2 text-sm"
+                >
+                  {data.seasons.map((s) => (
+                    <option key={s.id} value={s.id}>
+                      {s.code} · {s.name}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-muted-foreground">
+                  Changing season may clear the cohort if it does not belong to the new season.
+                </p>
+              </div>
               <div className="space-y-1 md:col-span-2">
                 <label className="text-xs text-muted-foreground">Title</label>
                 <Input value={editTitle} onChange={(e) => setEditTitle(e.target.value)} />
@@ -422,6 +485,11 @@ export function AdminEventsClient({ initialData }: { initialData: EventManagemen
             <label className="text-xs text-muted-foreground">Ends</label>
             <Input type="datetime-local" value={endsLocal} onChange={(e) => setEndsLocal(e.target.value)} />
           </div>
+          {createSeasonMeta ? (
+            <p className="text-xs text-muted-foreground md:col-span-2">
+              Season window: {formatSeasonWindow(createSeasonMeta.startsAt, createSeasonMeta.endsAt)}
+            </p>
+          ) : null}
           <div className="md:col-span-2">
             <Button size="sm" onClick={onCreate} disabled={isPending}>
               {isPending ? "Creating..." : "Create event"}

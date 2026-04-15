@@ -19,7 +19,7 @@ export type EventManagementEvent = {
 
 export type EventManagementData = {
   events: EventManagementEvent[];
-  seasons: { id: string; name: string; code: string }[];
+  seasons: { id: string; name: string; code: string; startsAt: string; endsAt: string }[];
   cohorts: { id: string; name: string; seasonId: string }[];
   venues: { id: string; name: string; addressLine1: string; city: string }[];
 };
@@ -48,7 +48,7 @@ export async function getEventManagementData(): Promise<EventManagementData> {
     }),
     prisma.season.findMany({
       orderBy: { startsAt: "desc" },
-      select: { id: true, name: true, code: true },
+      select: { id: true, name: true, code: true, startsAt: true, endsAt: true },
       take: 20,
     }),
     prisma.cohort.findMany({
@@ -80,7 +80,13 @@ export async function getEventManagementData(): Promise<EventManagementData> {
       venueName: e.venue.name,
       rsvpGoing: e.rsvps.length,
     })),
-    seasons,
+    seasons: seasons.map((s) => ({
+      id: s.id,
+      name: s.name,
+      code: s.code,
+      startsAt: s.startsAt.toISOString(),
+      endsAt: s.endsAt.toISOString(),
+    })),
     cohorts,
     venues,
   };
