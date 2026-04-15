@@ -44,8 +44,10 @@ The Common Collective is a production-minded Next.js MVP with:
 - Trigger points:
   - adding a member to a cohort enqueues a `COHORT_WELCOME` outbox email
   - publishing an event (create as `PUBLISHED` or status transition to `PUBLISHED`) enqueues `EVENT_PUBLISHED` emails for relevant members
+  - RSVP `GOING` schedules one `EVENT_REMINDER` email 24h before the event (or immediately if inside 24h)
 - Delivery model: outbox rows are created during admin writes; actual SMTP sending is done by `POST /api/internal/email/dispatch` (authorized by bearer token).
 - Outbox table tracks status (`PENDING` / `SENT` / `FAILED`), attempts (auto-retries up to 3 sends), and dedupe keys to prevent duplicate sends.
+- Durable operational visibility: every enqueue/send/skip/failure writes a `NotificationAttempt` record for admin operations at `/admin/notifications`.
 - Event reminders:
   - RSVP `GOING` schedules one reminder at 24 hours before event start (or immediate if already inside the 24h window)
   - changing RSVP away from `GOING` unschedules pending reminder
@@ -60,6 +62,15 @@ curl -X POST "https://your-domain.com/api/internal/email/dispatch" \
   -H "Authorization: Bearer $EMAIL_DISPATCH_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"limit":25}'
+```
+
+Reminder scheduler run (enqueue due reminder emails from `Reminder` records):
+
+```bash
+curl -X POST "https://your-domain.com/api/internal/email/reminders/dispatch" \
+  -H "Authorization: Bearer $EMAIL_DISPATCH_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"limit":50}'
 ```
 
 #### Manual reminder dispatch run (cron-safe)

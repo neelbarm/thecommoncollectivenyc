@@ -598,6 +598,9 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         <Button asChild size="sm" variant="outline">
           <Link href="/admin/analytics">Analytics →</Link>
         </Button>
+        <Button asChild size="sm" variant="outline">
+          <Link href="/admin/notifications">Notifications →</Link>
+        </Button>
       </div>
 
       <Card className="surface-panel">

@@ -2,6 +2,7 @@ import { EmailOutboxStatus } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { logNotificationAttempt } from "@/lib/notifications/log";
 import { sendEmail } from "@/lib/email/sender";
 import { prisma } from "@/lib/prisma";
 
@@ -51,7 +52,9 @@ export async function POST(request: Request) {
     take: parsed.data.limit,
     select: {
       id: true,
+      type: true,
       recipientEmail: true,
+      dedupeKey: true,
       subject: true,
       htmlBody: true,
       attempts: true,
@@ -78,6 +81,14 @@ export async function POST(request: Request) {
           lastError: null,
         },
       });
+      await logNotificationAttempt({
+        type: item.type,
+        recipientEmail: item.recipientEmail,
+        status: "SENT",
+        dedupeKey: item.dedupeKey,
+        triggerSource: "outbox-dispatch",
+        outboxId: item.id,
+      });
       sent += 1;
     } catch (error) {
       const message = error instanceof Error ? error.message : "Unknown email send error";
@@ -92,6 +103,15 @@ export async function POST(request: Request) {
           attempts: nextAttempts,
           lastError: message.slice(0, 1000),
         },
+      });
+      await logNotificationAttempt({
+        type: item.type,
+        recipientEmail: item.recipientEmail,
+        status: "FAILED",
+        dedupeKey: item.dedupeKey,
+        triggerSource: "outbox-dispatch",
+        errorSummary: message,
+        outboxId: item.id,
       });
       failed += 1;
     }

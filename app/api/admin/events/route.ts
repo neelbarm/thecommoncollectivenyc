@@ -11,6 +11,7 @@ import {
 } from "@/lib/email/outbox";
 import { trackEvent } from "@/lib/analytics/track";
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { logNotificationAttempt } from "@/lib/notifications/log";
 import { prisma } from "@/lib/prisma";
 
 function slugify(text: string): string {
@@ -169,7 +170,16 @@ export async function POST(request: Request) {
             subject: email.subject,
             htmlBody: email.htmlBody,
             dedupeKey: `event-published:${event.id}:${recipient.id}`,
-          });
+          }).then((outbox) =>
+            logNotificationAttempt({
+              type: "EVENT_PUBLISHED",
+              triggerSource: "admin-events-create-publish",
+              status: outbox ? "QUEUED" : "DUPLICATE_PREVENTED",
+              recipientEmail: recipient.email,
+              outboxId: outbox?.id ?? null,
+              dedupeKey: `event-published:${event.id}:${recipient.id}`,
+            }),
+          );
         }),
       );
 

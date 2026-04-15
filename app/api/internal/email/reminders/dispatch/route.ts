@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { enqueueEmailOutbox, eventReminderEmailTemplate } from "@/lib/email/outbox";
+import { logNotificationAttempt } from "@/lib/notifications/log";
 import { prisma } from "@/lib/prisma";
 
 const dispatchSchema = z.object({
@@ -91,6 +92,13 @@ export async function POST(request: Request) {
             sentAt: null,
           },
         });
+        await logNotificationAttempt({
+          type: "EVENT_REMINDER",
+          status: "SKIPPED",
+          recipientEmail: reminder.recipient.email,
+          dedupeKey: `event-reminder:${reminder.id}`,
+          triggerSource: "reminder-dispatch-ineligible",
+        });
         skipped += 1;
         continue;
       }
@@ -122,6 +130,13 @@ export async function POST(request: Request) {
       if (outbox) {
         enqueued += 1;
       } else {
+        await logNotificationAttempt({
+          type: "EVENT_REMINDER",
+          status: "DUPLICATE_PREVENTED",
+          recipientEmail: reminder.recipient.email,
+          dedupeKey: `event-reminder:${reminder.id}`,
+          triggerSource: "reminder-dispatch",
+        });
         skipped += 1;
       }
     } catch {
@@ -131,6 +146,14 @@ export async function POST(request: Request) {
           status: ReminderStatus.FAILED,
           sentAt: null,
         },
+      });
+      await logNotificationAttempt({
+        type: "EVENT_REMINDER",
+        status: "FAILED",
+        recipientEmail: reminder.recipient.email,
+        dedupeKey: `event-reminder:${reminder.id}`,
+        triggerSource: "reminder-dispatch",
+        errorSummary: "Unable to enqueue reminder email.",
       });
       failed += 1;
     }
