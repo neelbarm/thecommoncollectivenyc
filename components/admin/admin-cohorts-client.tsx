@@ -21,6 +21,7 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [deletingCohortId, setDeletingCohortId] = useState<string | null>(null);
 
   const [newSeasonId, setNewSeasonId] = useState(data.seasons[0]?.id ?? "");
   const [newName, setNewName] = useState("");
@@ -158,6 +159,35 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
         refresh();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unable to remove member.");
+      }
+    });
+  }
+
+  function onDeleteCohort(cohortId: string, cohortName: string, memberCount: number) {
+    setError(null);
+    setFeedback(null);
+
+    if (memberCount > 0) {
+      setError("This cohort still has members. Remove them first before deleting.");
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete cohort “${cohortName}”? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeletingCohortId(cohortId);
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/admin/cohorts/${cohortId}`, { method: "DELETE" });
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (!res.ok) throw new Error(body?.error ?? "Unable to delete cohort.");
+        setFeedback("Cohort deleted.");
+        setExpandedId((prev) => (prev === cohortId ? null : prev));
+        refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unable to delete cohort.");
+      } finally {
+        setDeletingCohortId(null);
       }
     });
   }
@@ -332,6 +362,21 @@ export function AdminCohortsClient({ initialData }: { initialData: CohortManagem
                           Save cohort details
                         </Button>
                       </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-xs text-muted-foreground">
+                        Deletion is disabled if members or events still exist.
+                      </p>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:bg-destructive/8 disabled:opacity-50"
+                        onClick={() => onDeleteCohort(c.id, c.name, c.memberCount)}
+                        disabled={isPending || deletingCohortId === c.id || c.memberCount > 0}
+                      >
+                        {deletingCohortId === c.id ? "Deleting..." : "Delete cohort"}
+                      </Button>
                     </div>
 
                     <div className="space-y-2">

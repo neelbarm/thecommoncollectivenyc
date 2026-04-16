@@ -57,6 +57,9 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
             <Badge variant={data.onboardingCompleted ? "default" : "outline"}>
               {data.onboardingCompleted ? "Onboarding complete" : "Onboarding in progress"}
             </Badge>
+            {hasCohort && data.cohort ? (
+              <Badge variant="outline">Cohort: {data.cohort.name}</Badge>
+            ) : null}
           </div>
           <CardTitle className="text-3xl leading-tight sm:text-4xl">Welcome back, {data.firstName}.</CardTitle>
           <CardDescription className="prose-calm max-w-3xl">

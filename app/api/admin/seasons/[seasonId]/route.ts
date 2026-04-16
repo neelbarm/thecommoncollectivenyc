@@ -134,3 +134,48 @@ export async function PATCH(
     return NextResponse.json({ error: "Unable to update season right now." }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  context: {
+    params: Promise<{ seasonId: string }>;
+  },
+) {
+  const session = await requireAdmin();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { seasonId } = await context.params;
+
+  try {
+    const existing = await prisma.season.findUnique({
+      where: { id: seasonId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Season not found" }, { status: 404 });
+    }
+
+    const [cohortCount, eventCount] = await Promise.all([
+      prisma.cohort.count({ where: { seasonId } }),
+      prisma.event.count({ where: { seasonId } }),
+    ]);
+
+    if (cohortCount > 0 || eventCount > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete season while it has attached records. Remove ${cohortCount} cohort(s) and ${eventCount} event(s) first.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    await prisma.season.delete({ where: { id: seasonId } });
+    return NextResponse.json({ ok: true, deletedSeasonId: seasonId });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete season right now." }, { status: 500 });
+  }
+}

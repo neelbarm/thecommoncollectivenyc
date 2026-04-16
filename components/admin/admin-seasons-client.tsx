@@ -45,6 +45,7 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [name, setName] = useState("");
   const [code, setCode] = useState("");
@@ -157,6 +158,36 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
         refresh();
       } catch (e) {
         setError(e instanceof Error ? e.message : "Unable to save season.");
+      }
+    });
+  }
+
+  function onDeleteSeason(season: SeasonManagementSeason) {
+    setError(null);
+    setFeedback(null);
+
+    if (season.cohortCount > 0 || season.eventCount > 0) {
+      setError("This season still has cohorts/events. Delete or move those first.");
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Delete season ${season.code}? This cannot be undone.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingId(season.id);
+    startTransition(async () => {
+      try {
+        const res = await fetch(`/api/admin/seasons/${season.id}`, { method: "DELETE" });
+        const body = (await res.json().catch(() => null)) as { error?: string } | null;
+        if (!res.ok) throw new Error(body?.error ?? "Unable to delete season.");
+        setFeedback("Season deleted.");
+        refresh();
+      } catch (e) {
+        setError(e instanceof Error ? e.message : "Unable to delete season.");
+      } finally {
+        setDeletingId(null);
       }
     });
   }
@@ -320,15 +351,32 @@ export function AdminSeasonsClient({ initialData }: { initialData: SeasonManagem
                       <td className="py-2 pr-2">{s.cohortCount}</td>
                       <td className="py-2 pr-2">{s.eventCount}</td>
                       <td className="py-2">
-                        <Button
-                          size="sm"
-                          variant="secondary"
-                          className="h-7 text-xs"
-                          onClick={() => openEdit(s)}
-                          disabled={isPending}
-                        >
-                          Edit
-                        </Button>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button
+                            size="sm"
+                            variant="secondary"
+                            className="h-7 text-xs"
+                            onClick={() => openEdit(s)}
+                            disabled={isPending}
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-7 text-xs text-destructive hover:bg-destructive/8 disabled:opacity-50"
+                            onClick={() => onDeleteSeason(s)}
+                            disabled={
+                              isPending ||
+                              deletingId === s.id ||
+                              s.cohortCount > 0 ||
+                              s.eventCount > 0
+                            }
+                            aria-label={`Delete season ${s.code}`}
+                          >
+                            {deletingId === s.id ? "Deleting..." : "Delete"}
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   ))}
