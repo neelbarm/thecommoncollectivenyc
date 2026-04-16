@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Newspaper, Users } from "lucide-react";
 
@@ -65,23 +66,35 @@ export default function HomePage() {
 
           <Card className="surface-panel overflow-hidden border-border/65 bg-card/85">
             <CardContent className="relative p-0">
-              <div className="relative h-[280px] w-full bg-[radial-gradient(circle_at_70%_22%,oklch(0.95_0.03_75_/0.7),transparent_56%),linear-gradient(to_bottom,oklch(0.97_0.02_80),oklch(0.9_0.02_85))]">
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,oklch(0.24_0.02_65_/0.9),transparent)]" />
-                <svg
-                  viewBox="0 0 820 280"
-                  aria-hidden="true"
-                  className="absolute inset-x-0 bottom-0 h-[58%] w-full text-[oklch(0.24_0.02_65_/_0.9)]"
-                >
-                  <path
-                    d="M0 280V206h30v-52h28v34h24v-64h26v40h22v-84h34v66h20v-46h24v34h18v-56h30v76h26v-30h22v42h28v-72h24v54h18v-32h34v50h22v-86h30v60h24v-44h20v28h30v-62h34v52h18v-30h26v46h28v-24h24v38h26v-60h30v44h24v-34h20v50h26v-38h24v56h34v-66h26v86h26v-34h28v44h34v-60h26v74h28v-30h30v46h42V280Z"
-                    fill="currentColor"
-                  />
-                </svg>
+              <div className="relative h-[300px] w-full overflow-hidden sm:h-[320px]">
+                <Image
+                  src="https://images.unsplash.com/photo-1496442226666-8d4d0e62e6e9?w=1400&q=88&auto=format&fit=crop&ixlib=rb-4.0.3"
+                  alt="Manhattan skyline at dusk"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="object-cover object-[center_42%] scale-[1.02] motion-reduce:scale-100"
+                />
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-t from-[oklch(0.18_0.025_55_/_0.82)] via-[oklch(0.22_0.02_65_/_0.35)] to-[oklch(0.35_0.02_75_/_0.12)]"
+                />
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-[radial-gradient(ellipse_120%_80%_at_50%_100%,oklch(0.12_0.02_55_/_0.55),transparent_55%)]"
+                />
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-[linear-gradient(135deg,oklch(0.97_0.02_80_/_0.06)_0%,transparent_45%,oklch(0.2_0.02_60_/_0.15)_100%)]"
+                />
+                <p className="absolute bottom-4 left-5 right-5 text-[0.65rem] font-medium uppercase tracking-[0.28em] text-[oklch(0.97_0.02_90_/_0.85)]">
+                  New York
+                </p>
               </div>
-              <div className="surface-subtle grid gap-2 border-t border-border/40 p-5 text-xs text-muted-foreground sm:grid-cols-3">
-                <p className="uppercase tracking-[0.18em]">Downtown dinners</p>
-                <p className="uppercase tracking-[0.18em]">Neighborhood salons</p>
-                <p className="uppercase tracking-[0.18em]">Recurring cohorts</p>
+              <div className="surface-subtle grid gap-3 border-t border-border/40 p-5 text-[0.7rem] text-muted-foreground sm:grid-cols-3">
+                <p className="font-medium uppercase tracking-[0.2em] text-foreground/90">Downtown dinners</p>
+                <p className="font-medium uppercase tracking-[0.2em] text-foreground/90">Neighborhood salons</p>
+                <p className="font-medium uppercase tracking-[0.2em] text-foreground/90">Recurring cohorts</p>
               </div>
             </CardContent>
           </Card>
