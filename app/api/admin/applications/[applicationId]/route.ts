@@ -78,3 +78,34 @@ export async function PATCH(
     return NextResponse.json({ error: "Unable to update application right now." }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  context: { params: Promise<{ applicationId: string }> },
+) {
+  const session = await requireAdmin();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { applicationId } = await context.params;
+
+  try {
+    const existing = await prisma.memberApplication.findUnique({
+      where: { id: applicationId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Application not found." }, { status: 404 });
+    }
+
+    await prisma.memberApplication.delete({
+      where: { id: applicationId },
+    });
+
+    return NextResponse.json({ ok: true, deletedApplicationId: applicationId });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete application right now." }, { status: 500 });
+  }
+}
