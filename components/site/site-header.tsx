@@ -45,12 +45,12 @@ export async function SiteHeader({
           className="inline-flex items-center transition-opacity duration-300 hover:opacity-80 motion-reduce:transition-none"
         >
           <Image
-            src="/brand/common-collective-wordmark.svg"
+            src="/brand/common-collective-mark.svg"
             alt="The Common Collective"
-            width={300}
-            height={56}
+            width={40}
+            height={40}
             priority
-            className="h-8 w-auto sm:h-9"
+            className="h-9 w-auto"
           />
         </Link>
 

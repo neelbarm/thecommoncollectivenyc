@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, CalendarDays, Newspaper, Users } from "lucide-react";
 
@@ -63,25 +64,66 @@ export default function HomePage() {
             </div>
           </div>
 
-          <Card className="surface-panel overflow-hidden border-border/65 bg-card/85">
+          <Card className="surface-panel overflow-hidden border-border/60 bg-card/90 shadow-[0_1px_0_oklch(1_0_0_/0.55)_inset,0_24px_48px_-28px_oklch(0.2_0.02_55_/_0.18)] ring-1 ring-black/[0.04]">
             <CardContent className="relative p-0">
-              <div className="relative h-[280px] w-full bg-[radial-gradient(circle_at_70%_22%,oklch(0.95_0.03_75_/0.7),transparent_56%),linear-gradient(to_bottom,oklch(0.97_0.02_80),oklch(0.9_0.02_85))]">
-                <div className="absolute inset-x-0 bottom-0 h-24 bg-[linear-gradient(to_top,oklch(0.24_0.02_65_/0.9),transparent)]" />
-                <svg
-                  viewBox="0 0 820 280"
-                  aria-hidden="true"
-                  className="absolute inset-x-0 bottom-0 h-[58%] w-full text-[oklch(0.24_0.02_65_/_0.9)]"
-                >
-                  <path
-                    d="M0 280V206h30v-52h28v34h24v-64h26v40h22v-84h34v66h20v-46h24v34h18v-56h30v76h26v-30h22v42h28v-72h24v54h18v-32h34v50h22v-86h30v60h24v-44h20v28h30v-62h34v52h18v-30h26v46h28v-24h24v38h26v-60h30v44h24v-34h20v50h26v-38h24v56h34v-66h26v86h26v-34h28v44h34v-60h26v74h28v-30h30v46h42V280Z"
-                    fill="currentColor"
-                  />
-                </svg>
+              <div className="relative aspect-[16/10] w-full min-h-[220px] max-h-[400px] overflow-hidden sm:min-h-[260px]">
+                <Image
+                  src="/brand/home-hero-nyc.jpg"
+                  alt="Manhattan skyline across the river at golden hour"
+                  fill
+                  priority
+                  sizes="(max-width: 1024px) 100vw, 42vw"
+                  className="object-cover object-[center_32%] motion-safe:scale-[1.03] motion-reduce:scale-100"
+                />
+                {/* Depth: cool shadows + warm lift (editorial print feel) */}
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-gradient-to-t from-[oklch(0.14_0.02_55_/_0.92)] via-[oklch(0.2_0.025_60_/_0.45)] via-45% to-[oklch(0.42_0.04_75_/_0.2)]"
+                />
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-[radial-gradient(ellipse_95%_70%_at_50%_0%,oklch(0.98_0.02_85_/_0.14),transparent_52%)]"
+                />
+                <div
+                  aria-hidden
+                  className="absolute inset-0 bg-[radial-gradient(ellipse_130%_90%_at_50%_100%,oklch(0.08_0.02_55_/_0.65),transparent_50%)]"
+                />
+                {/* Subtle film grain */}
+                <div aria-hidden className="hero-editorial-grain" />
+                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 px-6 pb-6 pt-16 sm:px-7 sm:pb-7">
+                  <p className="text-[0.62rem] font-medium uppercase tracking-[0.32em] text-[oklch(0.96_0.02_90_/_0.72)]">
+                    The city, on your calendar
+                  </p>
+                  <p className="font-heading text-[1.35rem] leading-[1.15] tracking-tight text-[oklch(0.99_0.01_95_/_0.96)] sm:text-2xl">
+                    Manhattan after hours
+                  </p>
+                </div>
               </div>
-              <div className="surface-subtle grid gap-2 border-t border-border/40 p-5 text-xs text-muted-foreground sm:grid-cols-3">
-                <p className="uppercase tracking-[0.18em]">Downtown dinners</p>
-                <p className="uppercase tracking-[0.18em]">Neighborhood salons</p>
-                <p className="uppercase tracking-[0.18em]">Recurring cohorts</p>
+              <div className="relative border-t border-border/45 bg-gradient-to-b from-[oklch(0.97_0.015_85_/_0.97)] to-card/98">
+                <div
+                  aria-hidden
+                  className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-muted-gold/35 to-transparent sm:inset-x-8"
+                />
+                <div className="grid gap-8 px-6 py-7 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-border/35 sm:px-0">
+                  <div className="sm:px-7">
+                    <p className="text-[0.6rem] font-medium uppercase tracking-[0.26em] text-muted-foreground/90">Gather</p>
+                    <p className="mt-2 font-heading text-[0.8125rem] uppercase tracking-[0.14em] text-foreground">
+                      Downtown dinners
+                    </p>
+                  </div>
+                  <div className="sm:px-7">
+                    <p className="text-[0.6rem] font-medium uppercase tracking-[0.26em] text-muted-foreground/90">Discuss</p>
+                    <p className="mt-2 font-heading text-[0.8125rem] uppercase tracking-[0.14em] text-foreground">
+                      Neighborhood salons
+                    </p>
+                  </div>
+                  <div className="sm:px-7">
+                    <p className="text-[0.6rem] font-medium uppercase tracking-[0.26em] text-muted-foreground/90">Belong</p>
+                    <p className="mt-2 font-heading text-[0.8125rem] uppercase tracking-[0.14em] text-foreground">
+                      Recurring cohorts
+                    </p>
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>

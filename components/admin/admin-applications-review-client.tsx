@@ -35,16 +35,19 @@ export function AdminApplicationsReviewClient({
 }: {
   initialData: AdminApplicationReviewData;
 }) {
+  const [activeTab, setActiveTab] = useState<"applications" | "activities">("applications");
   const [seasonId, setSeasonId] = useState("ALL");
   const [status, setStatus] = useState<
     "ALL" | AdminApplicationReviewData["applications"][number]["status"]
   >("ALL");
   const [query, setQuery] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [applications, setApplications] = useState(initialData.applications);
+  const [deleteId, setDeleteId] = useState<string | null>(null);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return initialData.applications.filter((application) => {
+    return applications.filter((application) => {
       if (seasonId !== "ALL" && application.currentSeasonId !== seasonId) {
         return false;
       }
@@ -66,10 +69,96 @@ export function AdminApplicationsReviewClient({
         .toLowerCase();
       return haystack.includes(q);
     });
-  }, [initialData.applications, query, seasonId, status]);
+  }, [applications, query, seasonId, status]);
+
+  const activityGroups = useMemo(() => {
+    const map = new Map<string, Array<(typeof applications)[number]>>();
+    for (const application of applications) {
+      const interests = application.member.profile.interests;
+      if (interests.length === 0) {
+        const key = "No listed interests";
+        const existing = map.get(key) ?? [];
+        existing.push(application);
+        map.set(key, existing);
+        continue;
+      }
+
+      for (const interest of interests) {
+        const key = interest.trim();
+        if (!key) continue;
+        const existing = map.get(key) ?? [];
+        existing.push(application);
+        map.set(key, existing);
+      }
+    }
+
+    return Array.from(map.entries())
+      .map(([interest, members]) => ({
+        interest,
+        members: members.sort((a, b) => a.member.name.localeCompare(b.member.name)),
+      }))
+      .sort((a, b) => b.members.length - a.members.length || a.interest.localeCompare(b.interest));
+  }, [applications]);
+
+  async function handleDeleteApplication(applicationId: string) {
+    const confirmed = window.confirm(
+      "Delete this application? This is best for removing duplicates and cannot be undone.",
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    setDeleteId(applicationId);
+    try {
+      const response = await fetch(`/api/admin/applications/${applicationId}`, {
+        method: "DELETE",
+      });
+
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      if (!response.ok) {
+        throw new Error(payload?.error ?? "Unable to delete application right now.");
+      }
+
+      setApplications((prev) => prev.filter((item) => item.id !== applicationId));
+      setExpandedId((prev) => (prev === applicationId ? null : prev));
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Unable to delete application right now.");
+    } finally {
+      setDeleteId(null);
+    }
+  }
 
   return (
     <div className="space-y-6">
+      <Card className="surface-panel">
+        <CardContent className="flex flex-wrap gap-2 p-3">
+          <button
+            type="button"
+            className={`rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-[0.14em] ${
+              activeTab === "applications"
+                ? "bg-foreground text-background"
+                : "border border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setActiveTab("applications")}
+          >
+            Applications
+          </button>
+          <button
+            type="button"
+            className={`rounded-full px-4 py-1.5 text-xs font-medium uppercase tracking-[0.14em] ${
+              activeTab === "activities"
+                ? "bg-foreground text-background"
+                : "border border-border/60 text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setActiveTab("activities")}
+          >
+            Activities
+          </button>
+        </CardContent>
+      </Card>
+
+      {activeTab === "applications" ? (
+        <>
       <Card className="surface-panel">
         <CardHeader>
           <CardTitle>Application review filters</CardTitle>
@@ -115,7 +204,7 @@ export function AdminApplicationsReviewClient({
 
       <p className="text-sm text-muted-foreground">
         Showing <span className="font-medium text-foreground">{filtered.length}</span> of{" "}
-        <span className="font-medium text-foreground">{initialData.applications.length}</span> applications.
+        <span className="font-medium text-foreground">{applications.length}</span> applications.
       </p>
 
       <div className="space-y-3">
@@ -145,6 +234,14 @@ export function AdminApplicationsReviewClient({
                       onClick={() => setExpandedId(expanded ? null : application.id)}
                     >
                       {expanded ? "Hide details" : "Review full application"}
+                    </button>
+                    <button
+                      type="button"
+                      className="rounded-full border border-destructive/40 px-3 py-1 text-xs font-medium text-destructive hover:bg-destructive/8 disabled:cursor-not-allowed disabled:opacity-50"
+                      onClick={() => handleDeleteApplication(application.id)}
+                      disabled={deleteId === application.id}
+                    >
+                      {deleteId === application.id ? "Deleting..." : "Delete duplicate"}
                     </button>
                   </div>
                 </div>
@@ -248,6 +345,41 @@ export function AdminApplicationsReviewClient({
           );
         })}
       </div>
+        </>
+      ) : (
+        <Card className="surface-panel">
+          <CardHeader>
+            <CardTitle>Activity preferences</CardTitle>
+            <CardDescription>
+              Grouped by listed interests so you can quickly see who belongs together.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {activityGroups.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No application activity preferences available yet.</p>
+            ) : (
+              activityGroups.map((group) => (
+                <div key={group.interest} className="dense-row space-y-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="font-heading text-base text-foreground">{group.interest}</p>
+                    <Badge variant="outline">{group.members.length} member(s)</Badge>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {group.members.map((application) => (
+                      <span
+                        key={`${group.interest}-${application.id}`}
+                        className="rounded-full border border-border/60 bg-background/60 px-3 py-1 text-xs text-foreground"
+                      >
+                        {application.member.name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
