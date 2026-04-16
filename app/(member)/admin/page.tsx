@@ -35,6 +35,9 @@ export default async function AdminPage() {
               from a single calm control surface.
             </p>
             <div className="surface-subtle flex flex-wrap gap-2 p-3">
+              <a className="text-sm font-medium text-foreground underline underline-offset-4" href="/admin/applications">
+                Open application review
+              </a>
               <a className="text-sm font-medium text-foreground underline underline-offset-4" href="/admin/notifications">
                 Open notification operations
               </a>

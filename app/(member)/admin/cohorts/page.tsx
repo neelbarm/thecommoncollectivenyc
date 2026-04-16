@@ -46,6 +46,9 @@ export default async function AdminCohortsPage() {
                 <Link href="/admin/events">Events</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
+                <Link href="/admin/applications">Applications</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
                 <Link href="/admin/venues">Venues</Link>
               </Button>
               <Button asChild size="sm" variant="outline">
