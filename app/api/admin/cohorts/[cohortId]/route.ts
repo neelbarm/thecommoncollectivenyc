@@ -75,3 +75,48 @@ export async function PATCH(
     return NextResponse.json({ error: "Unable to update cohort right now." }, { status: 500 });
   }
 }
+
+export async function DELETE(
+  _request: Request,
+  context: {
+    params: Promise<{ cohortId: string }>;
+  },
+) {
+  const session = await requireAdmin();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { cohortId } = await context.params;
+
+  try {
+    const existing = await prisma.cohort.findUnique({
+      where: { id: cohortId },
+      select: { id: true },
+    });
+
+    if (!existing) {
+      return NextResponse.json({ error: "Cohort not found." }, { status: 404 });
+    }
+
+    const [membershipCount, eventCount] = await Promise.all([
+      prisma.cohortMembership.count({ where: { cohortId } }),
+      prisma.event.count({ where: { cohortId } }),
+    ]);
+
+    if (membershipCount > 0 || eventCount > 0) {
+      return NextResponse.json(
+        {
+          error: `Cannot delete cohort while it has attached records. Remove ${membershipCount} member(s) and ${eventCount} event(s) first.`,
+        },
+        { status: 400 },
+      );
+    }
+
+    await prisma.cohort.delete({ where: { id: cohortId } });
+    return NextResponse.json({ ok: true, deletedCohortId: cohortId });
+  } catch {
+    return NextResponse.json({ error: "Unable to delete cohort right now." }, { status: 500 });
+  }
+}

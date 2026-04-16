@@ -153,7 +153,7 @@ export async function getMemberDashboardData(userId: string): Promise<MemberDash
       cohortMemberships: {
         where: {
           status: {
-            in: ["ACTIVE", "INVITED"],
+            in: ["ACTIVE", "INVITED", "PAUSED"],
           },
         },
         select: {
