@@ -587,6 +587,9 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
           <Link href="/admin/cohorts">Cohorts (manual) →</Link>
         </Button>
         <Button asChild size="sm" variant="outline">
+          <Link href="/admin/applications">Applications review →</Link>
+        </Button>
+        <Button asChild size="sm" variant="outline">
           <Link href="/admin/events">Events (manual) →</Link>
         </Button>
         <Button asChild size="sm" variant="outline">
