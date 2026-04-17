@@ -136,11 +136,17 @@ export function ApplyForm({ requiresAuth = false }: { requiresAuth?: boolean }) 
           {requiresAuth ? (
             <p className="text-sm text-muted-foreground" role="note">
               You need to be signed in before submitting.{" "}
-              <Link href="/signup" className="underline decoration-muted-gold/60 underline-offset-2">
+              <Link
+                href="/signup?callbackUrl=%2Fapply"
+                className="underline decoration-muted-gold/60 underline-offset-2"
+              >
                 Create an account
               </Link>{" "}
               or{" "}
-              <Link href="/login" className="underline decoration-muted-gold/60 underline-offset-2">
+              <Link
+                href="/login?callbackUrl=%2Fapply"
+                className="underline decoration-muted-gold/60 underline-offset-2"
+              >
                 log in
               </Link>{" "}
               to continue.

@@ -16,7 +16,10 @@ export default function LoginPage() {
         </p>
         <p className="text-sm text-muted-foreground">
           New here?{" "}
-          <Link className="font-medium text-foreground underline underline-offset-4" href="/signup">
+          <Link
+            className="font-medium text-foreground underline underline-offset-4"
+            href="/signup?callbackUrl=%2Fapply"
+          >
             Create your account
           </Link>
         </p>
