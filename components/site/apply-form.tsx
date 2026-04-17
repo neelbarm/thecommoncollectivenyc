@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -26,7 +27,7 @@ const defaultQuestions = [
   },
 ] as const;
 
-export function ApplyForm() {
+export function ApplyForm({ requiresAuth = false }: { requiresAuth?: boolean }) {
   const [isPending, startTransition] = useTransition();
   const [status, setStatus] = useState<"idle" | "success" | "error">("idle");
   const [message, setMessage] = useState<string>("");
@@ -132,7 +133,21 @@ export function ApplyForm() {
             </p>
           ) : null}
 
-          <Button type="submit" disabled={isPending} className="w-full">
+          {requiresAuth ? (
+            <p className="text-sm text-muted-foreground" role="note">
+              You need to be signed in before submitting.{" "}
+              <Link href="/signup" className="underline decoration-muted-gold/60 underline-offset-2">
+                Create an account
+              </Link>{" "}
+              or{" "}
+              <Link href="/login" className="underline decoration-muted-gold/60 underline-offset-2">
+                log in
+              </Link>{" "}
+              to continue.
+            </p>
+          ) : null}
+
+          <Button type="submit" disabled={isPending || requiresAuth} className="w-full">
             {isPending ? "Submitting..." : "Submit application"}
           </Button>
         </form>

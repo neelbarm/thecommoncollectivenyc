@@ -1,9 +1,12 @@
 import Link from "next/link";
 
+import { auth } from "@/auth";
 import { ApplyForm } from "@/components/site/apply-form";
 import { Button } from "@/components/ui/button";
 
-export default function ApplyPage() {
+export default async function ApplyPage() {
+  const session = await auth();
+
   return (
     <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 lg:px-8">
       <section className="mb-10 grid gap-6 lg:grid-cols-[1.1fr_1fr] lg:items-end">
@@ -31,7 +34,7 @@ export default function ApplyPage() {
         </div>
       </section>
 
-      <ApplyForm />
+      <ApplyForm requiresAuth={!session?.user?.id} />
     </main>
   );
 }
