@@ -48,7 +48,8 @@ export function ApplyForm() {
             setStatus("idle");
             setMessage("");
 
-            const formData = new FormData(event.currentTarget);
+            const form = event.currentTarget;
+            const formData = new FormData(form);
             const payload = {
               headline: String(formData.get("headline") ?? ""),
               aboutText: String(formData.get("aboutText") ?? ""),
@@ -61,25 +62,30 @@ export function ApplyForm() {
             };
 
             startTransition(async () => {
-              const response = await fetch("/api/applications", {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-              });
+              try {
+                const response = await fetch("/api/applications", {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                  },
+                  body: JSON.stringify(payload),
+                });
 
-              const body = (await response.json()) as { error?: string };
+                const body = (await response.json().catch(() => ({}))) as { error?: string };
 
-              if (!response.ok) {
+                if (!response.ok) {
+                  setStatus("error");
+                  setMessage(body.error ?? "We could not submit your application.");
+                  return;
+                }
+
+                setStatus("success");
+                setMessage("Application submitted. We will follow up with your next onboarding step.");
+                form.reset();
+              } catch {
                 setStatus("error");
-                setMessage(body.error ?? "We could not submit your application.");
-                return;
+                setMessage("We could not submit your application right now. Please try again.");
               }
-
-              setStatus("success");
-              setMessage("Application submitted. We will follow up with your next onboarding step.");
-              event.currentTarget.reset();
             });
           }}
         >
