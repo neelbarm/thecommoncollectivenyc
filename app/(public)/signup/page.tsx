@@ -16,7 +16,10 @@ export default function SignupPage() {
         </p>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}
-          <Link className="font-medium text-foreground underline underline-offset-4" href="/login">
+          <Link
+            className="font-medium text-foreground underline underline-offset-4"
+            href="/login?callbackUrl=%2Fapply"
+          >
             Log in
           </Link>
         </p>
