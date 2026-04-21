@@ -341,6 +341,21 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
     });
   }
 
+  function onDownloadApplicationExport() {
+    setError(null);
+    setFeedback(null);
+
+    const params = new URLSearchParams();
+    if (filters.seasonId !== "ALL") params.set("seasonId", filters.seasonId);
+    if (filters.cohortId !== "ALL") params.set("cohortId", filters.cohortId);
+    if (filters.applicationStatus !== "ALL") params.set("status", filters.applicationStatus);
+    if (filters.query.trim()) params.set("query", filters.query.trim());
+
+    const href = `/api/admin/applications/export${params.toString() ? `?${params.toString()}` : ""}`;
+    window.location.assign(href);
+    setFeedback("Preparing application export download...");
+  }
+
   function onUpdateCohortStatus(cohortId: string, status: AdminCohortStatus) {
     setError(null);
     setFeedback(null);
@@ -793,6 +808,27 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
       </SectionCard>
 
       <div className="grid gap-4 xl:grid-cols-2">
+        <SectionCard
+          title="Application export"
+          description="Download one markdown file per application in a tar archive for offline analysis or AI review."
+        >
+          <div className="space-y-3 rounded-lg border border-border/60 bg-background/40 p-3">
+            <p className="text-sm text-muted-foreground">
+              Export respects your current application filters, producing a separate <code>.md</code> file for each
+              matching application inside one <code>.tar</code> download.
+            </p>
+            <p className="text-xs text-muted-foreground">
+              Current export scope: <span className="font-medium text-foreground">{filtered.applications.length}</span>{" "}
+              application{filtered.applications.length === 1 ? "" : "s"}.
+            </p>
+            <div className="flex flex-wrap gap-2">
+              <Button size="sm" variant="outline" onClick={onDownloadApplicationExport}>
+                Download application files
+              </Button>
+            </div>
+          </div>
+        </SectionCard>
+
         <SectionCard
           title="Questionnaire summary"
           description="Top-level response volume and section distribution."
