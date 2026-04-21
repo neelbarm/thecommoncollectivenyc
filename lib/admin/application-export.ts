@@ -1,5 +1,4 @@
 import type { ApplicationStatus, QuestionnaireSection } from "@prisma/client";
-import PDFDocument from "pdfkit";
 
 /** Shape expected by export (matches Prisma query + mapped reviewer/notes). */
 export type ExportApplication = {
@@ -86,151 +85,113 @@ function escapeSegment(value: string) {
     .slice(0, 48);
 }
 
-function sanitizeFilename(application: ExportApplication, extension: "md" | "pdf") {
+function sanitizeFilename(application: ExportApplication) {
   const name = `${application.user.firstName}-${application.user.lastName}`.trim();
   const safeName = escapeSegment(name) || "member";
   const submitted = application.submittedAt
     ? application.submittedAt.toISOString().slice(0, 10)
     : application.createdAt.toISOString().slice(0, 10);
 
-  return `${submitted}-${safeName}-${application.id.slice(-8)}.${extension}`;
+  return `${submitted}-${safeName}-${application.id.slice(-8)}.txt`;
 }
 
 function listOrDash(values: string[]) {
   return values.length > 0 ? values.join(", ") : "—";
 }
 
-function pdfSafe(text: string) {
-  return text.replace(/\r\n/g, "\n").replace(/\u0000/g, "");
-}
+/** Plain UTF-8 text only: no markdown, no # headings (opens as generic text in any editor). */
+function renderApplicationPlainText(application: ExportApplication) {
+  const memberName = `${application.user.firstName} ${application.user.lastName}`.trim();
+  const profile = application.user.profile;
 
-function renderApplicationPdf(application: ExportApplication): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ margin: 50, size: "LETTER", bufferPages: true });
-    const chunks: Buffer[] = [];
-    doc.on("data", (chunk: Buffer) => {
-      chunks.push(chunk);
-    });
-    doc.on("end", () => {
-      resolve(Buffer.concat(chunks));
-    });
-    doc.on("error", reject);
+  const lines: string[] = [];
 
-    const memberName = `${application.user.firstName} ${application.user.lastName}`.trim();
-    const profile = application.user.profile;
-    const textWidth = 512;
+  const section = (title: string) => {
+    lines.push(title);
+    lines.push("-".repeat(Math.min(title.length, 72)));
+    lines.push("");
+  };
 
-    doc.font("Helvetica-Bold").fontSize(16).text(`Application: ${pdfSafe(memberName)}`, { width: textWidth });
-    doc.moveDown(0.8);
-    doc.font("Helvetica").fontSize(10);
+  section(`APPLICATION: ${memberName}`);
 
-    const metaLines = [
-      `Application ID: ${application.id}`,
-      `Member ID: ${application.user.id}`,
-      `Status: ${application.status}`,
-      `Submitted At: ${formatDateTime(application.submittedAt)}`,
-      `Reviewed At: ${formatDateTime(application.reviewedAt)}`,
-      `Reviewer: ${application.reviewerName ?? "—"}`,
-      `Email: ${application.user.email}`,
-      `Account Created At: ${formatDateTime(application.user.createdAt)}`,
-      `Exported At: ${new Date().toISOString()}`,
-    ];
-    for (const line of metaLines) {
-      doc.text(pdfSafe(line), { width: textWidth });
+  lines.push(`Application ID: ${application.id}`);
+  lines.push(`Member ID: ${application.user.id}`);
+  lines.push(`Status: ${application.status}`);
+  lines.push(`Submitted At: ${formatDateTime(application.submittedAt)}`);
+  lines.push(`Reviewed At: ${formatDateTime(application.reviewedAt)}`);
+  lines.push(`Reviewer: ${application.reviewerName ?? "—"}`);
+  lines.push(`Email: ${application.user.email}`);
+  lines.push(`Account Created At: ${formatDateTime(application.user.createdAt)}`);
+  lines.push(`Exported At: ${new Date().toISOString()}`);
+  lines.push("");
+
+  section("APPLICATION (TEXT)");
+  lines.push("Headline");
+  lines.push(application.headline || "—");
+  lines.push("");
+  lines.push("About");
+  lines.push(application.aboutText || "—");
+  lines.push("");
+  lines.push("Availability");
+  lines.push(application.availability || "—");
+  lines.push("");
+
+  section("PROFILE PREFERENCES");
+  lines.push(`Neighborhood: ${profile?.neighborhood ?? "—"}`);
+  lines.push(`Age range: ${profile?.ageRange ?? "—"}`);
+  lines.push(`Occupation: ${profile?.occupation ?? "—"}`);
+  lines.push(`Social goal: ${profile?.socialGoal ?? "—"}`);
+  lines.push(`Preferred nights: ${profile?.preferredNights ?? "—"}`);
+  lines.push(`Budget comfort: ${profile?.budgetComfort ?? "—"}`);
+  lines.push(`Drinking preference: ${profile?.drinkingPreference ?? "—"}`);
+  lines.push(`Smoking preference: ${profile?.smokingPreference ?? "—"}`);
+  lines.push(`Physical activity: ${profile?.physicalActivityLevel ?? "—"}`);
+  lines.push(`Time preference: ${profile?.timePreference ?? "—"}`);
+  lines.push(`Plans frequency: ${profile?.plansFrequency ?? "—"}`);
+  lines.push(`Ideal group energy: ${profile?.idealGroupEnergy ?? "—"}`);
+  lines.push(`Interests: ${listOrDash(profile?.interests ?? [])}`);
+  lines.push(`Preferred vibe: ${listOrDash(profile?.preferredVibe ?? [])}`);
+  lines.push(`People to meet: ${profile?.peopleToMeet ?? "—"}`);
+  lines.push(`Ideal week: ${profile?.idealWeek ?? "—"}`);
+  lines.push(`Onboarding completed: ${formatDateTime(profile?.onboardingCompletedAt ?? null)}`);
+  lines.push("");
+
+  section("COHORT MEMBERSHIPS");
+  if (application.user.cohortMemberships.length === 0) {
+    lines.push("—");
+  } else {
+    for (const membership of application.user.cohortMemberships) {
+      lines.push(
+        `${membership.cohort.season.code} / ${membership.cohort.name} (${membership.status}) · added ${formatDateTime(membership.createdAt)}`,
+      );
     }
-    doc.moveDown(1);
+  }
+  lines.push("");
 
-    const heading = (title: string) => {
-      doc.font("Helvetica-Bold").fontSize(12).text(pdfSafe(title), { width: textWidth });
-      doc.font("Helvetica").fontSize(10);
-      doc.moveDown(0.35);
-    };
-
-    const body = (t: string) => {
-      doc.text(pdfSafe(t || "—"), { width: textWidth, align: "left" });
-      doc.moveDown(0.5);
-    };
-
-    heading("Application");
-    doc.font("Helvetica-Bold").fontSize(10).text("Headline", { width: textWidth });
-    doc.font("Helvetica");
-    body(application.headline);
-    doc.font("Helvetica-Bold").text("About");
-    doc.font("Helvetica");
-    body(application.aboutText);
-    doc.font("Helvetica-Bold").text("Availability");
-    doc.font("Helvetica");
-    body(application.availability);
-    doc.moveDown(0.5);
-
-    heading("Profile preferences");
-    const profileLines = [
-      `Neighborhood: ${profile?.neighborhood ?? "—"}`,
-      `Age range: ${profile?.ageRange ?? "—"}`,
-      `Occupation: ${profile?.occupation ?? "—"}`,
-      `Social goal: ${profile?.socialGoal ?? "—"}`,
-      `Preferred nights: ${profile?.preferredNights ?? "—"}`,
-      `Budget comfort: ${profile?.budgetComfort ?? "—"}`,
-      `Drinking preference: ${profile?.drinkingPreference ?? "—"}`,
-      `Smoking preference: ${profile?.smokingPreference ?? "—"}`,
-      `Physical activity: ${profile?.physicalActivityLevel ?? "—"}`,
-      `Time preference: ${profile?.timePreference ?? "—"}`,
-      `Plans frequency: ${profile?.plansFrequency ?? "—"}`,
-      `Ideal group energy: ${profile?.idealGroupEnergy ?? "—"}`,
-      `Interests: ${listOrDash(profile?.interests ?? [])}`,
-      `Preferred vibe: ${listOrDash(profile?.preferredVibe ?? [])}`,
-      `People to meet: ${profile?.peopleToMeet ?? "—"}`,
-      `Ideal week: ${profile?.idealWeek ?? "—"}`,
-      `Onboarding completed: ${formatDateTime(profile?.onboardingCompletedAt ?? null)}`,
-    ];
-    for (const line of profileLines) {
-      doc.text(pdfSafe(line), { width: textWidth });
+  section("QUESTIONNAIRE RESPONSES");
+  if (application.responses.length === 0) {
+    lines.push("—");
+  } else {
+    for (const response of application.responses) {
+      lines.push(`${response.section} / ${response.questionKey}`);
+      lines.push(response.response || "—");
+      lines.push("");
     }
-    doc.moveDown(0.8);
+  }
 
-    heading("Cohort memberships");
-    if (application.user.cohortMemberships.length === 0) {
-      doc.text("—", { width: textWidth });
-    } else {
-      for (const membership of application.user.cohortMemberships) {
-        doc.text(
-          pdfSafe(
-            `${membership.cohort.season.code} / ${membership.cohort.name} (${membership.status}) · added ${formatDateTime(membership.createdAt)}`,
-          ),
-          { width: textWidth },
-        );
-      }
+  section("ADMIN NOTES");
+  if (application.notes.length === 0) {
+    lines.push("—");
+  } else {
+    for (const note of application.notes) {
+      const author = `${note.author.firstName} ${note.author.lastName}`.trim();
+      lines.push(`${author} · ${formatDateTime(note.createdAt)}`);
+      lines.push(note.body || "—");
+      lines.push("");
     }
-    doc.moveDown(0.8);
+  }
 
-    heading("Questionnaire responses");
-    if (application.responses.length === 0) {
-      doc.text("—", { width: textWidth });
-    } else {
-      for (const response of application.responses) {
-        doc.font("Helvetica-Bold").fontSize(10).text(`${response.section} / ${response.questionKey}`, { width: textWidth });
-        doc.font("Helvetica");
-        doc.text(pdfSafe(response.response || "—"), { width: textWidth });
-        doc.moveDown(0.5);
-      }
-    }
-    doc.moveDown(0.5);
-
-    heading("Admin notes");
-    if (application.notes.length === 0) {
-      doc.text("—", { width: textWidth });
-    } else {
-      for (const note of application.notes) {
-        const author = `${note.author.firstName} ${note.author.lastName}`.trim();
-        doc.font("Helvetica-Bold").fontSize(10).text(`${author} · ${formatDateTime(note.createdAt)}`, { width: textWidth });
-        doc.font("Helvetica");
-        doc.text(pdfSafe(note.body || "—"), { width: textWidth });
-        doc.moveDown(0.6);
-      }
-    }
-
-    doc.end();
-  });
+  return `${lines.join("\n")}\n`;
 }
 
 function buildTarHeader(name: string, size: number) {
@@ -284,22 +245,20 @@ export function buildTarArchive(files: ExportArchiveFile[]) {
   return Buffer.concat(chunks);
 }
 
-/** Builds a tar archive with README, index.json, and one PDF per application. */
-export async function createApplicationPdfExportArchive(applications: ExportApplication[]): Promise<Buffer> {
+/** Tar archive: README.txt, index.json, and one plain .txt file per application (UTF-8, no markdown). */
+export function createApplicationTextExportArchive(applications: ExportApplication[]): Buffer {
   const readme = [
     "Common Collective application export",
     "",
-    "This archive contains one PDF file per application.",
-    "Suggested workflow:",
-    "1. Extract the .tar archive locally.",
-    "2. Open PDFs or upload them to your review / AI tools.",
+    "This archive contains one plain text (.txt) file per application.",
+    "Files are UTF-8 with no markdown syntax so they open as simple text in any editor.",
     "",
     `Total applications: ${applications.length}`,
   ].join("\n");
 
   const index = applications.map((application) => ({
     id: application.id,
-    fileName: sanitizeFilename(application, "pdf"),
+    fileName: sanitizeFilename(application),
     memberName: `${application.user.firstName} ${application.user.lastName}`.trim(),
     email: application.user.email,
     status: application.status,
@@ -318,10 +277,9 @@ export async function createApplicationPdfExportArchive(applications: ExportAppl
   ];
 
   for (const application of applications) {
-    const pdf = await renderApplicationPdf(application);
     files.push({
-      name: `applications/${sanitizeFilename(application, "pdf")}`,
-      content: pdf,
+      name: `applications/${sanitizeFilename(application)}`,
+      content: renderApplicationPlainText(application),
     });
   }
 

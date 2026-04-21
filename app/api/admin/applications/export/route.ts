@@ -1,7 +1,7 @@
 import type { ApplicationStatus, Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 
-import { createApplicationPdfExportArchive } from "@/lib/admin/application-export";
+import { createApplicationTextExportArchive } from "@/lib/admin/application-export";
 import { requireAdmin } from "@/lib/auth/require-admin";
 import { prisma } from "@/lib/prisma";
 
@@ -175,7 +175,7 @@ export async function GET(request: Request) {
       })),
     }));
 
-    const archive = await createApplicationPdfExportArchive(exportApplications);
+    const archive = createApplicationTextExportArchive(exportApplications);
     const exportedAt = new Date().toISOString().slice(0, 10);
     const fileName = `common-collective-applications-${exportedAt}.tar`;
 
