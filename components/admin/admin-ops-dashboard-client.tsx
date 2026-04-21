@@ -810,12 +810,12 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
       <div className="grid gap-4 xl:grid-cols-2">
         <SectionCard
           title="Application export"
-          description="Download one markdown file per application in a tar archive for offline analysis or AI review."
+          description="Download one plain text file per application in a tar archive for offline analysis or AI review."
         >
           <div className="space-y-3 rounded-lg border border-border/60 bg-background/40 p-3">
             <p className="text-sm text-muted-foreground">
-              Export respects your current application filters, producing a separate <code>.md</code> file for each
-              matching application inside one <code>.tar</code> download.
+              Export respects your current application filters, producing a separate <code>.txt</code> file for each
+              matching application (UTF-8, no markdown) inside one <code>.tar</code> download.
             </p>
             <p className="text-xs text-muted-foreground">
               Current export scope: <span className="font-medium text-foreground">{filtered.applications.length}</span>{" "}
