@@ -1,6 +1,8 @@
 import type { ApplicationStatus, QuestionnaireSection } from "@prisma/client";
+import PDFDocument from "pdfkit";
 
-type ExportApplication = {
+/** Shape expected by export (matches Prisma query + mapped reviewer/notes). */
+export type ExportApplication = {
   id: string;
   status: ApplicationStatus;
   createdAt: Date;
@@ -66,9 +68,9 @@ type ExportApplication = {
   }>;
 };
 
-type ExportFile = {
+export type ExportArchiveFile = {
   name: string;
-  content: string;
+  content: string | Buffer;
 };
 
 function formatDateTime(value: Date | null) {
@@ -84,111 +86,151 @@ function escapeSegment(value: string) {
     .slice(0, 48);
 }
 
-function sanitizeFilename(application: ExportApplication) {
+function sanitizeFilename(application: ExportApplication, extension: "md" | "pdf") {
   const name = `${application.user.firstName}-${application.user.lastName}`.trim();
   const safeName = escapeSegment(name) || "member";
   const submitted = application.submittedAt
     ? application.submittedAt.toISOString().slice(0, 10)
     : application.createdAt.toISOString().slice(0, 10);
 
-  return `${submitted}-${safeName}-${application.id.slice(-8)}.md`;
-}
-
-function section(title: string, lines: string[]) {
-  return [`## ${title}`, ...lines, ""].join("\n");
+  return `${submitted}-${safeName}-${application.id.slice(-8)}.${extension}`;
 }
 
 function listOrDash(values: string[]) {
   return values.length > 0 ? values.join(", ") : "—";
 }
 
-function renderApplicationMarkdown(application: ExportApplication) {
-  const memberName = `${application.user.firstName} ${application.user.lastName}`.trim();
-  const profile = application.user.profile;
+function pdfSafe(text: string) {
+  return text.replace(/\r\n/g, "\n").replace(/\u0000/g, "");
+}
 
-  const header = [
-    `# Application: ${memberName}`,
-    "",
-    `- Application ID: ${application.id}`,
-    `- Member ID: ${application.user.id}`,
-    `- Status: ${application.status}`,
-    `- Submitted At: ${formatDateTime(application.submittedAt)}`,
-    `- Reviewed At: ${formatDateTime(application.reviewedAt)}`,
-    `- Reviewer: ${application.reviewerName ?? "—"}`,
-    `- Email: ${application.user.email}`,
-    `- Account Created At: ${formatDateTime(application.user.createdAt)}`,
-    `- Exported At: ${new Date().toISOString()}`,
-    "",
-  ].join("\n");
+function renderApplicationPdf(application: ExportApplication): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const doc = new PDFDocument({ margin: 50, size: "LETTER", bufferPages: true });
+    const chunks: Buffer[] = [];
+    doc.on("data", (chunk: Buffer) => {
+      chunks.push(chunk);
+    });
+    doc.on("end", () => {
+      resolve(Buffer.concat(chunks));
+    });
+    doc.on("error", reject);
 
-  const applicationSection = section("Application", [
-    `### Headline`,
-    application.headline || "—",
-    "",
-    `### About`,
-    application.aboutText || "—",
-    "",
-    `### Availability`,
-    application.availability || "—",
-  ]);
+    const memberName = `${application.user.firstName} ${application.user.lastName}`.trim();
+    const profile = application.user.profile;
+    const textWidth = 512;
 
-  const profileSection = section("Profile Preferences", [
-    `- Neighborhood: ${profile?.neighborhood ?? "—"}`,
-    `- Age Range: ${profile?.ageRange ?? "—"}`,
-    `- Occupation: ${profile?.occupation ?? "—"}`,
-    `- Social Goal: ${profile?.socialGoal ?? "—"}`,
-    `- Preferred Nights: ${profile?.preferredNights ?? "—"}`,
-    `- Budget Comfort: ${profile?.budgetComfort ?? "—"}`,
-    `- Drinking Preference: ${profile?.drinkingPreference ?? "—"}`,
-    `- Smoking Preference: ${profile?.smokingPreference ?? "—"}`,
-    `- Physical Activity Level: ${profile?.physicalActivityLevel ?? "—"}`,
-    `- Time Preference: ${profile?.timePreference ?? "—"}`,
-    `- Plans Frequency: ${profile?.plansFrequency ?? "—"}`,
-    `- Ideal Group Energy: ${profile?.idealGroupEnergy ?? "—"}`,
-    `- Interests: ${listOrDash(profile?.interests ?? [])}`,
-    `- Preferred Vibe: ${listOrDash(profile?.preferredVibe ?? [])}`,
-    `- People To Meet: ${profile?.peopleToMeet ?? "—"}`,
-    `- Ideal Week: ${profile?.idealWeek ?? "—"}`,
-    `- Onboarding Completed At: ${formatDateTime(profile?.onboardingCompletedAt ?? null)}`,
-  ]);
+    doc.font("Helvetica-Bold").fontSize(16).text(`Application: ${pdfSafe(memberName)}`, { width: textWidth });
+    doc.moveDown(0.8);
+    doc.font("Helvetica").fontSize(10);
 
-  const membershipsSection = section(
-    "Current / Recent Cohort Memberships",
-    application.user.cohortMemberships.length > 0
-      ? application.user.cohortMemberships.map(
-          (membership) =>
-            `- ${membership.cohort.season.code} / ${membership.cohort.name} (${membership.status}) · added ${formatDateTime(
-              membership.createdAt,
-            )}`,
-        )
-      : ["—"],
-  );
+    const metaLines = [
+      `Application ID: ${application.id}`,
+      `Member ID: ${application.user.id}`,
+      `Status: ${application.status}`,
+      `Submitted At: ${formatDateTime(application.submittedAt)}`,
+      `Reviewed At: ${formatDateTime(application.reviewedAt)}`,
+      `Reviewer: ${application.reviewerName ?? "—"}`,
+      `Email: ${application.user.email}`,
+      `Account Created At: ${formatDateTime(application.user.createdAt)}`,
+      `Exported At: ${new Date().toISOString()}`,
+    ];
+    for (const line of metaLines) {
+      doc.text(pdfSafe(line), { width: textWidth });
+    }
+    doc.moveDown(1);
 
-  const responsesSection = section(
-    "Questionnaire Responses",
-    application.responses.length > 0
-      ? application.responses.flatMap((response) => [
-          `### ${response.section} / ${response.questionKey}`,
-          response.response || "—",
-          "",
-        ])
-      : ["—"],
-  );
+    const heading = (title: string) => {
+      doc.font("Helvetica-Bold").fontSize(12).text(pdfSafe(title), { width: textWidth });
+      doc.font("Helvetica").fontSize(10);
+      doc.moveDown(0.35);
+    };
 
-  const notesSection = section(
-    "Admin Notes",
-    application.notes.length > 0
-      ? application.notes.flatMap((note) => [
-          `### ${`${note.author.firstName} ${note.author.lastName}`.trim()} · ${formatDateTime(note.createdAt)}`,
-          note.body || "—",
-          "",
-        ])
-      : ["—"],
-  );
+    const body = (t: string) => {
+      doc.text(pdfSafe(t || "—"), { width: textWidth, align: "left" });
+      doc.moveDown(0.5);
+    };
 
-  return [header, applicationSection, profileSection, membershipsSection, responsesSection, notesSection]
-    .filter(Boolean)
-    .join("\n");
+    heading("Application");
+    doc.font("Helvetica-Bold").fontSize(10).text("Headline", { width: textWidth });
+    doc.font("Helvetica");
+    body(application.headline);
+    doc.font("Helvetica-Bold").text("About");
+    doc.font("Helvetica");
+    body(application.aboutText);
+    doc.font("Helvetica-Bold").text("Availability");
+    doc.font("Helvetica");
+    body(application.availability);
+    doc.moveDown(0.5);
+
+    heading("Profile preferences");
+    const profileLines = [
+      `Neighborhood: ${profile?.neighborhood ?? "—"}`,
+      `Age range: ${profile?.ageRange ?? "—"}`,
+      `Occupation: ${profile?.occupation ?? "—"}`,
+      `Social goal: ${profile?.socialGoal ?? "—"}`,
+      `Preferred nights: ${profile?.preferredNights ?? "—"}`,
+      `Budget comfort: ${profile?.budgetComfort ?? "—"}`,
+      `Drinking preference: ${profile?.drinkingPreference ?? "—"}`,
+      `Smoking preference: ${profile?.smokingPreference ?? "—"}`,
+      `Physical activity: ${profile?.physicalActivityLevel ?? "—"}`,
+      `Time preference: ${profile?.timePreference ?? "—"}`,
+      `Plans frequency: ${profile?.plansFrequency ?? "—"}`,
+      `Ideal group energy: ${profile?.idealGroupEnergy ?? "—"}`,
+      `Interests: ${listOrDash(profile?.interests ?? [])}`,
+      `Preferred vibe: ${listOrDash(profile?.preferredVibe ?? [])}`,
+      `People to meet: ${profile?.peopleToMeet ?? "—"}`,
+      `Ideal week: ${profile?.idealWeek ?? "—"}`,
+      `Onboarding completed: ${formatDateTime(profile?.onboardingCompletedAt ?? null)}`,
+    ];
+    for (const line of profileLines) {
+      doc.text(pdfSafe(line), { width: textWidth });
+    }
+    doc.moveDown(0.8);
+
+    heading("Cohort memberships");
+    if (application.user.cohortMemberships.length === 0) {
+      doc.text("—", { width: textWidth });
+    } else {
+      for (const membership of application.user.cohortMemberships) {
+        doc.text(
+          pdfSafe(
+            `${membership.cohort.season.code} / ${membership.cohort.name} (${membership.status}) · added ${formatDateTime(membership.createdAt)}`,
+          ),
+          { width: textWidth },
+        );
+      }
+    }
+    doc.moveDown(0.8);
+
+    heading("Questionnaire responses");
+    if (application.responses.length === 0) {
+      doc.text("—", { width: textWidth });
+    } else {
+      for (const response of application.responses) {
+        doc.font("Helvetica-Bold").fontSize(10).text(`${response.section} / ${response.questionKey}`, { width: textWidth });
+        doc.font("Helvetica");
+        doc.text(pdfSafe(response.response || "—"), { width: textWidth });
+        doc.moveDown(0.5);
+      }
+    }
+    doc.moveDown(0.5);
+
+    heading("Admin notes");
+    if (application.notes.length === 0) {
+      doc.text("—", { width: textWidth });
+    } else {
+      for (const note of application.notes) {
+        const author = `${note.author.firstName} ${note.author.lastName}`.trim();
+        doc.font("Helvetica-Bold").fontSize(10).text(`${author} · ${formatDateTime(note.createdAt)}`, { width: textWidth });
+        doc.font("Helvetica");
+        doc.text(pdfSafe(note.body || "—"), { width: textWidth });
+        doc.moveDown(0.6);
+      }
+    }
+
+    doc.end();
+  });
 }
 
 function buildTarHeader(name: string, size: number) {
@@ -224,11 +266,11 @@ function buildTarHeader(name: string, size: number) {
   return header;
 }
 
-export function buildTarArchive(files: ExportFile[]) {
+export function buildTarArchive(files: ExportArchiveFile[]) {
   const chunks: Buffer[] = [];
 
   for (const file of files) {
-    const content = Buffer.from(file.content, "utf8");
+    const content = typeof file.content === "string" ? Buffer.from(file.content, "utf8") : file.content;
     chunks.push(buildTarHeader(file.name, content.length));
     chunks.push(content);
 
@@ -242,29 +284,29 @@ export function buildTarArchive(files: ExportFile[]) {
   return Buffer.concat(chunks);
 }
 
-export function createApplicationExportFiles(applications: ExportApplication[]) {
+/** Builds a tar archive with README, index.json, and one PDF per application. */
+export async function createApplicationPdfExportArchive(applications: ExportApplication[]): Promise<Buffer> {
   const readme = [
     "Common Collective application export",
     "",
-    "This archive contains one markdown file per application.",
+    "This archive contains one PDF file per application.",
     "Suggested workflow:",
     "1. Extract the .tar archive locally.",
-    "2. Review or rename files if needed.",
-    "3. Upload the markdown files into your AI workspace for analysis.",
+    "2. Open PDFs or upload them to your review / AI tools.",
     "",
     `Total applications: ${applications.length}`,
   ].join("\n");
 
   const index = applications.map((application) => ({
     id: application.id,
-    fileName: sanitizeFilename(application),
+    fileName: sanitizeFilename(application, "pdf"),
     memberName: `${application.user.firstName} ${application.user.lastName}`.trim(),
     email: application.user.email,
     status: application.status,
     submittedAt: application.submittedAt?.toISOString() ?? null,
   }));
 
-  const files: ExportFile[] = [
+  const files: ExportArchiveFile[] = [
     {
       name: "README.txt",
       content: `${readme}\n`,
@@ -276,11 +318,12 @@ export function createApplicationExportFiles(applications: ExportApplication[]) 
   ];
 
   for (const application of applications) {
+    const pdf = await renderApplicationPdf(application);
     files.push({
-      name: `applications/${sanitizeFilename(application)}`,
-      content: `${renderApplicationMarkdown(application)}\n`,
+      name: `applications/${sanitizeFilename(application, "pdf")}`,
+      content: pdf,
     });
   }
 
-  return files;
+  return buildTarArchive(files);
 }
