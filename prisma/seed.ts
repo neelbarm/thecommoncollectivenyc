@@ -202,6 +202,11 @@ async function hashPassword(password: string) {
 }
 
 async function clearExistingData() {
+  await prisma.chatRoomMemberState.deleteMany();
+  await prisma.chatMessage.deleteMany();
+  await prisma.chatRoom.deleteMany();
+  await prisma.announcementRead.deleteMany();
+  await prisma.announcement.deleteMany();
   await prisma.adminNote.deleteMany();
   await prisma.reminder.deleteMany();
   await prisma.booking.deleteMany();
@@ -346,6 +351,14 @@ async function main() {
           cohort.status === CohortStatus.ACTIVE
             ? new Date("2026-04-05T10:00:00.000Z")
             : null,
+      },
+    });
+  }
+
+  for (const cohort of cohorts) {
+    await prisma.chatRoom.create({
+      data: {
+        cohortId: cohort.id,
       },
     });
   }
@@ -568,6 +581,105 @@ async function main() {
       },
     ],
   });
+
+  await prisma.announcement.createMany({
+    data: [
+      {
+        title: "Welcome to the new member app",
+        body:
+          "Your home feed, announcements, and cohort room now run on persistent app data instead of placeholder content.",
+        audience: "ALL_MEMBERS",
+        isPinned: true,
+        createdById: admin.id,
+        publishedAt: new Date("2026-04-18T16:00:00.000Z"),
+      },
+      {
+        title: "The Orchard Table opening note",
+        body:
+          "Use the cohort chat to lock your first dinner cadence and keep introductions warm but brief.",
+        audience: "COHORT",
+        cohortId: cohorts[0].id,
+        seasonId: springSeason.id,
+        isPinned: true,
+        createdById: admin.id,
+        publishedAt: new Date("2026-04-19T14:30:00.000Z"),
+      },
+      {
+        title: "City Lanterns host update",
+        body:
+          "A neighborhood walk and coffee plan is being finalized now. Watch this feed for the confirmed route.",
+        audience: "COHORT",
+        cohortId: cohorts[1].id,
+        seasonId: springSeason.id,
+        isPinned: false,
+        createdById: admin.id,
+        publishedAt: new Date("2026-04-20T12:15:00.000Z"),
+      },
+      {
+        title: "Spring season cadence",
+        body:
+          "This season uses announcements for event timing changes, host notes, and high-signal member updates only.",
+        audience: "SEASON",
+        seasonId: springSeason.id,
+        isPinned: false,
+        createdById: admin.id,
+        publishedAt: new Date("2026-04-21T18:00:00.000Z"),
+      },
+    ],
+  });
+
+  const orchardRoom = await prisma.chatRoom.findUnique({
+    where: { cohortId: cohorts[0].id },
+    select: { id: true },
+  });
+  const lanternRoom = await prisma.chatRoom.findUnique({
+    where: { cohortId: cohorts[1].id },
+    select: { id: true },
+  });
+
+  if (orchardRoom) {
+    await prisma.chatMessage.createMany({
+      data: [
+        {
+          roomId: orchardRoom.id,
+          authorId: members[0].id,
+          body: "Anyone free for a low-key dinner next Thursday in the west side?",
+          createdAt: new Date("2026-04-21T23:10:00.000Z"),
+        },
+        {
+          roomId: orchardRoom.id,
+          authorId: members[3].id,
+          body: "I’m in if we keep it below 9:30 and close to a train.",
+          createdAt: new Date("2026-04-21T23:14:00.000Z"),
+        },
+        {
+          roomId: orchardRoom.id,
+          authorId: members[6].id,
+          body: "Would love that. I can suggest a couple places near Chelsea.",
+          createdAt: new Date("2026-04-21T23:18:00.000Z"),
+        },
+      ],
+    });
+  }
+
+  if (lanternRoom) {
+    await prisma.chatMessage.createMany({
+      data: [
+        {
+          roomId: lanternRoom.id,
+          authorId: members[1].id,
+          body: "Would people rather do coffee after the walk or start with coffee first?",
+          createdAt: new Date("2026-04-22T14:00:00.000Z"),
+        },
+        {
+          roomId: lanternRoom.id,
+          authorId: members[4].id,
+          body: "Coffee after sounds better to me. Happy to join either way.",
+          createdAt: new Date("2026-04-22T14:08:00.000Z"),
+        },
+      ],
+    });
+  }
 
   await prisma.booking.createMany({
     data: [

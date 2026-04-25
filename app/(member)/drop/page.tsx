@@ -1,11 +1,6 @@
-import Link from "next/link";
-
 import { auth } from "@/auth";
+import { MemberAppShell } from "@/components/layout/member-app-shell";
 import { DropPageClient } from "@/components/drop/drop-page-client";
-import { SiteFooter } from "@/components/site/site-footer";
-import { SiteHeader } from "@/components/site/site-header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getMemberDropData } from "@/lib/drop/get-member-drop-data";
 
@@ -21,83 +16,53 @@ export default async function DropPage() {
 
     if (!dropData) {
       return (
-        <div className="min-h-screen bg-background">
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-            <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
-              <CardHeader>
-                <CardTitle>We could not load The Drop</CardTitle>
-                <CardDescription className="text-sm leading-7">
-                  Your account is signed in, but we could not reach your Drop activity. This is usually temporary.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/drop">Try again</Link>
-                </Button>
-                <Button asChild size="sm">
-                  <Link href="/onboarding">Check onboarding</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </main>
-          <SiteFooter />
-        </div>
+        <MemberAppShell
+          eyebrow="Instant plans"
+          title="The Drop is unavailable."
+          subtitle="Your sign-in is intact, but we could not reach your spontaneous-plan activity right now."
+        >
+          <Card className="app-panel border-dashed border-primary/30 bg-primary/6">
+            <CardHeader>
+              <CardTitle>Try again in a moment</CardTitle>
+              <CardDescription className="text-sm leading-7">
+                This is usually temporary. Your previous requests are still saved.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">Refresh the page or continue onboarding if you recently joined.</p>
+            </CardContent>
+          </Card>
+        </MemberAppShell>
       );
     }
 
     return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
-          <section className="mb-6 space-y-4">
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
-                The Drop
-              </Badge>
-              {dropData.cohortName ? <Badge variant="outline">{dropData.cohortName}</Badge> : null}
-            </div>
-            <h1 className="font-heading text-4xl leading-tight text-foreground sm:text-5xl">
-              Spontaneous plans, member to member.
-            </h1>
-            <p className="max-w-3xl text-base leading-7 text-muted-foreground">
-              The Drop is a concierge feature for quick social windows — a short way to signal availability and find a
-              matching plan inside the club.
-            </p>
-          </section>
-
-          <DropPageClient initialData={dropData} />
-        </main>
-        <SiteFooter />
-      </div>
+      <MemberAppShell
+        eyebrow="Drop concierge"
+        title="Spontaneous plans, member to member."
+        subtitle="Signal a free window, see responses quickly, and turn availability into a social moment."
+        actions={[
+          { href: "/dashboard", label: "Back home" },
+          { href: "/cohort/chat", label: "Open cohort chat" },
+        ]}
+      >
+        <DropPageClient initialData={dropData} />
+      </MemberAppShell>
     );
   } catch {
     return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-          <Card className="border-border/70 bg-card/90 shadow-soft">
-            <CardHeader>
-              <CardTitle>Having trouble loading The Drop</CardTitle>
-              <CardDescription>Please try again shortly — any requests you already posted are still saved.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                If this keeps happening, refresh the page or return from the dashboard.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/drop">Try again</Link>
-                </Button>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/dashboard">Dashboard</Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </main>
-        <SiteFooter />
-      </div>
+      <MemberAppShell
+        eyebrow="Instant plans"
+        title="Having trouble loading The Drop."
+        subtitle="Any requests you already posted remain saved."
+      >
+        <Card className="app-panel">
+          <CardHeader>
+            <CardTitle>Please refresh shortly</CardTitle>
+            <CardDescription>If the problem persists, return from the dashboard and try again.</CardDescription>
+          </CardHeader>
+        </Card>
+      </MemberAppShell>
     );
   }
 }

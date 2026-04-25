@@ -1,10 +1,19 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, CalendarDays, Newspaper, Users } from "lucide-react";
+import {
+  ArrowRight,
+  CalendarDays,
+  Check,
+  MapPin,
+  Newspaper,
+  Sparkles,
+  Users,
+} from "lucide-react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { pageEnterClasses } from "@/lib/motion";
 
 const pillars = [
   {
@@ -27,11 +36,38 @@ const pillars = [
   },
 ];
 
+const membershipNotes = [
+  "Thoughtful member application with human review.",
+  "Small recurring cohorts designed for continuity, not chaos.",
+  "Editorially curated gatherings across dinners, salons, and city rituals.",
+] as const;
+
+const experienceMoments = [
+  {
+    label: "Gatherings",
+    title: "Downtown dinners with actual continuity",
+    description:
+      "Not one-off social noise — recurring tables where names become familiar and trust has room to build.",
+  },
+  {
+    label: "Cohorts",
+    title: "A social home base inside the city",
+    description:
+      "Members are placed into intimate groups that make New York feel warmer, smaller, and easier to belong inside.",
+  },
+  {
+    label: "Concierge rhythm",
+    title: "A calendar that feels curated, not crowded",
+    description:
+      "Events, announcements, and cohort coordination are designed to support a recurring social rhythm you can actually keep.",
+  },
+] as const;
+
 export default function HomePage() {
   return (
     <main>
       <section className="mx-auto w-full max-w-6xl px-4 pb-16 pt-14 sm:px-6 sm:pt-20 lg:px-8 lg:pb-24">
-        <div className="grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-end">
+        <div className={`grid gap-10 lg:grid-cols-[1.02fr_0.98fr] lg:items-end ${pageEnterClasses}`}>
           <div className="space-y-8">
             <Badge
               variant="outline"
@@ -46,6 +82,19 @@ export default function HomePage() {
               The Common Collective is a non-exclusive NYC membership designed around recurring gatherings, small cohorts,
               and meaningful city connection.
             </p>
+            <div className="grid gap-3 sm:grid-cols-3">
+              {membershipNotes.map((note) => (
+                <div
+                  key={note}
+                  className="rounded-[1.15rem] border border-border/55 bg-card/65 px-4 py-3 shadow-[inset_0_1px_0_oklch(1_0_0_/0.04)]"
+                >
+                  <div className="flex items-start gap-2">
+                    <Check className="mt-0.5 h-4 w-4 text-muted-gold" />
+                    <p className="text-sm leading-6 text-muted-foreground">{note}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
             <div className="flex flex-col gap-3 pt-2 sm:flex-row sm:items-center">
               <Button asChild size="lg" className="h-12 rounded-full px-8 text-[0.8125rem] tracking-[0.12em] uppercase">
                 <Link href="/apply">
@@ -64,64 +113,80 @@ export default function HomePage() {
             </div>
           </div>
 
-          <Card className="surface-panel overflow-hidden border-border/60 bg-card/90 shadow-[0_1px_0_oklch(1_0_0_/0.55)_inset,0_24px_48px_-28px_oklch(0.2_0.02_55_/_0.18)] ring-1 ring-black/[0.04]">
-            <CardContent className="relative p-0">
-              <div className="relative aspect-[16/10] w-full min-h-[220px] max-h-[400px] overflow-hidden sm:min-h-[260px]">
-                <Image
-                  src="/brand/home-hero-nyc.jpg"
-                  alt="Manhattan skyline across the river at golden hour"
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 42vw"
-                  className="object-cover object-[center_32%] motion-safe:scale-[1.03] motion-reduce:scale-100"
-                />
-                {/* Depth: cool shadows + warm lift (editorial print feel) */}
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-gradient-to-t from-[oklch(0.14_0.02_55_/_0.92)] via-[oklch(0.2_0.025_60_/_0.45)] via-45% to-[oklch(0.42_0.04_75_/_0.2)]"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-[radial-gradient(ellipse_95%_70%_at_50%_0%,oklch(0.98_0.02_85_/_0.14),transparent_52%)]"
-                />
-                <div
-                  aria-hidden
-                  className="absolute inset-0 bg-[radial-gradient(ellipse_130%_90%_at_50%_100%,oklch(0.08_0.02_55_/_0.65),transparent_50%)]"
-                />
-                {/* Subtle film grain */}
-                <div aria-hidden className="hero-editorial-grain" />
-                <div className="absolute inset-x-0 bottom-0 flex flex-col gap-1.5 px-6 pb-6 pt-16 sm:px-7 sm:pb-7">
-                  <p className="text-[0.62rem] font-medium uppercase tracking-[0.32em] text-[oklch(0.96_0.02_90_/_0.72)]">
+          <Card className="surface-panel overflow-hidden border-border/60 bg-[linear-gradient(180deg,oklch(0.2_0.014_42)_0%,oklch(0.155_0.012_42)_100%)] text-[oklch(0.95_0.012_86)] shadow-[0_1px_0_oklch(1_0_0_/0.1)_inset,0_32px_70px_-40px_oklch(0.02_0.02_50_/1)] ring-1 ring-[oklch(0.52_0.03_78_/0.14)]">
+            <CardContent className="relative overflow-hidden p-0">
+              <div
+                aria-hidden
+                className="absolute inset-0 bg-[radial-gradient(circle_at_top,_oklch(0.72_0.05_76_/0.18),_transparent_42%),radial-gradient(circle_at_80%_65%,_oklch(0.38_0.026_70_/0.16),_transparent_36%)]"
+              />
+              <div aria-hidden className="hero-editorial-grain absolute inset-0 opacity-[0.085]" />
+              <div className="relative space-y-8 p-7 sm:p-8">
+                <div className="flex items-center justify-between gap-4">
+                  <Image
+                    src="/brand/common-collective-wordmark.svg"
+                    alt="The Common Collective"
+                    width={220}
+                    height={56}
+                    className="h-8 w-auto opacity-95 invert"
+                  />
+                  <span className="rounded-full border border-[oklch(0.72_0.05_76_/0.28)] bg-[oklch(0.72_0.05_76_/0.08)] px-3 py-1 text-[0.62rem] font-medium uppercase tracking-[0.24em] text-[oklch(0.86_0.03_82)]">
+                    NYC membership
+                  </span>
+                </div>
+
+                <div className="space-y-4">
+                  <p className="text-[0.62rem] font-medium uppercase tracking-[0.32em] text-[oklch(0.84_0.02_84_/0.68)]">
                     The city, on your calendar
                   </p>
-                  <p className="font-heading text-[1.35rem] leading-[1.15] tracking-tight text-[oklch(0.99_0.01_95_/_0.96)] sm:text-2xl">
-                    Manhattan after hours
+                  <h2 className="font-heading text-[2rem] leading-[1.02] tracking-tight text-[oklch(0.98_0.01_95_/_0.96)] sm:text-[2.35rem]">
+                    A private-feeling social rhythm without the exclusivity theatre.
+                  </h2>
+                  <p className="max-w-[28rem] text-sm leading-7 text-[oklch(0.88_0.01_88_/0.78)]">
+                    The Common Collective is for people who want real continuity in New York: recurring dinners,
+                    thoughtful salons, and a cohort they actually see again.
                   </p>
                 </div>
-              </div>
-              <div className="relative border-t border-border/45 bg-gradient-to-b from-[oklch(0.97_0.015_85_/_0.97)] to-card/98">
-                <div
-                  aria-hidden
-                  className="absolute inset-x-6 top-0 h-px bg-gradient-to-r from-transparent via-muted-gold/35 to-transparent sm:inset-x-8"
-                />
-                <div className="grid gap-8 px-6 py-7 sm:grid-cols-3 sm:gap-0 sm:divide-x sm:divide-border/35 sm:px-0">
-                  <div className="sm:px-7">
-                    <p className="text-[0.6rem] font-medium uppercase tracking-[0.26em] text-muted-foreground/90">Gather</p>
-                    <p className="mt-2 font-heading text-[0.8125rem] uppercase tracking-[0.14em] text-foreground">
+
+                <div className="grid gap-3 sm:grid-cols-3">
+                  <div className="rounded-[1.15rem] border border-white/8 bg-white/[0.04] p-4">
+                    <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[oklch(0.84_0.02_84_/0.65)]">
+                      Gather
+                    </p>
+                    <p className="mt-2 font-heading text-lg text-[oklch(0.98_0.01_95_/_0.96)]">
                       Downtown dinners
                     </p>
                   </div>
-                  <div className="sm:px-7">
-                    <p className="text-[0.6rem] font-medium uppercase tracking-[0.26em] text-muted-foreground/90">Discuss</p>
-                    <p className="mt-2 font-heading text-[0.8125rem] uppercase tracking-[0.14em] text-foreground">
+                  <div className="rounded-[1.15rem] border border-white/8 bg-white/[0.04] p-4">
+                    <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[oklch(0.84_0.02_84_/0.65)]">
+                      Discuss
+                    </p>
+                    <p className="mt-2 font-heading text-lg text-[oklch(0.98_0.01_95_/_0.96)]">
                       Neighborhood salons
                     </p>
                   </div>
-                  <div className="sm:px-7">
-                    <p className="text-[0.6rem] font-medium uppercase tracking-[0.26em] text-muted-foreground/90">Belong</p>
-                    <p className="mt-2 font-heading text-[0.8125rem] uppercase tracking-[0.14em] text-foreground">
+                  <div className="rounded-[1.15rem] border border-white/8 bg-white/[0.04] p-4">
+                    <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[oklch(0.84_0.02_84_/0.65)]">
+                      Belong
+                    </p>
+                    <p className="mt-2 font-heading text-lg text-[oklch(0.98_0.01_95_/_0.96)]">
                       Recurring cohorts
                     </p>
+                  </div>
+                </div>
+
+                <div className="rounded-[1.35rem] border border-[oklch(0.72_0.05_76_/0.2)] bg-[linear-gradient(180deg,oklch(0.17_0.012_42)_0%,oklch(0.14_0.012_42)_100%)] p-5">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl border border-[oklch(0.72_0.05_76_/0.25)] bg-[oklch(0.72_0.05_76_/0.08)]">
+                      <Sparkles className="h-5 w-5 text-[oklch(0.8_0.04_82)]" />
+                    </div>
+                    <div>
+                      <p className="text-[0.62rem] uppercase tracking-[0.24em] text-[oklch(0.84_0.02_84_/0.65)]">
+                        What membership feels like
+                      </p>
+                      <p className="mt-1 text-sm leading-6 text-[oklch(0.92_0.01_88_/0.84)]">
+                        Cultured, warm, recurring, and easy to keep showing up for.
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -131,7 +196,7 @@ export default function HomePage() {
       </section>
 
       <section className="border-y border-border/40 bg-card/40">
-        <div className="mx-auto grid w-full max-w-6xl gap-6 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8">
+        <div className={`mx-auto grid w-full max-w-6xl gap-6 px-4 py-14 sm:px-6 md:grid-cols-3 lg:px-8 ${pageEnterClasses}`}>
           {pillars.map((pillar) => (
             <Card key={pillar.title} className="h-full border-border/60 bg-card/90">
               <CardContent className="flex h-full flex-col space-y-4 p-7">
@@ -145,7 +210,7 @@ export default function HomePage() {
       </section>
 
       <section className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 lg:px-8 lg:py-20">
-        <Card className="overflow-hidden border-border/60 bg-card/95">
+        <Card className={`overflow-hidden border-border/60 bg-card/95 ${pageEnterClasses}`}>
           <CardContent className="grid gap-10 p-7 sm:p-10 md:grid-cols-[1.15fr_1fr]">
             <div className="space-y-5">
               <p className="eyebrow">How it works</p>
@@ -166,6 +231,49 @@ export default function HomePage() {
             </div>
           </CardContent>
         </Card>
+      </section>
+
+      <section className="mx-auto w-full max-w-6xl px-4 pb-16 sm:px-6 lg:px-8 lg:pb-24">
+        <div className={`grid gap-6 md:grid-cols-3 ${pageEnterClasses}`}>
+          {experienceMoments.map((moment) => (
+            <Card key={moment.title} className="border-border/60 bg-card/88">
+              <CardContent className="space-y-4 p-7">
+                <p className="eyebrow">{moment.label}</p>
+                <h3 className="font-heading text-[1.55rem] leading-tight text-foreground">{moment.title}</h3>
+                <p className="text-sm leading-7 text-muted-foreground">{moment.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      <section className="border-t border-border/40 bg-card/35">
+        <div className={`mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 py-16 sm:px-6 lg:flex-row lg:items-end lg:justify-between lg:px-8 ${pageEnterClasses}`}>
+          <div className="max-w-2xl space-y-4">
+            <p className="eyebrow inline-flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5" />
+              New York City
+            </p>
+            <h3 className="font-heading text-[2rem] leading-tight text-foreground sm:text-[2.5rem]">
+              A members club built around recurring city connection.
+            </h3>
+            <p className="prose-calm">
+              The Common Collective is for thoughtful people who want introductions that turn into continuity: small
+              cohorts, editorial social experiences, and a calendar that helps real connection happen again.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Button asChild size="lg" className="h-12 rounded-full px-8 text-[0.8125rem] tracking-[0.12em] uppercase">
+              <Link href="/apply">
+                Apply now
+                <ArrowRight className="ml-2 h-4 w-4 opacity-80" />
+              </Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="h-12 rounded-full px-8 text-[0.8125rem] tracking-wide">
+              <Link href="/signup">Create account</Link>
+            </Button>
+          </div>
+        </div>
       </section>
     </main>
   );

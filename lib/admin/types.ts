@@ -30,6 +30,18 @@ export type AdminOpsData = {
     upcomingEvents: number;
     activeDropRequests: number;
   };
+  announcementComposer: {
+    seasons: Array<{
+      id: string;
+      name: string;
+      code: string;
+    }>;
+    cohorts: Array<{
+      id: string;
+      name: string;
+      seasonId: string;
+    }>;
+  };
   filterOptions: {
     seasons: IdLabel[];
     cohorts: IdLabel[];
@@ -188,5 +200,18 @@ export type AdminOpsData = {
     subjectUserId: string | null;
     subjectUserName: string | null;
     applicationId: string | null;
+  }>;
+  recentAnnouncements: Array<{
+    id: string;
+    title: string;
+    body: string;
+    audience: "ALL_MEMBERS" | "SEASON" | "COHORT";
+    isPinned: boolean;
+    publishedAt: string;
+    createdByName: string;
+    seasonId: string | null;
+    seasonName: string | null;
+    cohortId: string | null;
+    cohortName: string | null;
   }>;
 };

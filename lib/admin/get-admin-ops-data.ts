@@ -66,6 +66,7 @@ export async function getAdminOpsData(): Promise<AdminOpsData> {
     bookings,
     reminders,
     adminNotes,
+    announcements,
   ] = await Promise.all([
     prisma.user.count({
       where: {
@@ -423,6 +424,39 @@ export async function getAdminOpsData(): Promise<AdminOpsData> {
       },
       take: 60,
     }),
+    prisma.announcement.findMany({
+      orderBy: [{ publishedAt: "desc" }],
+      select: {
+        id: true,
+        title: true,
+        body: true,
+        audience: true,
+        isPinned: true,
+        publishedAt: true,
+        seasonId: true,
+        cohortId: true,
+        createdBy: {
+          select: {
+            firstName: true,
+            lastName: true,
+          },
+        },
+        season: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        cohort: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      take: 40,
+    }),
   ]);
 
   const questionSectionCounts = new Map<QuestionnaireSection, number>();
@@ -459,6 +493,18 @@ export async function getAdminOpsData(): Promise<AdminOpsData> {
       totalCohorts,
       upcomingEvents,
       activeDropRequests,
+    },
+    announcementComposer: {
+      seasons: seasons.map((season) => ({
+        id: season.id,
+        name: season.name,
+        code: season.code,
+      })),
+      cohorts: cohorts.map((cohort) => ({
+        id: cohort.id,
+        name: cohort.name,
+        seasonId: cohort.seasonId,
+      })),
     },
     filterOptions: {
       seasons: seasons.map((season) => ({
@@ -637,6 +683,19 @@ export async function getAdminOpsData(): Promise<AdminOpsData> {
         ? fullName(note.subjectUser.firstName, note.subjectUser.lastName)
         : null,
       applicationId: note.applicationId,
+    })),
+    recentAnnouncements: announcements.map((announcement) => ({
+      id: announcement.id,
+      title: announcement.title,
+      body: announcement.body,
+      audience: announcement.audience,
+      isPinned: announcement.isPinned,
+      publishedAt: announcement.publishedAt.toISOString(),
+      createdByName: fullName(announcement.createdBy.firstName, announcement.createdBy.lastName),
+      seasonId: announcement.seasonId,
+      seasonName: announcement.season?.name ?? null,
+      cohortId: announcement.cohortId,
+      cohortName: announcement.cohort?.name ?? null,
     })),
   };
 }

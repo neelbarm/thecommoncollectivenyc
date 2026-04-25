@@ -7,6 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "start:railway": "npx prisma migrate deploy && npm run start",
+    "postinstall": "prisma generate",
     "lint": "eslint",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",

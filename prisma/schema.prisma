@@ -140,6 +140,12 @@ enum AnalyticsEventSource {
   CLIENT
 }
 
+enum AnnouncementAudience {
+  ALL_MEMBERS
+  SEASON
+  COHORT
+}
+
 model User {
   id                   String              @id @default(cuid())
   email                String              @unique
@@ -169,6 +175,10 @@ model User {
   assignmentRunsCreated  AssignmentRun[]     @relation("AssignmentRunCreator")
   assignmentRunsApproved AssignmentRun[]     @relation("AssignmentRunApprover")
   analyticsEvents        AnalyticsEvent[]
+  announcementsAuthored  Announcement[]      @relation("AnnouncementAuthor")
+  announcementReads      AnnouncementRead[]
+  chatMessagesAuthored   ChatMessage[]       @relation("ChatMessageAuthor")
+  chatRoomStates         ChatRoomMemberState[] @relation("ChatRoomStateUser")
 
   @@index([role, isActive])
   @@index([createdAt])
@@ -249,6 +259,7 @@ model Season {
   cohorts        Cohort[]
   events         Event[]
   assignmentRuns AssignmentRun[]
+  announcements  Announcement[]
 
   @@index([status, startsAt])
 }
@@ -267,6 +278,8 @@ model Cohort {
   memberships         CohortMembership[]
   events              Event[]
   assignmentProposals AssignmentProposal[]
+  announcements       Announcement[]
+  chatRoom            ChatRoom?
 
   @@index([seasonId, status])
 }
@@ -430,6 +443,84 @@ model AdminNote {
   @@index([adminId, createdAt])
   @@index([subjectUserId])
   @@index([applicationId])
+}
+
+model Announcement {
+  id          String               @id @default(cuid())
+  title       String
+  body        String
+  audience    AnnouncementAudience @default(ALL_MEMBERS)
+  isPinned    Boolean              @default(false)
+  createdById String
+  seasonId    String?
+  cohortId    String?
+  publishedAt DateTime             @default(now())
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  createdBy User               @relation("AnnouncementAuthor", fields: [createdById], references: [id], onDelete: Cascade)
+  season    Season?            @relation(fields: [seasonId], references: [id], onDelete: SetNull)
+  cohort    Cohort?            @relation(fields: [cohortId], references: [id], onDelete: SetNull)
+  reads     AnnouncementRead[]
+
+  @@index([audience, publishedAt])
+  @@index([cohortId, publishedAt])
+  @@index([seasonId, publishedAt])
+  @@index([isPinned, publishedAt])
+}
+
+model AnnouncementRead {
+  announcementId String
+  userId         String
+  readAt         DateTime @default(now())
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([announcementId, userId])
+  @@index([userId, readAt])
+}
+
+model ChatRoom {
+  id        String               @id @default(cuid())
+  cohortId  String               @unique
+  createdAt DateTime             @default(now())
+  updatedAt DateTime             @updatedAt
+
+  cohort       Cohort               @relation(fields: [cohortId], references: [id], onDelete: Cascade)
+  messages     ChatMessage[]
+  memberStates ChatRoomMemberState[]
+}
+
+model ChatMessage {
+  id        String   @id @default(cuid())
+  roomId     String
+  authorId   String
+  body       String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  room   ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  author User     @relation("ChatMessageAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([roomId, createdAt])
+  @@index([authorId, createdAt])
+}
+
+model ChatRoomMemberState {
+  roomId      String
+  userId      String
+  lastReadAt  DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  room ChatRoom @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user User     @relation("ChatRoomStateUser", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([roomId, userId])
+  @@index([userId, lastReadAt])
 }
 
 model AssignmentRun {

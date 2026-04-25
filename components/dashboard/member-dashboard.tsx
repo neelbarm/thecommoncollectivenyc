@@ -1,17 +1,15 @@
 import Link from "next/link";
-import { CalendarDays, Clock3, Compass, MapPin, Users } from "lucide-react";
+import { Bell, CalendarDays, Clock3, Compass, MapPin, MessageCircleMore, Users } from "lucide-react";
 
 import type { MemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
-import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarGroup } from "@/components/ui/avatar";
+  AppQuickLink,
+  AppSection,
+  AppStat,
+  MemberAppShell,
+} from "@/components/layout/member-app-shell";
 
 function formatDateTime(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -45,224 +43,247 @@ export function MemberDashboard({ data }: { data: MemberDashboardData }) {
   const hasNextEvent = Boolean(data.nextEvent);
   const needsProfileRepair = !data.hasProfile;
   const needsOnboarding = data.hasProfile && !data.onboardingCompleted;
+  const profileInterests = data.profile?.interests.slice(0, 4) ?? [];
 
   return (
-    <div className="space-y-7">
-      <Card className="surface-panel">
-        <CardHeader className="space-y-4">
+    <MemberAppShell
+      eyebrow="Member home"
+      title={`Welcome back, ${data.firstName}.`}
+      subtitle="Your curated view of cohort chemistry, upcoming plans, and the social rhythm unfolding around you."
+      actions={[
+        { href: "/cohort", label: hasCohort ? "View cohort" : "Cohort status" },
+        { href: "/events", label: "Open calendar" },
+        { href: "/drop", label: "Use The Drop" },
+      ]}
+    >
+      <section className="app-hero-card">
+        <div className="grid grid-cols-3 gap-3">
+          <AppStat
+            label="Status"
+            value={data.onboardingCompleted ? "Ready" : "Setup"}
+            detail={data.onboardingCompleted ? "Profile completed" : "Finish onboarding"}
+          />
+          <AppStat
+            label="Cohort"
+            value={hasCohort && data.cohort ? `${data.cohort.activeMemberCount}` : "—"}
+            detail={hasCohort && data.cohort ? "Members in your circle" : "Pending assignment"}
+          />
+          <AppStat
+            label="Next"
+            value={hasNextEvent ? "Live" : "Soon"}
+            detail={hasNextEvent ? "Upcoming gathering" : "Calendar still filling"}
+          />
+        </div>
+
+        <div className="mt-5 space-y-3">
           <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
-              Member Dashboard
-            </Badge>
-            <Badge variant={data.onboardingCompleted ? "default" : "outline"}>
-              {data.onboardingCompleted ? "Onboarding complete" : "Onboarding in progress"}
-            </Badge>
             {hasCohort && data.cohort ? (
-              <Badge variant="outline">Cohort: {data.cohort.name}</Badge>
-            ) : null}
-          </div>
-          <CardTitle className="text-3xl leading-tight sm:text-4xl">Welcome back, {data.firstName}.</CardTitle>
-          <CardDescription className="prose-calm max-w-3xl">
-            Your living snapshot of cohort rhythm, upcoming experiences, and concierge support.
-          </CardDescription>
-        </CardHeader>
-      </Card>
-
-      {needsProfileRepair || needsOnboarding ? (
-        <Card className="surface-dashed">
-          <CardHeader className="space-y-2">
-            <CardTitle className="text-lg">
-              {needsProfileRepair ? "Let’s finish setting up your member profile" : "Almost there — complete your onboarding"}
-            </CardTitle>
-            <CardDescription className="text-sm leading-7 text-muted-foreground">
-              {needsProfileRepair
-                ? "Your account is signed in, but we don’t have your member questionnaire on file yet. That’s usually a quick fix."
-                : "A few onboarding questions are still open. Once they’re done, we can place you in a cohort and unlock your full dashboard."}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Button asChild size="sm">
-              <Link href="/onboarding">{needsProfileRepair ? "Set up my profile" : "Continue onboarding"}</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      ) : null}
-
-      <div className="grid gap-5 lg:grid-cols-[1.3fr_1fr]">
-        <Card className="surface-panel">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Users className="h-4 w-4 text-muted-gold" />
-              Cohort
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {hasCohort ? (
               <>
-                <div className="space-y-1">
-                  <p className="font-heading text-2xl text-foreground">{data.cohort?.name}</p>
-                  <p className="text-sm text-muted-foreground">{data.cohort?.description}</p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-2">
-                  <Badge variant="outline">{data.cohort?.seasonName}</Badge>
-                  <Badge variant="outline">{data.cohort?.seasonProgressLabel}</Badge>
-                </div>
-
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Member preview</p>
-                  {data.cohort && data.cohort.memberPreview.length > 0 ? (
-                    <div className="space-y-3">
-                      <AvatarGroup>
-                        {data.cohort.memberPreview.slice(0, 5).map((member) => (
-                          <Avatar key={member.id}>
-                            <AvatarFallback>
-                              {initials(member.firstName, member.lastName)}
-                            </AvatarFallback>
-                          </Avatar>
-                        ))}
-                      </AvatarGroup>
-                      <p className="text-sm text-muted-foreground">
-                        {data.cohort.activeMemberCount} active members this season.
-                      </p>
-                    </div>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Member preview will appear once cohort assignments finalize.
-                    </p>
-                  )}
-                </div>
+                <span className="app-chip bg-primary/12 text-foreground">{data.cohort.name}</span>
+                <span className="app-chip">{data.cohort.seasonName}</span>
+                <span className="app-chip">{data.cohort.seasonProgressLabel}</span>
               </>
             ) : (
-              <div className="surface-dashed space-y-3 p-4">
-                <p className="font-medium text-foreground">No cohort yet</p>
-                <p className="text-sm text-muted-foreground">
-                  {data.onboardingCompleted
-                    ? "You’re all set on paper — the team will add you to a cohort soon. Check back here for your group and rhythm."
-                    : "Finish onboarding first so we can match you into the right small group."}
-                </p>
-                <Button asChild variant="outline" size="sm">
-                  <Link href={data.onboardingCompleted ? "/cohort" : "/onboarding"}>
-                    {data.onboardingCompleted ? "View cohort page" : "Continue onboarding"}
-                  </Link>
-                </Button>
-              </div>
+              <span className="app-chip">Matching in progress</span>
             )}
-          </CardContent>
-        </Card>
+            {data.profile?.neighborhood ? <span className="app-chip">{data.profile.neighborhood}</span> : null}
+          </div>
 
-        <Card className="surface-panel">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Compass className="h-4 w-4 text-muted-gold" />
-              Concierge note
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="font-medium text-foreground">{data.concierge.title}</p>
-            <p className="text-sm leading-7 text-muted-foreground">{data.concierge.note}</p>
-            <Button asChild variant="outline" size="sm">
-              <Link href="/drop">Open The Drop</Link>
+          <p className="text-sm leading-7 text-muted-foreground">
+            {needsProfileRepair
+              ? "Your account is active, but we still need your member questionnaire before the full experience unlocks."
+              : needsOnboarding
+                ? "A few details are still open. Once your onboarding is complete, your cohort placement and more tailored plans can unlock."
+                : hasCohort && data.cohort
+                  ? data.cohort.description
+                  : "We’re shaping a small group around your preferences. Check back soon for your roster, cadence, and next plans."}
+          </p>
+
+          {(needsProfileRepair || needsOnboarding) && (
+            <Button asChild className="mt-1">
+              <Link href="/onboarding">{needsProfileRepair ? "Set up my profile" : "Continue onboarding"}</Link>
             </Button>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </div>
+      </section>
 
-      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
-        <Card className="surface-panel">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <CalendarDays className="h-4 w-4 text-muted-gold" />
-              Next upcoming event
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {hasNextEvent && data.nextEvent ? (
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <p className="font-heading text-2xl text-foreground">{data.nextEvent.title}</p>
-                  <p className="text-sm leading-7 text-muted-foreground">{data.nextEvent.description}</p>
-                </div>
+      <AppSection
+        title="Concierge"
+        description={data.concierge.note}
+        action={
+          <Link href="/announcements" className="app-chip">
+            <Bell className="h-3.5 w-3.5" />
+            Updates
+          </Link>
+        }
+        tone="accent"
+      >
+        <div className="grid gap-3">
+          <AppQuickLink
+            href="/drop"
+            label={data.concierge.title}
+            detail="Signal your energy, open a spontaneous plan, or let the concierge layer do the routing."
+            icon="spark"
+          />
+          <AppQuickLink
+            href="/cohort/chat"
+            label="Cohort chat"
+            detail="Keep the conversation warm between dinners, events, and spontaneous windows."
+          />
+        </div>
+      </AppSection>
 
-                <div className="space-y-2 text-sm text-muted-foreground">
-                  <p className="inline-flex items-center gap-2">
-                    <Clock3 className="h-4 w-4" />
-                    {formatDateTime(data.nextEvent.startsAt)}
-                  </p>
-                  <p className="inline-flex items-center gap-2">
-                    <MapPin className="h-4 w-4" />
-                    {data.nextEvent.venueName} · {data.nextEvent.venueAddressLine1}, {data.nextEvent.venueCity},{" "}
-                    {data.nextEvent.venueState}
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap items-center gap-3">
-                  <Badge variant="outline">{rsvpLabel(data.nextEvent.rsvpStatus)}</Badge>
-                  <Button asChild size="sm">
-                    <Link href="/events">
-                      {data.nextEvent.rsvpStatus ? "Update RSVP" : "RSVP now"}
-                    </Link>
-                  </Button>
-                </div>
+      <AppSection
+        title="My cohort"
+        description={
+          hasCohort && data.cohort
+            ? `${data.cohort.activeMemberCount} members building a recurring rhythm together.`
+            : "Your private small-group space will appear here as soon as matching is complete."
+        }
+        action={
+          <Link href={hasCohort ? "/cohort" : "/onboarding"} className="app-chip">
+            <Users className="h-3.5 w-3.5" />
+            {hasCohort ? "Open cohort" : "Complete setup"}
+          </Link>
+        }
+      >
+        {hasCohort && data.cohort ? (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-lg font-semibold tracking-[-0.02em] text-foreground">{data.cohort.name}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{data.cohort.seasonName}</p>
               </div>
-            ) : (
-              <div className="surface-dashed space-y-3 p-4">
-                <p className="font-medium text-foreground">Nothing on the calendar yet</p>
-                <p className="text-sm text-muted-foreground">
-                  {hasCohort
-                    ? "When your cohort’s next gathering is published, it will show up here first."
-                    : "Once you’re in a cohort, your season’s plans will appear here."}
-                </p>
-                <Button asChild variant="outline" size="sm">
-                  <Link href="/events">See all events</Link>
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+              {data.cohort.memberPreview.length > 0 ? (
+                <AvatarGroup>
+                  {data.cohort.memberPreview.slice(0, 4).map((member) => (
+                    <Avatar key={member.id} size="lg">
+                      <AvatarFallback>{initials(member.firstName, member.lastName)}</AvatarFallback>
+                    </Avatar>
+                  ))}
+                </AvatarGroup>
+              ) : null}
+            </div>
 
-        <Card className="surface-panel">
-          <CardHeader>
-            <CardTitle className="text-xl">The Drop</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <p className="text-sm leading-7 text-muted-foreground">
-              Looking for a spontaneous plan, an activity partner, or a social reset this week? Post or respond in The
-              Drop.
-            </p>
-            <Button asChild size="sm">
-              <Link href="/drop">Go to The Drop</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      <Card className="surface-panel">
-        <CardHeader>
-          <CardTitle className="text-xl">Past events</CardTitle>
-          <CardDescription>Recent gatherings from your season rhythm.</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {data.pastEvents.length > 0 ? (
-            <div className="space-y-3">
-              {data.pastEvents.map((event) => (
-                <div key={event.id} className="dense-row">
-                  <p className="font-medium text-foreground">{event.title}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{formatDateTime(event.startsAt)}</p>
-                  <p className="mt-2 text-sm leading-7 text-muted-foreground">{event.description}</p>
+            <div className="space-y-2">
+              {data.cohort.memberPreview.slice(0, 4).map((member) => (
+                <div key={member.id} className="app-list-row">
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>{initials(member.firstName, member.lastName)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">
+                        {member.firstName} {member.lastName}
+                      </p>
+                      <p className="text-xs text-muted-foreground">{member.neighborhood ?? "New York City"}</p>
+                    </div>
+                  </div>
+                  <MessageCircleMore className="h-4 w-4 text-muted-foreground/75" />
                 </div>
               ))}
             </div>
-          ) : (
-            <div className="surface-dashed p-4">
-              <p className="font-medium text-foreground">No past gatherings yet</p>
-              <p className="text-sm text-muted-foreground">
-                After your first experiences, a short history will live here for easy reference.
+          </div>
+        ) : (
+          <div className="rounded-[1.35rem] border border-dashed border-border/65 bg-background/55 px-4 py-5">
+            <p className="text-sm font-medium text-foreground">No cohort assigned yet</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {data.onboardingCompleted
+                ? "Your answers are in and the team is shaping the right group. You’ll see it here as soon as assignments land."
+                : "Finish onboarding so we can place you in a group that fits your energy, interests, and social goals."}
+            </p>
+          </div>
+        )}
+      </AppSection>
+
+      <AppSection
+        title="Tonight and next"
+        description="A polished view of your next live plan and the RSVP status attached to it."
+        action={
+          <Link href="/events" className="app-chip">
+            <CalendarDays className="h-3.5 w-3.5" />
+            Full calendar
+          </Link>
+        }
+      >
+        {hasNextEvent && data.nextEvent ? (
+          <div className="rounded-[1.5rem] border border-primary/20 bg-primary/8 px-4 py-4 shadow-[inset_0_1px_0_oklch(1_0_0_/0.04)]">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="app-chip bg-primary/12 text-foreground">{rsvpLabel(data.nextEvent.rsvpStatus)}</span>
+              <span className="app-chip">{data.nextEvent.venueName}</span>
+            </div>
+            <p className="mt-3 text-xl font-semibold tracking-[-0.03em] text-foreground">{data.nextEvent.title}</p>
+            <p className="mt-2 text-sm leading-7 text-muted-foreground">{data.nextEvent.description}</p>
+            <div className="mt-4 space-y-2 text-sm text-muted-foreground">
+              <p className="inline-flex items-center gap-2">
+                <Clock3 className="h-4 w-4 text-primary" />
+                {formatDateTime(data.nextEvent.startsAt)}
+              </p>
+              <p className="inline-flex items-center gap-2">
+                <MapPin className="h-4 w-4 text-primary" />
+                {data.nextEvent.venueName} · {data.nextEvent.venueAddressLine1}, {data.nextEvent.venueCity},{" "}
+                {data.nextEvent.venueState}
               </p>
             </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+          </div>
+        ) : (
+          <div className="rounded-[1.35rem] border border-dashed border-border/65 bg-background/55 px-4 py-5">
+            <p className="text-sm font-medium text-foreground">No upcoming gathering yet</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              {hasCohort
+                ? "Once your next cohort plan is published, it will surface here first."
+                : "When your cohort and season planning are in place, upcoming experiences will appear here."}
+            </p>
+          </div>
+        )}
+      </AppSection>
+
+      <AppSection
+        title="Your taste profile"
+        description="Signals that help shape your cohort chemistry and what lands in your orbit."
+        action={
+          <Link href="/profile" className="app-chip">
+            <Compass className="h-3.5 w-3.5" />
+            Profile
+          </Link>
+        }
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <AppStat
+            label="Neighborhood"
+            value={data.profile?.neighborhood ?? "NYC"}
+            detail={data.profile?.socialGoal ?? "Member profile"}
+          />
+          <AppStat
+            label="Interests"
+            value={profileInterests.length ? `${profileInterests.length}` : "—"}
+            detail={profileInterests.length ? profileInterests.join(" · ") : "Add preferences"}
+          />
+        </div>
+      </AppSection>
+
+      <AppSection title="Recent rhythm" description="A short history of gatherings already behind you.">
+        {data.pastEvents.length > 0 ? (
+          <div className="space-y-2">
+            {data.pastEvents.map((event) => (
+              <div key={event.id} className="app-list-row">
+                <div>
+                  <p className="text-sm font-medium text-foreground">{event.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{formatDateTime(event.startsAt)}</p>
+                </div>
+                <span className="app-chip">{event.venueName}</span>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="rounded-[1.35rem] border border-dashed border-border/65 bg-background/55 px-4 py-5">
+            <p className="text-sm font-medium text-foreground">No past gatherings yet</p>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">
+              After your first events, a clean history of your season rhythm will live here.
+            </p>
+          </div>
+        )}
+      </AppSection>
+    </MemberAppShell>
   );
 }

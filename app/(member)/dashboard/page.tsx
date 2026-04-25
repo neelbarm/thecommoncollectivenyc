@@ -1,17 +1,7 @@
-import Link from "next/link";
-
 import { auth } from "@/auth";
 import { MemberDashboard } from "@/components/dashboard/member-dashboard";
-import { SiteFooter } from "@/components/site/site-footer";
-import { SiteHeader } from "@/components/site/site-header";
-import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
+import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
 
 export default async function DashboardPage() {
@@ -26,64 +16,54 @@ export default async function DashboardPage() {
 
     if (!data) {
       return (
-        <div className="flex min-h-screen flex-col bg-background">
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-            <Card className="surface-dashed">
-              <CardHeader>
-                <CardTitle>We could not load your account</CardTitle>
-                <CardDescription className="text-sm leading-7">
-                  Something interrupted the connection to your member record. This is usually temporary.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <p className="text-sm text-muted-foreground">
-                  If this keeps happening, sign out and back in, or continue onboarding to refresh your profile.
-                </p>
-                <Button asChild size="sm">
-                  <Link href="/onboarding">Continue to onboarding</Link>
-                </Button>
-              </CardContent>
-            </Card>
-          </main>
-          <SiteFooter />
-        </div>
+        <MemberAppShell
+          eyebrow="Member home"
+          title="We couldn’t load your membership."
+          subtitle="Something interrupted the connection to your member profile. Try again or continue onboarding to refresh your record."
+          actions={[{ href: "/onboarding", label: "Continue onboarding" }]}
+        >
+          <AppSection title="Temporarily unavailable">
+            <CardHeader className="px-0">
+              <CardTitle>Member record unavailable</CardTitle>
+              <CardDescription>
+                If this keeps happening, sign out and back in, or continue onboarding to refresh your profile.
+              </CardDescription>
+            </CardHeader>
+          </AppSection>
+        </MemberAppShell>
       );
     }
 
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-6xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-          <MemberDashboard data={data} />
-        </main>
-        <SiteFooter />
-      </div>
+      <MemberAppShell
+        eyebrow="Common Collective"
+        title={`Welcome back, ${data.firstName}.`}
+        subtitle="Your cohort pulse, upcoming plans, and private-club rhythm in one premium member app."
+        actions={[
+          { href: "/cohort/chat", label: "Open cohort chat" },
+          { href: "/announcements", label: "View announcements" },
+        ]}
+      >
+        <MemberDashboard data={data} />
+      </MemberAppShell>
     );
   } catch {
     return (
-      <div className="flex min-h-screen flex-col bg-background">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl px-4 py-12 sm:px-6 sm:py-14 lg:px-8">
-          <Card className="surface-panel">
-            <CardHeader>
-              <CardTitle>Having trouble loading the dashboard</CardTitle>
-              <CardDescription>
-                Please try again in a moment — your sign-in and saved answers are still there.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                If the problem continues, refresh the page or open onboarding to confirm your profile is complete.
-              </p>
-              <Button asChild variant="outline" size="sm">
-                <Link href="/dashboard">Try again</Link>
-              </Button>
-            </CardContent>
-          </Card>
-        </main>
-        <SiteFooter />
-      </div>
+      <MemberAppShell
+        eyebrow="Member home"
+        title="Dashboard unavailable."
+        subtitle="Please try again in a moment. Your sign-in and saved answers are still there."
+        actions={[{ href: "/dashboard", label: "Try again" }]}
+      >
+        <AppSection title="Temporary issue">
+          <CardHeader className="px-0">
+            <CardTitle>Having trouble loading the dashboard</CardTitle>
+            <CardDescription>
+              If the problem continues, refresh the page or open onboarding to confirm your profile is complete.
+            </CardDescription>
+          </CardHeader>
+        </AppSection>
+      </MemberAppShell>
     );
   }
 }

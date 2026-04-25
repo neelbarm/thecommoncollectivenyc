@@ -26,6 +26,8 @@ type FilterState = {
   dropRequestStatus: "ALL" | AdminDropRequestStatus;
 };
 
+type AnnouncementAudienceOption = "ALL_MEMBERS" | "SEASON" | "COHORT";
+
 function isAdminApplicationStatus(value: string): value is AdminApplicationStatus {
   return ["DRAFT", "SUBMITTED", "REVIEWING", "ACCEPTED", "REJECTED"].includes(value);
 }
@@ -165,6 +167,13 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
   const [noteDraft, setNoteDraft] = useState("");
   const [noteSubjectUserId, setNoteSubjectUserId] = useState("NONE");
   const [noteApplicationId, setNoteApplicationId] = useState("NONE");
+  const [announcementTitle, setAnnouncementTitle] = useState("");
+  const [announcementBody, setAnnouncementBody] = useState("");
+  const [announcementAudience, setAnnouncementAudience] =
+    useState<AnnouncementAudienceOption>("ALL_MEMBERS");
+  const [announcementSeasonId, setAnnouncementSeasonId] = useState("NONE");
+  const [announcementCohortId, setAnnouncementCohortId] = useState("NONE");
+  const [announcementPinned, setAnnouncementPinned] = useState(false);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -555,6 +564,90 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
         setFeedback("Admin note saved.");
       } catch (createError) {
         setError(createError instanceof Error ? createError.message : "Unable to create note.");
+      }
+    });
+  }
+
+  function onCreateAnnouncement() {
+    const title = announcementTitle.trim();
+    const body = announcementBody.trim();
+
+    if (!title) {
+      setError("Announcement title cannot be empty.");
+      return;
+    }
+
+    if (!body) {
+      setError("Announcement body cannot be empty.");
+      return;
+    }
+
+    if (announcementAudience === "SEASON" && announcementSeasonId === "NONE") {
+      setError("Select a season for season-targeted announcements.");
+      return;
+    }
+
+    if (announcementAudience === "COHORT" && announcementCohortId === "NONE") {
+      setError("Select a cohort for cohort-targeted announcements.");
+      return;
+    }
+
+    setError(null);
+    setFeedback(null);
+
+    startTransition(async () => {
+      try {
+        const response = await fetch("/api/admin/announcements", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            title,
+            body,
+            audience: announcementAudience,
+            seasonId: announcementSeasonId === "NONE" ? undefined : announcementSeasonId,
+            cohortId: announcementCohortId === "NONE" ? undefined : announcementCohortId,
+            isPinned: announcementPinned,
+          }),
+        });
+
+        const payload = (await response.json()) as {
+          error?: string;
+          announcement?: {
+            id: string;
+            title: string;
+            body: string;
+            audience: AnnouncementAudienceOption;
+            isPinned: boolean;
+            publishedAt: string;
+            createdByName: string;
+            seasonId: string | null;
+            cohortName: string | null;
+            cohortId: string | null;
+            seasonName: string | null;
+          };
+        };
+
+        if (!response.ok || !payload.announcement) {
+          throw new Error(payload.error ?? "Unable to publish announcement.");
+        }
+
+        const createdAnnouncement = payload.announcement;
+
+        setData((previous) => ({
+          ...previous,
+          recentAnnouncements: [createdAnnouncement, ...previous.recentAnnouncements].slice(0, 12),
+        }));
+        setAnnouncementTitle("");
+        setAnnouncementBody("");
+        setAnnouncementAudience("ALL_MEMBERS");
+        setAnnouncementSeasonId("NONE");
+        setAnnouncementCohortId("NONE");
+        setAnnouncementPinned(false);
+        setFeedback("Announcement published.");
+      } catch (createError) {
+        setError(createError instanceof Error ? createError.message : "Unable to publish announcement.");
       }
     });
   }
@@ -1100,6 +1193,105 @@ export function AdminOpsDashboardClient({ initialData }: { initialData: AdminOps
                 {formatDateTime(reminder.scheduledFor)}
               </p>
             ))}
+          </div>
+        </SectionCard>
+
+        <SectionCard
+          title="Announcements"
+          description="Publish member updates to all members, a season, or a cohort."
+        >
+          <div className="surface-subtle space-y-2 p-3">
+            <Input
+              value={announcementTitle}
+              onChange={(event) => setAnnouncementTitle(event.target.value)}
+              maxLength={120}
+              aria-label="Announcement title"
+              placeholder="Tonight’s cohort venue is confirmed"
+            />
+            <Textarea
+              value={announcementBody}
+              onChange={(event) => setAnnouncementBody(event.target.value)}
+              maxLength={1200}
+              rows={4}
+              aria-label="Announcement body"
+              placeholder="Share the update members should see in the app feed."
+            />
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+              <select
+                value={announcementAudience}
+                onChange={(event) =>
+                  setAnnouncementAudience(event.target.value as AnnouncementAudienceOption)
+                }
+                aria-label="Announcement audience"
+                className={inlineSelectClass}
+              >
+                <option value="ALL_MEMBERS">All members</option>
+                <option value="SEASON">Season</option>
+                <option value="COHORT">Cohort</option>
+              </select>
+              <select
+                value={announcementSeasonId}
+                onChange={(event) => setAnnouncementSeasonId(event.target.value)}
+                aria-label="Announcement season"
+                className={inlineSelectClass}
+              >
+                <option value="NONE">No season</option>
+                {data.seasons.map((season) => (
+                  <option key={season.id} value={season.id}>
+                    {season.code} · {season.name}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={announcementCohortId}
+                onChange={(event) => setAnnouncementCohortId(event.target.value)}
+                aria-label="Announcement cohort"
+                className={inlineSelectClass}
+              >
+                <option value="NONE">No cohort</option>
+                {data.cohorts.map((cohort) => (
+                  <option key={cohort.id} value={cohort.id}>
+                    {cohort.name}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center gap-2 rounded-lg border border-border/60 bg-background/35 px-3 text-xs text-muted-foreground">
+                <input
+                  type="checkbox"
+                  checked={announcementPinned}
+                  onChange={(event) => setAnnouncementPinned(event.target.checked)}
+                />
+                Pin announcement
+              </label>
+            </div>
+            <Button size="sm" variant="outline" onClick={onCreateAnnouncement} disabled={isPending}>
+              Publish announcement
+            </Button>
+          </div>
+
+          <div className="mt-3 space-y-2">
+            {data.recentAnnouncements.length === 0 ? (
+              <p className="text-sm text-muted-foreground">No announcements yet.</p>
+            ) : (
+              data.recentAnnouncements.map((announcement) => (
+                <div key={announcement.id} className="dense-row p-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Badge variant={announcement.isPinned ? "default" : "outline"}>
+                      {announcement.audience}
+                    </Badge>
+                    {announcement.isPinned ? <Badge variant="outline">Pinned</Badge> : null}
+                    <span className="text-xs text-muted-foreground">
+                      {announcement.cohortName ?? announcement.seasonName ?? "Members"}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-sm font-medium text-foreground">{announcement.title}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{announcement.body}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {announcement.createdByName} · {formatDateTime(announcement.publishedAt)}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </SectionCard>
 

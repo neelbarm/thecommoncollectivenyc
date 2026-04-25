@@ -1,9 +1,7 @@
 import Link from "next/link";
 
+import { MemberAppShell } from "@/components/layout/member-app-shell";
 import { MemberCohortPage } from "@/components/member/member-cohort-page";
-import { SiteFooter } from "@/components/site/site-footer";
-import { SiteHeader } from "@/components/site/site-header";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { auth } from "@/auth";
@@ -19,9 +17,15 @@ export default async function CohortPage() {
     const data = await getMemberCohortData(session.user.id);
     if (!data) {
       return (
-        <div className="min-h-screen bg-background">
-          <SiteHeader />
-          <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+        <MemberAppShell
+          eyebrow="Cohort"
+          title="Cohort unavailable right now."
+          subtitle="We could not reach your group details just yet."
+          actions={[
+            { href: "/dashboard", label: "Dashboard" },
+            { href: "/onboarding", label: "Onboarding" },
+          ]}
+        >
             <Card className="border-dashed border-muted-gold/40 bg-muted-gold/5 shadow-soft">
               <CardHeader>
                 <CardTitle>We could not load this page</CardTitle>
@@ -39,38 +43,31 @@ export default async function CohortPage() {
                 </Button>
               </CardContent>
             </Card>
-          </main>
-          <SiteFooter />
-        </div>
+        </MemberAppShell>
       );
     }
 
     return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
-          <section className="mb-6 space-y-3">
-            <Badge variant="outline" className="border-muted-gold/40 bg-muted-gold/10">
-              Cohort
-            </Badge>
-            <h1 className="font-heading text-4xl leading-tight text-foreground sm:text-5xl">
-              Hi, {data.firstName}.
-            </h1>
-            <p className="max-w-2xl text-base leading-7 text-muted-foreground">
-              Your small-group home base for the season: who is in your cohort and what is coming
-              up next.
-            </p>
-          </section>
+      <MemberAppShell
+        eyebrow="Your cohort"
+        title={`Hi, ${data.firstName}.`}
+        subtitle="Your small-group home base for the season: who is in your cohort, what is coming up next, and how to coordinate."
+        actions={[
+          { href: "/cohort/chat", label: "Open cohort chat" },
+          { href: "/events", label: "View gatherings" },
+        ]}
+      >
           <MemberCohortPage data={data} />
-        </main>
-        <SiteFooter />
-      </div>
+      </MemberAppShell>
     );
   } catch {
     return (
-      <div className="min-h-screen bg-background">
-        <SiteHeader />
-        <main className="mx-auto w-full max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
+      <MemberAppShell
+        eyebrow="Cohort"
+        title="Having trouble loading your cohort."
+        subtitle="Please wait a moment and try again."
+        actions={[{ href: "/dashboard", label: "Dashboard" }]}
+      >
           <Card className="border-border/70 bg-card/90 shadow-soft">
             <CardHeader>
               <CardTitle>Having trouble loading your cohort</CardTitle>
@@ -85,9 +82,7 @@ export default async function CohortPage() {
               </Button>
             </CardContent>
           </Card>
-        </main>
-        <SiteFooter />
-      </div>
+      </MemberAppShell>
     );
   }
 }
