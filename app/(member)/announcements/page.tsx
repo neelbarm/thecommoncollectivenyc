@@ -1,16 +1,10 @@
-import { BellRing, CalendarClock, Pin } from "lucide-react";
+import { CalendarClock } from "lucide-react";
 
 import { auth } from "@/auth";
 import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
+import { MemberAnnouncementsClient } from "@/components/member/member-announcements-client";
 import { Badge } from "@/components/ui/badge";
-import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
-
-function formatDate(date: Date) {
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(date);
-}
+import { getMemberAnnouncementsData } from "@/lib/announcements/get-member-announcements-data";
 
 export default async function AnnouncementsPage() {
   const session = await auth();
@@ -19,46 +13,10 @@ export default async function AnnouncementsPage() {
     return null;
   }
 
-  const data = await getMemberDashboardData(session.user.id);
+  const data = await getMemberAnnouncementsData(session.user.id);
   if (!data) {
     return null;
   }
-
-  const updates = [
-    {
-      id: "season-note",
-      title: "Season notes are moving into the app",
-      body:
-        "Announcements now live in a dedicated member surface so cohort logistics, event reminders, and editorial updates feel closer to a proper concierge product.",
-      tag: "Product update",
-      pinned: true,
-      date: formatDate(new Date()),
-    },
-    {
-      id: "cohort-update",
-      title: data.cohort
-        ? `${data.cohort.name} concierge update`
-        : "Cohort assignments are being prepared",
-      body: data.cohort
-        ? `Your cohort page and future chat space are now designed to feel more intimate and mobile-first. Expect planning, roster visibility, and announcements to center around ${data.cohort.name}.`
-        : "Once your profile is complete, this feed will carry your cohort welcome, introductions, and next-step logistics.",
-      tag: data.cohort ? "Cohort" : "Assignment",
-      pinned: false,
-      date: formatDate(new Date(Date.now() - 1000 * 60 * 60 * 18)),
-    },
-    {
-      id: "event-update",
-      title: data.nextEvent ? `${data.nextEvent.title} is coming up` : "Event rhythm will show up here",
-      body: data.nextEvent
-        ? `We’ll use announcements for host notes, dress cues, changes in timing, and RSVP reminders ahead of ${data.nextEvent.title}.`
-        : "As soon as the next gathering goes live, a short announcement can highlight what matters before you RSVP.",
-      tag: "Events",
-      pinned: false,
-      date: formatDate(new Date(Date.now() - 1000 * 60 * 60 * 42)),
-    },
-  ];
-
-  const unreadCount = updates.filter((update) => update.pinned).length + (data.nextEvent ? 1 : 0);
 
   return (
     <MemberAppShell
@@ -75,14 +33,14 @@ export default async function AnnouncementsPage() {
           <div className="space-y-2">
             <p className="app-eyebrow text-[0.62rem]">Inbox status</p>
             <h2 className="text-[1.15rem] font-semibold tracking-[-0.02em] text-foreground">
-              {unreadCount.toString().padStart(2, "0")} unread signals
+              {data.unreadCount.toString().padStart(2, "0")} unread signals
             </h2>
             <p className="text-sm leading-6 text-muted-foreground">
               Cohort notes, event changes, and member notices all land here in a calmer feed.
             </p>
           </div>
           <Badge className="rounded-full border border-primary/25 bg-primary/12 px-3 py-1 text-[0.65rem] uppercase tracking-[0.22em] text-primary shadow-none">
-            {data.cohort ? "Cohort live" : "Getting ready"}
+            {data.cohortName ? "Cohort live" : "Getting ready"}
           </Badge>
         </div>
       </div>
@@ -112,35 +70,7 @@ export default async function AnnouncementsPage() {
         </div>
       </AppSection>
 
-      <AppSection
-        title="Latest feed"
-        description="Editorial, calm, and easy to scan before a night out or a cohort meetup."
-      >
-        <div className="space-y-3">
-          {updates.map((update) => (
-            <article key={update.id} className="app-list-row items-start">
-              <div className="flex items-start gap-3">
-                <span className="app-list-icon mt-0.5">
-                  {update.pinned ? <Pin className="h-4 w-4" /> : <BellRing className="h-4 w-4" />}
-                </span>
-                <div className="space-y-2">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Badge variant={update.pinned ? "default" : "outline"}>
-                      {update.tag}
-                    </Badge>
-                    {update.pinned ? <Badge variant="outline">Pinned</Badge> : null}
-                    <span className="text-xs text-muted-foreground">{update.date}</span>
-                  </div>
-                  <div className="space-y-1">
-                    <h2 className="text-sm font-semibold text-foreground">{update.title}</h2>
-                    <p className="text-sm leading-6 text-muted-foreground">{update.body}</p>
-                  </div>
-                </div>
-              </div>
-            </article>
-          ))}
-        </div>
-      </AppSection>
+      <MemberAnnouncementsClient initialData={data} />
 
       <AppSection
         title="Use this feed"
