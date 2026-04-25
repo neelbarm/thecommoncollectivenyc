@@ -25,6 +25,13 @@ type DashboardEvent = {
 export type MemberDashboardData = {
   memberName: string;
   firstName: string;
+  profile:
+    | {
+        neighborhood: string | null;
+        socialGoal: string | null;
+        interests: string[];
+      }
+    | null;
   /** False when the User row has no related Profile (data repair / partial signup). */
   hasProfile: boolean;
   onboardingCompleted: boolean;
@@ -312,6 +319,13 @@ export async function getMemberDashboardData(userId: string): Promise<MemberDash
   return {
     memberName: `${user.firstName} ${user.lastName}`,
     firstName: user.firstName,
+    profile: user.profile
+      ? {
+          neighborhood: user.profile.neighborhood ?? null,
+          socialGoal: user.profile.socialGoal ?? null,
+          interests: user.profile.interests,
+        }
+      : null,
     hasProfile: Boolean(user.profile),
     onboardingCompleted: Boolean(user.profile?.onboardingCompletedAt),
     onboardingCompletedAt: user.profile?.onboardingCompletedAt ?? null,
