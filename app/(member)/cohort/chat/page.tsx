@@ -1,4 +1,4 @@
-import { MessageCircleMore, Pin, Sparkles } from "lucide-react";
+import { MessageCircleMore, Pin } from "lucide-react";
 
 import { auth } from "@/auth";
 import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";

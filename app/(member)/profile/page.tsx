@@ -110,16 +110,17 @@ export default async function ProfilePage() {
         </div>
       </AppSection>
 
-      <AppSection title="Neighbourhoods" description="Areas we should prioritize when shaping your weekly social rhythm.">
+      <AppSection title="Neighbourhood" description="The area we should prioritize when shaping your weekly social rhythm.">
         <div className="flex flex-wrap gap-2">
-          {[data.profile?.neighborhood, ...(data.profile?.preferredNeighborhoods ?? [])]
-            .filter((value, index, list): value is string => Boolean(value) && list.indexOf(value) === index)
-            .slice(0, 5)
-            .map((item) => (
-              <Badge key={item} variant="outline" className="app-tag">
-                {item}
-              </Badge>
-            ))}
+          {data.profile?.neighborhood ? (
+            <Badge variant="outline" className="app-tag">
+              {data.profile.neighborhood}
+            </Badge>
+          ) : (
+            <Badge variant="outline" className="app-tag">
+              To be added
+            </Badge>
+          )}
         </div>
       </AppSection>
 

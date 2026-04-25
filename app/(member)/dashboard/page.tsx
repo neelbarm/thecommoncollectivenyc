@@ -1,8 +1,6 @@
 import { auth } from "@/auth";
 import { MemberDashboard } from "@/components/dashboard/member-dashboard";
-import { MemberAppShell } from "@/components/layout/member-app-shell";
-import { AppSection } from "@/components/layout/member-app-shell";
-import { Button } from "@/components/ui/button";
+import { AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
 

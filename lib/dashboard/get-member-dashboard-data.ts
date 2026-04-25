@@ -28,8 +28,13 @@ export type MemberDashboardData = {
   profile:
     | {
         neighborhood: string | null;
+        ageRange: string | null;
+        preferredNights: string | null;
+        budgetComfort: string | null;
+        idealGroupEnergy: string | null;
         socialGoal: string | null;
         interests: string[];
+        preferredVibe: string[];
       }
     | null;
   /** False when the User row has no related Profile (data repair / partial signup). */
@@ -152,8 +157,13 @@ export async function getMemberDashboardData(userId: string): Promise<MemberDash
         select: {
           id: true,
           onboardingCompletedAt: true,
+          ageRange: true,
+          preferredNights: true,
+          budgetComfort: true,
+          idealGroupEnergy: true,
           socialGoal: true,
           interests: true,
+          preferredVibe: true,
           neighborhood: true,
         },
       },
@@ -322,8 +332,13 @@ export async function getMemberDashboardData(userId: string): Promise<MemberDash
     profile: user.profile
       ? {
           neighborhood: user.profile.neighborhood ?? null,
+          ageRange: user.profile.ageRange ?? null,
+          preferredNights: user.profile.preferredNights ?? null,
+          budgetComfort: user.profile.budgetComfort ?? null,
+          idealGroupEnergy: user.profile.idealGroupEnergy ?? null,
           socialGoal: user.profile.socialGoal ?? null,
           interests: user.profile.interests,
+          preferredVibe: user.profile.preferredVibe,
         }
       : null,
     hasProfile: Boolean(user.profile),
