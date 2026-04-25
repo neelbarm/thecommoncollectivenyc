@@ -15,6 +15,7 @@ import {
   UserRound,
 } from "lucide-react";
 
+import { nativeNavHaptic } from "@/components/native/capacitor-native-bridge";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
@@ -103,6 +104,9 @@ export function MemberAppShell({
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={() => {
+                      void nativeNavHaptic();
+                    }}
                     className={cn(
                       "group flex flex-col items-center gap-1 rounded-[1.15rem] px-2 py-2.5 text-[0.64rem] font-medium uppercase tracking-[0.24em] transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
                       isActive ? "text-primary" : "text-muted-foreground hover:text-foreground",
