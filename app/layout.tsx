@@ -1,6 +1,8 @@
 import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 
+import { CapacitorNativeBridge } from "@/components/native/capacitor-native-bridge";
+
 import "./globals.css";
 
 const inter = Inter({
@@ -43,6 +45,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: "#090806",
   colorScheme: "dark",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -52,7 +55,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className="dark" suppressHydrationWarning>
-      <body className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>{children}</body>
+      <body className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>
+        <CapacitorNativeBridge />
+        {children}
+      </body>
     </html>
   );
 }
