@@ -6,6 +6,7 @@ import {
   Bell,
   BookOpen,
   CalendarDays,
+  CalendarRange,
   ChevronRight,
   House,
   MessageCircleMore,
@@ -18,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 const primaryNav = [
   { href: "/dashboard", label: "Home", icon: House },
+  { href: "/next", label: "Next", icon: CalendarRange },
   { href: "/events", label: "Calendar", icon: CalendarDays },
   { href: "/announcements", label: "Updates", icon: Bell },
   { href: "/cohort/chat", label: "Chat", icon: MessageCircleMore },
@@ -90,7 +92,7 @@ export function MemberAppShell({
           </main>
 
           <nav className="app-bottom-nav absolute inset-x-0 bottom-0 z-20 px-3 pb-3 pt-2" aria-label="Member app">
-            <div className="grid grid-cols-5 gap-1 rounded-[1.65rem] border border-border/60 bg-background/92 p-2 shadow-[0_-1px_0_oklch(1_0_0_/0.04),0_-18px_46px_-28px_oklch(0.03_0.02_45_/0.88)] backdrop-blur-xl">
+            <div className="grid grid-cols-6 gap-1 rounded-[1.65rem] border border-border/60 bg-background/92 p-2 shadow-[0_-1px_0_oklch(1_0_0_/0.04),0_-18px_46px_-28px_oklch(0.03_0.02_45_/0.88)] backdrop-blur-xl">
               {primaryNav.map((item) => {
                 const Icon = item.icon;
                 const isActive =
