@@ -9,6 +9,7 @@ import {
   ChevronRight,
   House,
   MessageCircleMore,
+  Settings2,
   Sparkles,
   UserRound,
 } from "lucide-react";
@@ -34,12 +35,16 @@ export function MemberAppShell({
   subtitle,
   children,
   actions,
+  utilityHref = "/settings",
+  utilityLabel = "Open app settings",
 }: {
   eyebrow?: string;
   title: string;
   subtitle?: string;
   children: React.ReactNode;
   actions?: ActionLink[];
+  utilityHref?: string;
+  utilityLabel?: string;
 }) {
   const pathname = usePathname();
 
@@ -63,9 +68,9 @@ export function MemberAppShell({
                 </div>
               </div>
 
-              <div className="app-icon-button mt-0.5">
-                <Sparkles className="h-4 w-4" />
-              </div>
+              <Link href={utilityHref} aria-label={utilityLabel} className="app-icon-button mt-0.5">
+                {utilityHref === "/settings" ? <Settings2 className="h-4 w-4" /> : <Sparkles className="h-4 w-4" />}
+              </Link>
             </div>
 
             {actions?.length ? (

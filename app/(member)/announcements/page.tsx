@@ -1,10 +1,8 @@
-import Link from "next/link";
-import { BellRing, CalendarClock, Pin, Sparkles } from "lucide-react";
+import { BellRing, CalendarClock, Pin } from "lucide-react";
 
 import { auth } from "@/auth";
-import { AppQuickLink, AppSection, AppStat, MemberAppShell } from "@/components/layout/member-app-shell";
+import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
 
 function formatDate(date: Date) {
@@ -60,6 +58,8 @@ export default async function AnnouncementsPage() {
     },
   ];
 
+  const unreadCount = updates.filter((update) => update.pinned).length + (data.nextEvent ? 1 : 0);
+
   return (
     <MemberAppShell
       eyebrow="Member updates"
@@ -70,22 +70,21 @@ export default async function AnnouncementsPage() {
         { href: "/events", label: "Calendar" },
       ]}
     >
-      <div className="grid grid-cols-3 gap-3">
-        <AppStat
-          label="Unread"
-          value="03"
-          detail="Pinned notes and event signals"
-        />
-        <AppStat
-          label="Cohort"
-          value={data.cohort ? "Live" : "Soon"}
-          detail={data.cohort ? data.cohort.name : "Awaiting assignment"}
-        />
-        <AppStat
-          label="Cadence"
-          value="Weekly"
-          detail="Designed for lightweight updates"
-        />
+      <div className="rounded-[1.6rem] border border-primary/18 bg-[linear-gradient(180deg,_oklch(0.19_0.014_42),_oklch(0.155_0.014_42))] p-4 shadow-[0_26px_64px_-40px_oklch(0.03_0.02_45_/0.95)]">
+        <div className="flex items-start justify-between gap-4">
+          <div className="space-y-2">
+            <p className="app-eyebrow text-[0.62rem]">Inbox status</p>
+            <h2 className="text-[1.15rem] font-semibold tracking-[-0.02em] text-foreground">
+              {unreadCount.toString().padStart(2, "0")} unread signals
+            </h2>
+            <p className="text-sm leading-6 text-muted-foreground">
+              Cohort notes, event changes, and member notices all land here in a calmer feed.
+            </p>
+          </div>
+          <Badge className="rounded-full border border-primary/25 bg-primary/12 px-3 py-1 text-[0.65rem] uppercase tracking-[0.22em] text-primary shadow-none">
+            {data.cohort ? "Cohort live" : "Getting ready"}
+          </Badge>
+        </div>
       </div>
 
       <AppSection
@@ -115,12 +114,7 @@ export default async function AnnouncementsPage() {
 
       <AppSection
         title="Latest feed"
-        description="This is the first pass of the announcements surface; it is designed to feel editorial and calm."
-        action={
-          <Button asChild size="sm" variant="outline">
-            <Link href="/dashboard">Back home</Link>
-          </Button>
-        }
+        description="Editorial, calm, and easy to scan before a night out or a cohort meetup."
       >
         <div className="space-y-3">
           {updates.map((update) => (
@@ -149,33 +143,32 @@ export default async function AnnouncementsPage() {
       </AppSection>
 
       <AppSection
-        title="What this becomes next"
-        description="The structure is ready for real admin-authored announcements once we add persistence."
+        title="Use this feed"
+        description="The most important announcement workflows are already represented in the navigation."
         tone="accent"
       >
         <div className="grid gap-3">
-          <div className="app-list-row">
-            <div className="flex items-center gap-3">
-              <span className="app-list-icon">
-                <Sparkles className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-medium text-foreground">Pinned cohort welcome</p>
-                <p className="text-xs leading-5 text-muted-foreground">
-                  Perfect for first introductions, etiquette, and your opening plan.
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="app-list-row">
+          <AppQuickLink
+            href="/events"
+            label="Review event timing"
+            detail="Open the calendar to RSVP or check any updated details."
+            icon="calendar"
+          />
+          <AppQuickLink
+            href="/cohort/chat"
+            label="Continue the conversation"
+            detail="Move from announcements into your cohort room when coordination is needed."
+            icon="spark"
+          />
+          <div className="rounded-[1.25rem] border border-border/50 bg-background/22 px-4 py-3">
             <div className="flex items-center gap-3">
               <span className="app-list-icon">
                 <CalendarClock className="h-4 w-4" />
               </span>
               <div>
-                <p className="text-sm font-medium text-foreground">Event change signals</p>
+                <p className="text-sm font-medium text-foreground">Quiet by design</p>
                 <p className="text-xs leading-5 text-muted-foreground">
-                  Small but high-value notices: timing changes, venue confirmations, and reminders.
+                  This feed is intentionally reserved for useful, timely signals rather than social noise.
                 </p>
               </div>
             </div>

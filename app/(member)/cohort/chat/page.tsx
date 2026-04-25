@@ -1,8 +1,11 @@
-import { MessageCircleMore, Pin } from "lucide-react";
+import Link from "next/link";
+import { MessageCircleMore, Pin, Send } from "lucide-react";
 
 import { auth } from "@/auth";
 import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
-import { Badge } from "@/components/ui/badge";
+import { MemberAppPreferences } from "@/components/member/member-app-preferences";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { getMemberCohortData } from "@/lib/member/get-member-cohort-data";
 
 function initials(firstName: string, lastName: string) {
@@ -102,7 +105,11 @@ export default async function CohortChatPage() {
       <AppSection
         title="Pinned"
         description="The notes your cohort should always see first."
-        action={<Badge className="rounded-full border-0 bg-primary/90 px-3 py-1 text-[0.62rem] uppercase tracking-[0.24em] text-primary-foreground">Preview</Badge>}
+        action={
+          <Button asChild size="sm" variant="outline">
+            <Link href="/announcements">View updates</Link>
+          </Button>
+        }
       >
         <div className="space-y-3">
           {pinnedMessages.map((message) => (
@@ -128,7 +135,7 @@ export default async function CohortChatPage() {
 
       <AppSection
         title="Conversation"
-        description="A premium placeholder for the cohort room we can back with realtime messaging next."
+        description="Use this room to draft the plan, frame the vibe, and keep cohort coordination lightweight."
       >
         <div className="space-y-3">
           {sampleThread.map((message) => (
@@ -160,14 +167,52 @@ export default async function CohortChatPage() {
       </AppSection>
 
       <AppSection
-        title="What comes next"
-        description="This screen is intentionally designed as the first-class chat destination for the app."
+        title="Send a note"
+        description="This lightweight composer is ready for the App Store-facing flow, even before live delivery is connected."
         tone="accent"
+      >
+        <MemberAppPreferences
+          storageKey="common-collective-chat-composer"
+          title="Draft message"
+          description="Save a short opening note for your cohort. This currently stores privately on your device until live chat ships."
+          sections={[
+            {
+              id: "draft",
+              title: "Message draft",
+              options: [
+                {
+                  id: "draft",
+                  label: "Keep my unfinished cohort message on this device",
+                  description: "So you can come back without losing your text.",
+                  defaultChecked: true,
+                },
+              ],
+            },
+          ]}
+        />
+        <div className="mt-4 space-y-3 rounded-[1.35rem] border border-border/60 bg-background/30 p-4">
+          <Textarea
+            readOnly
+            value="Anyone around for a low-key dinner Thursday near the west side?"
+            className="min-h-28 rounded-[1.15rem]"
+          />
+          <Button asChild className="w-full justify-center">
+            <Link href="/drop">
+              <Send className="h-4 w-4" />
+              Open The Drop for live coordination
+            </Link>
+          </Button>
+        </div>
+      </AppSection>
+
+      <AppSection
+        title="Useful shortcuts"
+        description="Keep the app navigable and functional while messaging grows into a full realtime feature."
       >
         <div className="space-y-3">
           <AppQuickLink
             href="/announcements"
-            label="Add live announcements"
+            label="Open announcements"
             detail="Pinned admin updates, unread state, and cohort-specific delivery."
             icon="book"
           />

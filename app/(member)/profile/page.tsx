@@ -1,4 +1,4 @@
-import { MapPin, Settings2, Sparkles, Zap } from "lucide-react";
+import { MapPin, Sparkles, Zap } from "lucide-react";
 
 import { auth } from "@/auth";
 import { AppQuickLink, AppSection, AppStat, MemberAppShell } from "@/components/layout/member-app-shell";
@@ -158,17 +158,12 @@ export default async function ProfilePage() {
             detail="Back to your cohort, calendar, and club rhythm."
             icon="calendar"
           />
-          <div className="app-list-row opacity-85">
-            <div className="flex items-center gap-3">
-              <span className="app-list-icon">
-                <Settings2 className="h-4 w-4" />
-              </span>
-              <div>
-                <p className="text-sm font-medium text-foreground">App settings</p>
-                <p className="text-xs leading-5 text-muted-foreground">Notification and chat controls can slot in here next.</p>
-              </div>
-            </div>
-          </div>
+          <AppQuickLink
+            href="/settings"
+            label="App settings"
+            detail="Control notifications, quiet hours, and install guidance."
+            icon="spark"
+          />
         </div>
       </AppSection>
     </MemberAppShell>
