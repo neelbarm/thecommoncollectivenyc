@@ -241,6 +241,39 @@
     opacity: 0.95;
   }
 
+  .luxury-public-hero {
+    @apply relative overflow-hidden rounded-[2rem] border border-border/60 bg-[linear-gradient(180deg,oklch(0.16_0.012_42)_0%,oklch(0.12_0.01_42)_100%)] shadow-[0_28px_72px_-42px_oklch(0.03_0.02_45_/0.95)];
+  }
+
+  .luxury-public-hero::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+      radial-gradient(80% 62% at 18% 18%, oklch(0.7 0.05 76 / 0.18), transparent 55%),
+      radial-gradient(65% 46% at 100% 0%, oklch(0.98 0.02 85 / 0.08), transparent 52%),
+      linear-gradient(180deg, transparent 0%, oklch(0.08 0.01 45 / 0.24) 100%);
+  }
+
+  .luxury-ring-row {
+    @apply relative flex items-center justify-center gap-3;
+  }
+
+  .luxury-ring {
+    @apply rounded-full border border-muted-gold/55;
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.08),
+      0 18px 38px -24px oklch(0.72 0.05 76 / 0.28);
+  }
+
+  .luxury-grid-panel {
+    @apply rounded-[1.5rem] border border-border/55 bg-card/80 backdrop-blur-sm;
+    box-shadow:
+      var(--shadow-soft),
+      inset 0 1px 0 oklch(1 0 0 / 0.05);
+  }
+
   .app-frame {
     @apply relative mx-auto flex min-h-screen w-full max-w-[31rem] flex-col overflow-hidden border-x border-border/55 bg-background/90 shadow-[0_30px_90px_-45px_oklch(0.02_0.01_50_/0.95)];
   }

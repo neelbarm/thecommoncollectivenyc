@@ -144,7 +144,7 @@ export default async function ProfilePage() {
         </div>
       </AppSection>
 
-      <AppSection title="Account" description="A lightweight app layer today; richer account controls can land next.">
+      <AppSection title="Account" description="Control your profile, notifications, and member experience from one place.">
         <div className="space-y-3">
           <AppQuickLink
             href="/onboarding"

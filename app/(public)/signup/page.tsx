@@ -12,7 +12,8 @@ export default function SignupPage() {
           Begin your Common Collective journey.
         </h1>
         <p className="prose-calm max-w-xl">
-          Set up your account to submit an application, complete onboarding, and access future member experiences.
+          Set up your account to submit an application, complete onboarding, and access the member experience once you
+          are inside the club.
         </p>
         <p className="text-sm text-muted-foreground">
           Already have an account?{" "}

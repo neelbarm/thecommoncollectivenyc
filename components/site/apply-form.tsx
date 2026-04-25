@@ -37,7 +37,8 @@ export function ApplyForm({ requiresAuth = false }: { requiresAuth?: boolean }) 
       <CardHeader>
         <CardTitle className="font-heading text-2xl">Application form</CardTitle>
         <CardDescription>
-          This initial form captures core context now. Full onboarding and matching workflows arrive in later phases.
+          Share the essentials of who you are, how you like to gather, and what meaningful social rhythm looks like for
+          you in New York.
         </CardDescription>
       </CardHeader>
       <CardContent>
