@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { CalendarDays, Clock3, MapPin, Users } from "lucide-react";
 
-import { auth } from "@/auth";
 import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
+import { redirect } from "next/navigation";
 
 function formatDateTime(date: Date) {
   return new Intl.DateTimeFormat("en-US", {
@@ -31,15 +32,11 @@ function rsvpLabel(status: string | null) {
 }
 
 export default async function NextEventPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   const data = await getMemberDashboardData(session.user.id);
   if (!data) {
-    return null;
+    redirect("/dashboard");
   }
 
   const nextEvent = data.nextEvent;

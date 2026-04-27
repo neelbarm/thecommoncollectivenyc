@@ -1,15 +1,11 @@
-import { auth } from "@/auth";
 import { MemberDashboard } from "@/components/dashboard/member-dashboard";
 import { AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
 import { CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
 
 export default async function DashboardPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   try {
     const data = await getMemberDashboardData(session.user.id);

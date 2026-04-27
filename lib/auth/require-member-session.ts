@@ -2,16 +2,11 @@ import { redirect } from "next/navigation";
 
 import { auth } from "@/auth";
 
-export async function requireAdmin() {
+/** Use on server pages that must not render blank for unauthenticated users. */
+export async function requireMemberSession() {
   const session = await auth();
-
   if (!session?.user?.id) {
     redirect("/login");
   }
-
-  if (session.user.role !== "ADMIN") {
-    redirect("/dashboard");
-  }
-
   return session;
 }

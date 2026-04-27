@@ -1,15 +1,11 @@
-import { auth } from "@/auth";
 import { MemberAppShell } from "@/components/layout/member-app-shell";
 import { DropPageClient } from "@/components/drop/drop-page-client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberDropData } from "@/lib/drop/get-member-drop-data";
 
 export default async function DropPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   try {
     const dropData = await getMemberDropData(session.user.id);

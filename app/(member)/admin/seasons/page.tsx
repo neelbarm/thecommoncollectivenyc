@@ -10,10 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getSeasonManagementData } from "@/lib/admin/get-season-management-data";
 
 export default async function AdminSeasonsPage() {
-  const session = await requireAdmin();
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getSeasonManagementData();

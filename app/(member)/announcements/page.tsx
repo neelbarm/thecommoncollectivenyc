@@ -1,21 +1,18 @@
 import { CalendarClock } from "lucide-react";
 
-import { auth } from "@/auth";
 import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
 import { MemberAnnouncementsClient } from "@/components/member/member-announcements-client";
 import { Badge } from "@/components/ui/badge";
 import { getMemberAnnouncementsData } from "@/lib/announcements/get-member-announcements-data";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
+import { redirect } from "next/navigation";
 
 export default async function AnnouncementsPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   const data = await getMemberAnnouncementsData(session.user.id);
   if (!data) {
-    return null;
+    redirect("/dashboard");
   }
 
   return (

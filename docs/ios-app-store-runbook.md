@@ -197,3 +197,5 @@ Verify web app before archive:
 npm run lint
 npm run build
 ```
+
+Optional uptime check (no auth): `GET /api/health` returns `{ "ok": true }`.
