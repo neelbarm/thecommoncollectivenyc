@@ -10,10 +10,7 @@ import { getAdminAnalyticsDashboardData } from "@/lib/admin/get-analytics-dashbo
 import { requireAdmin } from "@/lib/auth/require-admin";
 
 export default async function AdminAnalyticsPage() {
-  const session = await requireAdmin();
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getAdminAnalyticsDashboardData();

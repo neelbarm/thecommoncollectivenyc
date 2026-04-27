@@ -1,10 +1,16 @@
+import { redirect } from "next/navigation";
+
 import { auth } from "@/auth";
 
 export async function requireAdmin() {
   const session = await auth();
 
-  if (!session?.user?.id || session.user.role !== "ADMIN") {
-    return null;
+  if (!session?.user?.id) {
+    redirect("/login");
+  }
+
+  if (session.user.role !== "ADMIN") {
+    redirect("/dashboard");
   }
 
   return session;

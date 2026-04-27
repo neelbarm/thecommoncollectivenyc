@@ -10,10 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getVenueManagementData } from "@/lib/admin/get-venue-management-data";
 
 export default async function AdminVenuesPage() {
-  const session = await requireAdmin();
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getVenueManagementData();

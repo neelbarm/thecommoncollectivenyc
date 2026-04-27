@@ -3,6 +3,8 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { fanoutAnnouncementPush } from "@/lib/push/fanout";
+import { triggerPushFanoutDispatch } from "@/lib/push/trigger-fanout-dispatch";
 import { prisma } from "@/lib/prisma";
 
 const createAnnouncementSchema = z
@@ -113,6 +115,20 @@ export async function POST(request: Request) {
         },
       },
     });
+
+    const pushPlan = await fanoutAnnouncementPush({
+      announcementId: announcement.id,
+      title: announcement.title,
+      body: announcement.body,
+      audience: announcement.audience,
+      seasonId: announcement.seasonId ?? null,
+      cohortId: announcement.cohortId ?? null,
+    });
+    triggerPushFanoutDispatch(
+      { targets: pushPlan.targets, payload: pushPlan.payload },
+      `announcement:${announcement.id}`,
+      "admin-announcement",
+    );
 
     return NextResponse.json({
       ok: true,

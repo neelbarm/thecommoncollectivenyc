@@ -10,10 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getApplicationReviewData } from "@/lib/admin/get-application-review-data";
 
 export default async function AdminApplicationsPage() {
-  const session = await requireAdmin();
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getApplicationReviewData();

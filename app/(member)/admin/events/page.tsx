@@ -10,10 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getEventManagementData } from "@/lib/admin/get-event-management-data";
 
 export default async function AdminEventsPage() {
-  const session = await requireAdmin();
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getEventManagementData();

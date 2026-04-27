@@ -11,7 +11,8 @@ This branch includes a Capacitor iOS wrapper for The Common Collective. It is th
 - Native display name: `The Common Collective`
 - iOS app icon and launch splash assets
 - Local fallback shell in `public/native-shell`
-- **Native plugins** (registered via `npm run ios:sync`): Splash Screen, Status Bar, Keyboard, App lifecycle, Haptics. The Next.js app includes `CapacitorNativeBridge` so the shell configures the status bar, keyboard resize mode, fades out the launch splash after the first paint, and dispatches a `cc-capacitor-resume` document event when returning from background (useful later for refreshing unread counts).
+- **Native plugins** (registered via `npm run ios:sync`): Splash Screen, Status Bar, Keyboard, App lifecycle, Haptics, Push Notifications, Device, and **app icon badge** (`@capawesome/capacitor-badge`). The Next.js app includes `CapacitorNativeBridge` so the shell configures the status bar, keyboard resize mode, fades out the launch splash after the first paint, and dispatches a `cc-capacitor-resume` document event when returning from background (useful for refreshing unread counts and syncing the home-screen badge).
+- **Push registration plumbing**: native token request + registration via Capacitor Push Notifications and backend persistence (`DevicePushToken`) through `/api/push/register`.
 
 ## Seven-day hybrid roadmap (this codebase)
 
@@ -97,6 +98,19 @@ Password: CommonClub123
 The app requires network access because member data, cohort chat, announcements, and events are served from the production web platform.
 ```
 
+For this current build, also note:
+
+```text
+Native behaviors included in this submission:
+- iOS status bar + safe-area handling
+- Native splash handoff
+- Keyboard resize/style alignment for forms
+- Haptics on navigation taps
+- Deep-link URL handling from native app URL open events
+- Background resume + online refresh hooks for chat and announcements
+- Push token registration and server persistence (delivery dispatch can be phased in)
+```
+
 Only include demo credentials after the production database has been seeded or after you create equivalent reviewer accounts.
 
 ## Privacy / compliance checklist
@@ -113,9 +127,55 @@ If you do not have account deletion in-app yet, provide a support email or suppo
 ## Important limitations of this first iOS build
 
 - The UI is still rendered with web technologies inside a native `WKWebView`; you are not maintaining a separate SwiftUI copy of every screen unless you choose that longer-term path above.
-- Push notifications are not native/APNs yet.
+- APNs delivery requires you to configure provider credentials in production; without them, push fanout is logged but not delivered.
 - Offline mode is not supported.
 - App Store approval is not guaranteed; Apple sometimes scrutinizes wrapper apps. The best mitigation is making the production app feel clearly app-like, logged-in, useful, and member-specific.
+
+## Release smoke test before archive
+
+Run this quick pass on a physical iPhone build:
+
+1. Open app from cold start: splash fades into member dashboard cleanly.
+2. Navigate all bottom tabs; verify no dead buttons and haptic pulse on tab taps.
+3. Open announcements/chat, background app for 10+ seconds, return, verify feed refresh.
+4. Toggle airplane mode while in announcements/chat and confirm offline banner appears.
+5. Re-enable network and confirm banners clear and data refreshes.
+6. Open a deep link (once Associated Domains/custom scheme are configured) and verify app routes correctly.
+7. Submit one chat message and mark one announcement as read; confirm the **home screen badge** updates (unread announcements + unread chat) after resume or those actions.
+8. Send a test push from your backend; verify:
+   - foreground push shows in-app banner
+   - tapping banner routes to `/announcements` or `/cohort/chat`
+   - opening from iOS notification center routes correctly
+9. Verify push token registration by confirming a row appears in `DevicePushToken` for your test user.
+
+## Push delivery environment (server-side)
+
+Device tokens now persist via `/api/push/register`, and fanout hooks run for:
+- new admin announcements
+- new cohort chat messages
+
+Configure APNs provider env for delivery:
+
+```bash
+APNS_AUTH_KEY_ID=...
+APNS_TEAM_ID=...
+APNS_BUNDLE_ID=space.thecommoncollective.app
+APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+APNS_USE_SANDBOX=true # true for TestFlight/dev, false for production App Store builds
+```
+
+If these are missing, app flows still succeed and push attempts are logged as skipped.
+
+The Next.js server sends APNs directly via the `apn` package using those env vars. Custom data for routing lives under payload key `cc` (`type`, `route`, ids).
+
+## Push setup notes (Apple + Xcode)
+
+To fully deliver APNs pushes (beyond token registration):
+
+1. In Apple Developer, enable **Push Notifications** for `space.thecommoncollective.app`.
+2. In App Store Connect / Certificates, create an APNs auth key (`.p8`).
+3. In Xcode target > Signing & Capabilities, add **Push Notifications** capability.
+4. Add **Background Modes** capability with **Remote notifications** enabled (matches `Info.plist` `UIBackgroundModes`).
 
 ## Common commands
 
@@ -137,3 +197,5 @@ Verify web app before archive:
 npm run lint
 npm run build
 ```
+
+Optional uptime check (no auth): `GET /api/health` returns `{ "ok": true }`.

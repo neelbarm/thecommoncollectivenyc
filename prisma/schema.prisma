@@ -107,6 +107,7 @@ enum EmailOutboxType {
   COHORT_WELCOME
   EVENT_PUBLISHED
   EVENT_REMINDER
+  PUSH_NOTIFICATION
 }
 
 enum EmailOutboxStatus {
@@ -179,6 +180,7 @@ model User {
   announcementReads      AnnouncementRead[]
   chatMessagesAuthored   ChatMessage[]       @relation("ChatMessageAuthor")
   chatRoomStates         ChatRoomMemberState[] @relation("ChatRoomStateUser")
+  devicePushTokens       DevicePushToken[]
 
   @@index([role, isActive])
   @@index([createdAt])
@@ -521,6 +523,28 @@ model ChatRoomMemberState {
 
   @@id([roomId, userId])
   @@index([userId, lastReadAt])
+}
+
+model DevicePushToken {
+  id              String   @id @default(cuid())
+  userId          String
+  platform        String
+  token           String
+  appBundle       String?
+  environment     String?
+  deviceModel     String?
+  osVersion       String?
+  locale          String?
+  isActive        Boolean  @default(true)
+  lastRegisteredAt DateTime @default(now())
+  lastError       String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([platform, token])
+  @@index([userId, isActive])
 }
 
 model AssignmentRun {

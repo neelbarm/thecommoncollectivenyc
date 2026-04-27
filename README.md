@@ -152,12 +152,21 @@ Optional variables:
 - `EMAIL_FROM`: sender address for outbox emails
 - `EMAIL_DISPATCH_TOKEN`: bearer token required by `POST /api/internal/email/dispatch`
 - same `EMAIL_DISPATCH_TOKEN` is also required by `POST /api/internal/email/reminders/dispatch`
+- `APNS_*`: Apple Push Notification auth (see `.env.example` and `docs/ios-app-store-runbook.md`)
 
 Generate a secure secret:
 
 ```bash
 openssl rand -base64 32
 ```
+
+### CI
+
+GitHub Actions runs **`npm run lint`** and **`npm run build`** on every pull request and on pushes to `main` (see `.github/workflows/ci.yml`).
+
+### First production deploy
+
+Step-by-step for **Railway**, **Vercel**, and a **generic Node** host: `docs/deploy-first-time.md`.
 
 ---
 

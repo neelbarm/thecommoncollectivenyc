@@ -1,15 +1,11 @@
-import { auth } from "@/auth";
 import { EventsPageClient } from "@/components/events/events-page-client";
 import { MemberAppShell } from "@/components/layout/member-app-shell";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberEventsData } from "@/lib/events/get-member-events-data";
 
 export default async function EventsPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   try {
     const eventsData = await getMemberEventsData(session.user.id);

@@ -2,12 +2,46 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { getMemberChatData } from "@/lib/chat/get-member-chat-data";
+import { fanoutChatPush } from "@/lib/push/fanout";
+import { triggerPushFanoutDispatch } from "@/lib/push/trigger-fanout-dispatch";
 import { prisma } from "@/lib/prisma";
 
 const createMessageSchema = z.object({
   roomId: z.string().cuid(),
   body: z.string().trim().min(1, "Message cannot be empty.").max(500, "Message is too long."),
 });
+
+function formatTimeLabel(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function initials(firstName: string, lastName: string) {
+  return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
+}
+
+export async function GET() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const data = await getMemberChatData(session.user.id);
+    if (!data) {
+      return NextResponse.json({ error: "Unable to load chat right now." }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, data });
+  } catch {
+    return NextResponse.json({ error: "Unable to load chat right now." }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -30,6 +64,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  const parsedData = parsed.data;
 
   try {
     const room = await prisma.chatRoom.findUnique({
@@ -58,14 +93,16 @@ export async function POST(request: Request) {
     if (!room || room.cohort.memberships.length === 0) {
       return NextResponse.json({ error: "You do not have access to this room." }, { status: 403 });
     }
+    const roomId = room.id;
+    const senderUserId = session.user.id;
 
     const now = new Date();
     const message = await prisma.$transaction(async (tx) => {
       const created = await tx.chatMessage.create({
         data: {
-          roomId: room.id,
-          authorId: session.user.id,
-          body: parsed.data.body,
+          roomId,
+          authorId: senderUserId,
+          body: parsedData.body,
         },
         select: {
           id: true,
@@ -84,13 +121,13 @@ export async function POST(request: Request) {
       await tx.chatRoomMemberState.upsert({
         where: {
           roomId_userId: {
-            roomId: room.id,
-            userId: session.user.id,
+            roomId,
+            userId: senderUserId,
           },
         },
         create: {
-          roomId: room.id,
-          userId: session.user.id,
+          roomId,
+          userId: senderUserId,
           lastReadAt: now,
         },
         update: {
@@ -101,17 +138,27 @@ export async function POST(request: Request) {
       return created;
     });
 
+    const pushPlan = await fanoutChatPush({
+      roomId,
+      senderUserId,
+      senderName: `${message.author.firstName} ${message.author.lastName}`,
+      body: parsedData.body,
+    });
+    triggerPushFanoutDispatch(
+      { targets: pushPlan.targets, payload: pushPlan.payload },
+      `chat:${message.id}`,
+      "cohort-chat-message",
+    );
+
     return NextResponse.json({
       ok: true,
       message: {
         id: message.id,
         body: message.body,
-        createdAt: message.createdAt.toISOString(),
-        author: {
-          id: message.author.id,
-          firstName: message.author.firstName,
-          lastName: message.author.lastName,
-        },
+        authorName: `${message.author.firstName} ${message.author.lastName}`,
+        initials: initials(message.author.firstName, message.author.lastName),
+        timeLabel: formatTimeLabel(message.createdAt),
+        isCurrentUser: true,
       },
     });
   } catch {
