@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { APP_URL_OPEN_EVENT, RESUME_EVENT } from "@/components/native/capacitor-native-bridge";
 import type { MemberChatData } from "@/lib/chat/get-member-chat-data";
+import { syncInboxBadgeFromServer } from "@/lib/native/sync-inbox-badge";
 
 export function MemberChatClient({
   initialData,
@@ -130,6 +131,7 @@ export function MemberChatClient({
 
         setMessages((current) => [...current, payload.message!]);
         setDraft("");
+        void syncInboxBadgeFromServer();
       } catch (postError) {
         setError(postError instanceof Error ? postError.message : "Unable to send your message.");
       }

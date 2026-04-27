@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { APP_URL_OPEN_EVENT, RESUME_EVENT } from "@/components/native/capacitor-native-bridge";
 import type { MemberAnnouncementsData } from "@/lib/announcements/get-member-announcements-data";
+import { syncInboxBadgeFromServer } from "@/lib/native/sync-inbox-badge";
 
 function formatDate(dateIso: string) {
   return new Intl.DateTimeFormat("en-US", {
@@ -127,6 +128,7 @@ export function MemberAnnouncementsClient({
         }
 
         setStatusMessage("Announcement marked as read.");
+        void syncInboxBadgeFromServer();
       } catch (markError) {
         setAnnouncements((current) =>
           current.map((announcement) =>
