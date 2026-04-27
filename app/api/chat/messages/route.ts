@@ -2,12 +2,44 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { auth } from "@/auth";
+import { getMemberChatData } from "@/lib/chat/get-member-chat-data";
 import { prisma } from "@/lib/prisma";
 
 const createMessageSchema = z.object({
   roomId: z.string().cuid(),
   body: z.string().trim().min(1, "Message cannot be empty.").max(500, "Message is too long."),
 });
+
+function formatTimeLabel(date: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function initials(firstName: string, lastName: string) {
+  return `${firstName[0] ?? ""}${lastName[0] ?? ""}`.toUpperCase();
+}
+
+export async function GET() {
+  const session = await auth();
+
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  try {
+    const data = await getMemberChatData(session.user.id);
+    if (!data) {
+      return NextResponse.json({ error: "Unable to load chat right now." }, { status: 500 });
+    }
+    return NextResponse.json({ ok: true, data });
+  } catch {
+    return NextResponse.json({ error: "Unable to load chat right now." }, { status: 500 });
+  }
+}
 
 export async function POST(request: Request) {
   const session = await auth();
@@ -106,12 +138,10 @@ export async function POST(request: Request) {
       message: {
         id: message.id,
         body: message.body,
-        createdAt: message.createdAt.toISOString(),
-        author: {
-          id: message.author.id,
-          firstName: message.author.firstName,
-          lastName: message.author.lastName,
-        },
+        authorName: `${message.author.firstName} ${message.author.lastName}`,
+        initials: initials(message.author.firstName, message.author.lastName),
+        timeLabel: formatTimeLabel(message.createdAt),
+        isCurrentUser: true,
       },
     });
   } catch {

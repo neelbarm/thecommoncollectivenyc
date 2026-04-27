@@ -97,6 +97,18 @@ Password: CommonClub123
 The app requires network access because member data, cohort chat, announcements, and events are served from the production web platform.
 ```
 
+For this current build, also note:
+
+```text
+Native behaviors included in this submission:
+- iOS status bar + safe-area handling
+- Native splash handoff
+- Keyboard resize/style alignment for forms
+- Haptics on navigation taps
+- Deep-link URL handling from native app URL open events
+- Background resume + online refresh hooks for chat and announcements
+```
+
 Only include demo credentials after the production database has been seeded or after you create equivalent reviewer accounts.
 
 ## Privacy / compliance checklist
@@ -116,6 +128,18 @@ If you do not have account deletion in-app yet, provide a support email or suppo
 - Push notifications are not native/APNs yet.
 - Offline mode is not supported.
 - App Store approval is not guaranteed; Apple sometimes scrutinizes wrapper apps. The best mitigation is making the production app feel clearly app-like, logged-in, useful, and member-specific.
+
+## Release smoke test before archive
+
+Run this quick pass on a physical iPhone build:
+
+1. Open app from cold start: splash fades into member dashboard cleanly.
+2. Navigate all bottom tabs; verify no dead buttons and haptic pulse on tab taps.
+3. Open announcements/chat, background app for 10+ seconds, return, verify feed refresh.
+4. Toggle airplane mode while in announcements/chat and confirm offline banner appears.
+5. Re-enable network and confirm banners clear and data refreshes.
+6. Open a deep link (once Associated Domains/custom scheme are configured) and verify app routes correctly.
+7. Submit one chat message and mark one announcement as read.
 
 ## Common commands
 

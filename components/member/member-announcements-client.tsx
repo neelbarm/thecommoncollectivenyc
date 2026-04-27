@@ -1,11 +1,12 @@
 "use client";
 
-import { BellRing, CheckCheck, Pin } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { BellRing, CheckCheck, Pin, WifiOff } from "lucide-react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import { AppQuickLink, AppSection } from "@/components/layout/member-app-shell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { APP_URL_OPEN_EVENT, RESUME_EVENT } from "@/components/native/capacitor-native-bridge";
 import type { MemberAnnouncementsData } from "@/lib/announcements/get-member-announcements-data";
 
 function formatDate(dateIso: string) {
@@ -23,12 +24,79 @@ export function MemberAnnouncementsClient({
   const [announcements, setAnnouncements] = useState(initialData.items);
   const [statusMessage, setStatusMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [isPending, startTransition] = useTransition();
 
   const unreadCount = useMemo(
     () => announcements.filter((announcement) => !announcement.isRead).length,
     [announcements],
   );
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const updateOnlineState = () => setIsOffline(!navigator.onLine);
+    updateOnlineState();
+    window.addEventListener("online", updateOnlineState);
+    window.addEventListener("offline", updateOnlineState);
+    return () => {
+      window.removeEventListener("online", updateOnlineState);
+      window.removeEventListener("offline", updateOnlineState);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const refreshAnnouncements = async () => {
+      if (!navigator.onLine) {
+        return;
+      }
+      setIsRefreshing(true);
+      try {
+        const response = await fetch("/api/announcements", { cache: "no-store" });
+        if (!response.ok) {
+          throw new Error("Unable to refresh announcements.");
+        }
+        const payload = (await response.json()) as { ok?: boolean; data?: MemberAnnouncementsData };
+        if (payload.ok && payload.data) {
+          setAnnouncements(payload.data.items);
+          setStatusMessage("Feed refreshed.");
+          setError(null);
+        }
+      } catch (refreshError) {
+        setError(refreshError instanceof Error ? refreshError.message : "Unable to refresh announcements.");
+      } finally {
+        setIsRefreshing(false);
+      }
+    };
+
+    const onNativeResume = () => {
+      void refreshAnnouncements();
+    };
+
+    const onAppUrlOpen = () => {
+      void refreshAnnouncements();
+    };
+
+    const onWindowOnline = () => {
+      void refreshAnnouncements();
+    };
+
+    window.addEventListener(RESUME_EVENT, onNativeResume);
+    window.addEventListener(APP_URL_OPEN_EVENT, onAppUrlOpen);
+    window.addEventListener("online", onWindowOnline);
+
+    return () => {
+      window.removeEventListener(RESUME_EVENT, onNativeResume);
+      window.removeEventListener(APP_URL_OPEN_EVENT, onAppUrlOpen);
+      window.removeEventListener("online", onWindowOnline);
+    };
+  }, []);
 
   function markAsRead(announcementId: string) {
     setError(null);
@@ -100,6 +168,14 @@ export function MemberAnnouncementsClient({
           {statusMessage}
         </p>
       ) : null}
+      {isOffline ? (
+        <p className="status-banner border-amber-400/35 bg-amber-500/8 text-amber-100">
+          <span className="inline-flex items-center gap-2">
+            <WifiOff className="h-4 w-4" />
+            Offline mode: announcements will sync when connection returns.
+          </span>
+        </p>
+      ) : null}
       {error ? (
         <p className="status-banner border-destructive/30 bg-destructive/10 text-destructive">
           {error}
@@ -108,6 +184,11 @@ export function MemberAnnouncementsClient({
       {isPending ? (
         <p className="status-banner border-border/55 bg-card/55 text-xs text-muted-foreground">
           Updating your inbox…
+        </p>
+      ) : null}
+      {isRefreshing ? (
+        <p className="status-banner border-border/55 bg-card/55 text-xs text-muted-foreground">
+          Refreshing feed…
         </p>
       ) : null}
 

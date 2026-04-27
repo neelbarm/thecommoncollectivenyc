@@ -9,6 +9,7 @@ import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style as StatusBarStyle } from "@capacitor/status-bar";
 
 const RESUME_EVENT = "cc-capacitor-resume";
+const APP_URL_OPEN_EVENT = "cc-capacitor-app-url-open";
 
 /**
  * Runs only inside the Capacitor native shell. Configures status bar, keyboard,
@@ -50,6 +51,7 @@ export function CapacitorNativeBridge() {
       }
 
       let resumeHandle: { remove: () => Promise<void> } | undefined;
+      let appUrlOpenHandle: { remove: () => Promise<void> } | undefined;
 
       try {
         resumeHandle = await App.addListener("resume", () => {
@@ -59,8 +61,32 @@ export function CapacitorNativeBridge() {
         // App lifecycle listener optional
       }
 
+      try {
+        appUrlOpenHandle = await App.addListener("appUrlOpen", (event) => {
+          const incomingUrl = event?.url;
+          if (!incomingUrl) {
+            return;
+          }
+
+          try {
+            const parsed = new URL(incomingUrl);
+            const targetPath = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+            if (targetPath && targetPath !== window.location.pathname + window.location.search + window.location.hash) {
+              window.history.pushState({}, "", targetPath);
+              window.dispatchEvent(new PopStateEvent("popstate"));
+            }
+            window.dispatchEvent(new CustomEvent(APP_URL_OPEN_EVENT, { detail: { url: incomingUrl } }));
+          } catch {
+            // Ignore malformed URLs
+          }
+        });
+      } catch {
+        // Deep link listener optional
+      }
+
       return () => {
         void resumeHandle?.remove();
+        void appUrlOpenHandle?.remove();
       };
     };
 
@@ -102,3 +128,4 @@ export async function nativeNavHaptic(): Promise<void> {
 }
 
 export { RESUME_EVENT };
+export { APP_URL_OPEN_EVENT };
