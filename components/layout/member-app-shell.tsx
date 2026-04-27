@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 
 import { nativeNavHaptic } from "@/components/native/capacitor-native-bridge";
+import { NativePushRegistrar } from "@/components/native/native-push-registrar";
 import { cn } from "@/lib/utils";
 
 const primaryNav = [
@@ -54,6 +55,7 @@ export function MemberAppShell({
   return (
     <div className="min-h-screen bg-background">
       <div className="mx-auto flex min-h-screen w-full max-w-7xl items-start justify-center px-3 py-3 sm:px-5 sm:py-5">
+        <NativePushRegistrar />
         <div className="app-device-frame app-page-fade relative flex min-h-[calc(100vh-1.5rem)] w-full max-w-[30rem] flex-col overflow-hidden sm:min-h-[calc(100vh-2.5rem)] lg:max-w-[31rem]">
           <div className="pointer-events-none absolute inset-x-0 top-0 h-48 bg-[radial-gradient(circle_at_top,_oklch(0.72_0.06_78_/0.28),_transparent_58%)]" />
 

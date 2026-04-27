@@ -5,11 +5,14 @@ import { App } from "@capacitor/app";
 import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Keyboard, KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
+import { Device } from "@capacitor/device";
+import { PushNotifications, Token } from "@capacitor/push-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style as StatusBarStyle } from "@capacitor/status-bar";
 
 const RESUME_EVENT = "cc-capacitor-resume";
 const APP_URL_OPEN_EVENT = "cc-capacitor-app-url-open";
+const PUSH_REGISTERED_EVENT = "cc-capacitor-push-registered";
 
 /**
  * Runs only inside the Capacitor native shell. Configures status bar, keyboard,
@@ -52,6 +55,8 @@ export function CapacitorNativeBridge() {
 
       let resumeHandle: { remove: () => Promise<void> } | undefined;
       let appUrlOpenHandle: { remove: () => Promise<void> } | undefined;
+      let pushRegHandle: { remove: () => Promise<void> } | undefined;
+      let pushErrHandle: { remove: () => Promise<void> } | undefined;
 
       try {
         resumeHandle = await App.addListener("resume", () => {
@@ -84,9 +89,22 @@ export function CapacitorNativeBridge() {
         // Deep link listener optional
       }
 
+      try {
+        pushRegHandle = await PushNotifications.addListener("registration", (token: Token) => {
+          window.dispatchEvent(new CustomEvent(PUSH_REGISTERED_EVENT, { detail: { token: token.value } }));
+        });
+        pushErrHandle = await PushNotifications.addListener("registrationError", () => {
+          // Keep app usable even if push permission/token fails.
+        });
+      } catch {
+        // Push plugin optional
+      }
+
       return () => {
         void resumeHandle?.remove();
         void appUrlOpenHandle?.remove();
+        void pushRegHandle?.remove();
+        void pushErrHandle?.remove();
       };
     };
 
@@ -127,5 +145,47 @@ export async function nativeNavHaptic(): Promise<void> {
   }
 }
 
+export async function ensureNativePushRegistration(): Promise<boolean> {
+  if (!isCapacitorNative()) {
+    return false;
+  }
+  try {
+    const permission = await PushNotifications.requestPermissions();
+    if (permission.receive !== "granted") {
+      return false;
+    }
+    await PushNotifications.register();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+export async function getNativeDeviceContext() {
+  if (!isCapacitorNative()) {
+    return null;
+  }
+  try {
+    const [deviceId, deviceInfo, languageCode] = await Promise.all([
+      Device.getId(),
+      Device.getInfo(),
+      Device.getLanguageCode(),
+    ]);
+    const platform = deviceInfo?.platform ?? null;
+    return {
+      appBundle: null,
+      deviceModel: deviceInfo?.model ?? null,
+      osVersion: deviceInfo?.osVersion ?? null,
+      locale: languageCode?.value ?? null,
+      platform,
+      environment: platform === "ios" ? "production" : null,
+      deviceId: deviceId.identifier,
+    };
+  } catch {
+    return null;
+  }
+}
+
 export { RESUME_EVENT };
 export { APP_URL_OPEN_EVENT };
+export { PUSH_REGISTERED_EVENT };

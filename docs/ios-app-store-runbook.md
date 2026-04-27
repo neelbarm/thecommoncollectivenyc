@@ -12,6 +12,7 @@ This branch includes a Capacitor iOS wrapper for The Common Collective. It is th
 - iOS app icon and launch splash assets
 - Local fallback shell in `public/native-shell`
 - **Native plugins** (registered via `npm run ios:sync`): Splash Screen, Status Bar, Keyboard, App lifecycle, Haptics. The Next.js app includes `CapacitorNativeBridge` so the shell configures the status bar, keyboard resize mode, fades out the launch splash after the first paint, and dispatches a `cc-capacitor-resume` document event when returning from background (useful later for refreshing unread counts).
+- **Push registration plumbing**: native token request + registration via Capacitor Push Notifications and backend persistence (`DevicePushToken`) through `/api/push/register`.
 
 ## Seven-day hybrid roadmap (this codebase)
 
@@ -107,6 +108,7 @@ Native behaviors included in this submission:
 - Haptics on navigation taps
 - Deep-link URL handling from native app URL open events
 - Background resume + online refresh hooks for chat and announcements
+- Push token registration and server persistence (delivery dispatch can be phased in)
 ```
 
 Only include demo credentials after the production database has been seeded or after you create equivalent reviewer accounts.
@@ -140,6 +142,17 @@ Run this quick pass on a physical iPhone build:
 5. Re-enable network and confirm banners clear and data refreshes.
 6. Open a deep link (once Associated Domains/custom scheme are configured) and verify app routes correctly.
 7. Submit one chat message and mark one announcement as read.
+8. Accept push permission prompt and verify token registration hits `/api/push/register` (check server logs / DB row in `DevicePushToken`).
+
+## Push setup notes (Apple + Xcode)
+
+To fully deliver APNs pushes (beyond token registration):
+
+1. In Apple Developer, enable **Push Notifications** for `space.thecommoncollective.app`.
+2. In App Store Connect / Certificates, create APNs auth key (or cert path if preferred).
+3. In Xcode target > Signing & Capabilities, add **Push Notifications** capability.
+4. Add **Background Modes** capability with `Remote notifications` enabled.
+5. Configure your server dispatcher to send APNs payloads using stored `DevicePushToken` rows.
 
 ## Common commands
 

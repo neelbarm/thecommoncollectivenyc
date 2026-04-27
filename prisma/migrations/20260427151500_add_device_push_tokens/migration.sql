@@ -1,0 +1,28 @@
+-- CreateTable
+CREATE TABLE "DevicePushToken" (
+    "id" TEXT NOT NULL,
+    "userId" TEXT NOT NULL,
+    "platform" TEXT NOT NULL,
+    "token" TEXT NOT NULL,
+    "appBundle" TEXT,
+    "environment" TEXT,
+    "deviceModel" TEXT,
+    "osVersion" TEXT,
+    "locale" TEXT,
+    "isActive" BOOLEAN NOT NULL DEFAULT true,
+    "lastRegisteredAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "lastError" TEXT,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "DevicePushToken_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateIndex
+CREATE UNIQUE INDEX "DevicePushToken_platform_token_key" ON "DevicePushToken"("platform", "token");
+
+-- CreateIndex
+CREATE INDEX "DevicePushToken_userId_isActive_idx" ON "DevicePushToken"("userId", "isActive");
+
+-- AddForeignKey
+ALTER TABLE "DevicePushToken" ADD CONSTRAINT "DevicePushToken_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
