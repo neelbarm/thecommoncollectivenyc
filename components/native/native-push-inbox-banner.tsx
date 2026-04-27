@@ -20,16 +20,40 @@ function normalizePushDetail(detail: unknown): PushBannerPayload | null {
   if (!detail || typeof detail !== "object") {
     return null;
   }
-  const data = detail as {
+  const root = detail as {
     title?: unknown;
     body?: unknown;
-    route?: unknown;
-    type?: unknown;
+    data?: unknown;
   };
-  const route = typeof data.route === "string" && data.route.length > 0 ? data.route : "/dashboard";
-  const title = typeof data.title === "string" && data.title.length > 0 ? data.title : "New update";
-  const body = typeof data.body === "string" && data.body.length > 0 ? data.body : "Open the app to view details.";
-  const type = data.type === "announcement" || data.type === "chat" ? data.type : "generic";
+  const title =
+    typeof root.title === "string" && root.title.length > 0 ? root.title : "New update";
+  const body =
+    typeof root.body === "string" && root.body.length > 0
+      ? root.body
+      : "Open the app to view details.";
+
+  let route = "/dashboard";
+  let type: PushBannerPayload["type"] = "generic";
+  const payload = root.data;
+  if (payload && typeof payload === "object") {
+    const p = payload as Record<string, unknown>;
+    const cc = p.cc;
+    if (cc && typeof cc === "object") {
+      const c = cc as Record<string, unknown>;
+      if (typeof c.route === "string" && c.route.length > 0) {
+        route = c.route;
+      }
+      if (c.type === "announcement" || c.type === "chat") {
+        type = c.type;
+      }
+    }
+    if (typeof p.route === "string" && p.route.length > 0) {
+      route = p.route;
+    }
+    if (p.type === "announcement" || p.type === "chat") {
+      type = p.type;
+    }
+  }
 
   return { title, body, route, type };
 }

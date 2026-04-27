@@ -4,6 +4,7 @@ import { z } from "zod";
 import { auth } from "@/auth";
 import { getMemberChatData } from "@/lib/chat/get-member-chat-data";
 import { fanoutChatPush } from "@/lib/push/fanout";
+import { triggerPushFanoutDispatch } from "@/lib/push/trigger-fanout-dispatch";
 import { prisma } from "@/lib/prisma";
 
 const createMessageSchema = z.object({
@@ -137,6 +138,18 @@ export async function POST(request: Request) {
       return created;
     });
 
+    const pushPlan = await fanoutChatPush({
+      roomId,
+      senderUserId,
+      senderName: `${message.author.firstName} ${message.author.lastName}`,
+      body: parsedData.body,
+    });
+    triggerPushFanoutDispatch(
+      { targets: pushPlan.targets, payload: pushPlan.payload },
+      `chat:${message.id}`,
+      "cohort-chat-message",
+    );
+
     return NextResponse.json({
       ok: true,
       message: {
@@ -147,12 +160,6 @@ export async function POST(request: Request) {
         timeLabel: formatTimeLabel(message.createdAt),
         isCurrentUser: true,
       },
-    });
-    void fanoutChatPush({
-      roomId,
-      senderUserId,
-      senderName: `${message.author.firstName} ${message.author.lastName}`,
-      body: parsedData.body,
     });
   } catch {
     return NextResponse.json({ error: "Unable to send message right now." }, { status: 500 });

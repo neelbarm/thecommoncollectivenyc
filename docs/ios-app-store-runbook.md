@@ -165,17 +165,17 @@ APNS_USE_SANDBOX=true # true for TestFlight/dev, false for production App Store 
 ```
 
 If these are missing, app flows still succeed and push attempts are logged as skipped.
-8. Accept push permission prompt and verify token registration hits `/api/push/register` (check server logs / DB row in `DevicePushToken`).
+
+The Next.js server sends APNs directly via the `apn` package using those env vars. Custom data for routing lives under payload key `cc` (`type`, `route`, ids).
 
 ## Push setup notes (Apple + Xcode)
 
 To fully deliver APNs pushes (beyond token registration):
 
 1. In Apple Developer, enable **Push Notifications** for `space.thecommoncollective.app`.
-2. In App Store Connect / Certificates, create APNs auth key (or cert path if preferred).
+2. In App Store Connect / Certificates, create an APNs auth key (`.p8`).
 3. In Xcode target > Signing & Capabilities, add **Push Notifications** capability.
-4. Add **Background Modes** capability with `Remote notifications` enabled.
-5. Configure your server dispatcher to send APNs payloads using stored `DevicePushToken` rows.
+4. Add **Background Modes** capability with **Remote notifications** enabled (matches `Info.plist` `UIBackgroundModes`).
 
 ## Common commands
 
