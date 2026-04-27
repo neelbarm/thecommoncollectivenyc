@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { auth } from "@/auth";
 import { getMemberChatData } from "@/lib/chat/get-member-chat-data";
+import { fanoutChatPush } from "@/lib/push/fanout";
 import { prisma } from "@/lib/prisma";
 
 const createMessageSchema = z.object({
@@ -62,6 +63,7 @@ export async function POST(request: Request) {
       { status: 400 },
     );
   }
+  const parsedData = parsed.data;
 
   try {
     const room = await prisma.chatRoom.findUnique({
@@ -90,14 +92,16 @@ export async function POST(request: Request) {
     if (!room || room.cohort.memberships.length === 0) {
       return NextResponse.json({ error: "You do not have access to this room." }, { status: 403 });
     }
+    const roomId = room.id;
+    const senderUserId = session.user.id;
 
     const now = new Date();
     const message = await prisma.$transaction(async (tx) => {
       const created = await tx.chatMessage.create({
         data: {
-          roomId: room.id,
-          authorId: session.user.id,
-          body: parsed.data.body,
+          roomId,
+          authorId: senderUserId,
+          body: parsedData.body,
         },
         select: {
           id: true,
@@ -116,13 +120,13 @@ export async function POST(request: Request) {
       await tx.chatRoomMemberState.upsert({
         where: {
           roomId_userId: {
-            roomId: room.id,
-            userId: session.user.id,
+            roomId,
+            userId: senderUserId,
           },
         },
         create: {
-          roomId: room.id,
-          userId: session.user.id,
+          roomId,
+          userId: senderUserId,
           lastReadAt: now,
         },
         update: {
@@ -143,6 +147,12 @@ export async function POST(request: Request) {
         timeLabel: formatTimeLabel(message.createdAt),
         isCurrentUser: true,
       },
+    });
+    void fanoutChatPush({
+      roomId,
+      senderUserId,
+      senderName: `${message.author.firstName} ${message.author.lastName}`,
+      body: parsedData.body,
     });
   } catch {
     return NextResponse.json({ error: "Unable to send message right now." }, { status: 500 });

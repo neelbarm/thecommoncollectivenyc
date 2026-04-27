@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdmin } from "@/lib/auth/require-admin";
+import { fanoutAnnouncementPush } from "@/lib/push/fanout";
 import { prisma } from "@/lib/prisma";
 
 const createAnnouncementSchema = z
@@ -112,6 +113,16 @@ export async function POST(request: Request) {
           },
         },
       },
+    });
+
+    // Fire-and-forget fanout so admin publishing is never blocked by push provider latency.
+    void fanoutAnnouncementPush({
+      announcementId: announcement.id,
+      title: announcement.title,
+      body: announcement.body,
+      audience: announcement.audience,
+      seasonId: announcement.seasonId ?? null,
+      cohortId: announcement.cohortId ?? null,
     });
 
     return NextResponse.json({

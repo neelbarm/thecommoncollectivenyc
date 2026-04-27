@@ -107,6 +107,7 @@ enum EmailOutboxType {
   COHORT_WELCOME
   EVENT_PUBLISHED
   EVENT_REMINDER
+  PUSH_NOTIFICATION
 }
 
 enum EmailOutboxStatus {

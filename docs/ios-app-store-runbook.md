@@ -142,6 +142,25 @@ Run this quick pass on a physical iPhone build:
 5. Re-enable network and confirm banners clear and data refreshes.
 6. Open a deep link (once Associated Domains/custom scheme are configured) and verify app routes correctly.
 7. Submit one chat message and mark one announcement as read.
+8. Verify push token registration by confirming a row appears in `DevicePushToken` for your test user.
+
+## Push delivery environment (server-side)
+
+Device tokens now persist via `/api/push/register`, and fanout hooks run for:
+- new admin announcements
+- new cohort chat messages
+
+Configure APNs provider env for delivery:
+
+```bash
+APNS_AUTH_KEY_ID=...
+APNS_TEAM_ID=...
+APNS_BUNDLE_ID=space.thecommoncollective.app
+APNS_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
+APNS_USE_SANDBOX=true # true for TestFlight/dev, false for production App Store builds
+```
+
+If these are missing, app flows still succeed and push attempts are logged as skipped.
 8. Accept push permission prompt and verify token registration hits `/api/push/register` (check server logs / DB row in `DevicePushToken`).
 
 ## Push setup notes (Apple + Xcode)
