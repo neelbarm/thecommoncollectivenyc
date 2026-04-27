@@ -6,13 +6,20 @@ import { Capacitor } from "@capacitor/core";
 import { Haptics, ImpactStyle } from "@capacitor/haptics";
 import { Keyboard, KeyboardResize, KeyboardStyle } from "@capacitor/keyboard";
 import { Device } from "@capacitor/device";
-import { PushNotifications, Token } from "@capacitor/push-notifications";
+import {
+  ActionPerformed,
+  PushNotificationSchema,
+  PushNotifications,
+  Token,
+} from "@capacitor/push-notifications";
 import { SplashScreen } from "@capacitor/splash-screen";
 import { StatusBar, Style as StatusBarStyle } from "@capacitor/status-bar";
 
 const RESUME_EVENT = "cc-capacitor-resume";
 const APP_URL_OPEN_EVENT = "cc-capacitor-app-url-open";
 const PUSH_REGISTERED_EVENT = "cc-capacitor-push-registered";
+const PUSH_RECEIVED_EVENT = "cc-capacitor-push-received";
+const PUSH_ACTION_EVENT = "cc-capacitor-push-action";
 
 /**
  * Runs only inside the Capacitor native shell. Configures status bar, keyboard,
@@ -57,6 +64,8 @@ export function CapacitorNativeBridge() {
       let appUrlOpenHandle: { remove: () => Promise<void> } | undefined;
       let pushRegHandle: { remove: () => Promise<void> } | undefined;
       let pushErrHandle: { remove: () => Promise<void> } | undefined;
+      let pushReceivedHandle: { remove: () => Promise<void> } | undefined;
+      let pushActionHandle: { remove: () => Promise<void> } | undefined;
 
       try {
         resumeHandle = await App.addListener("resume", () => {
@@ -93,6 +102,35 @@ export function CapacitorNativeBridge() {
         pushRegHandle = await PushNotifications.addListener("registration", (token: Token) => {
           window.dispatchEvent(new CustomEvent(PUSH_REGISTERED_EVENT, { detail: { token: token.value } }));
         });
+        pushReceivedHandle = await PushNotifications.addListener(
+          "pushNotificationReceived",
+          (notification: PushNotificationSchema) => {
+            window.dispatchEvent(
+              new CustomEvent(PUSH_RECEIVED_EVENT, {
+                detail: {
+                  title: notification.title ?? "The Common Collective",
+                  body: notification.body ?? "",
+                  data: notification.data ?? {},
+                },
+              }),
+            );
+          },
+        );
+        pushActionHandle = await PushNotifications.addListener(
+          "pushNotificationActionPerformed",
+          (event: ActionPerformed) => {
+            window.dispatchEvent(
+              new CustomEvent(PUSH_ACTION_EVENT, {
+                detail: {
+                  actionId: event.actionId,
+                  title: event.notification?.title ?? "The Common Collective",
+                  body: event.notification?.body ?? "",
+                  data: event.notification?.data ?? {},
+                },
+              }),
+            );
+          },
+        );
         pushErrHandle = await PushNotifications.addListener("registrationError", () => {
           // Keep app usable even if push permission/token fails.
         });
@@ -105,6 +143,8 @@ export function CapacitorNativeBridge() {
         void appUrlOpenHandle?.remove();
         void pushRegHandle?.remove();
         void pushErrHandle?.remove();
+        void pushReceivedHandle?.remove();
+        void pushActionHandle?.remove();
       };
     };
 
@@ -189,3 +229,5 @@ export async function getNativeDeviceContext() {
 export { RESUME_EVENT };
 export { APP_URL_OPEN_EVENT };
 export { PUSH_REGISTERED_EVENT };
+export { PUSH_RECEIVED_EVENT };
+export { PUSH_ACTION_EVENT };

@@ -142,6 +142,10 @@ Run this quick pass on a physical iPhone build:
 5. Re-enable network and confirm banners clear and data refreshes.
 6. Open a deep link (once Associated Domains/custom scheme are configured) and verify app routes correctly.
 7. Submit one chat message and mark one announcement as read.
+8. Send a test push from your backend; verify:
+   - foreground push shows in-app banner
+   - tapping banner routes to `/announcements` or `/cohort/chat`
+   - opening from iOS notification center routes correctly
 8. Verify push token registration by confirming a row appears in `DevicePushToken` for your test user.
 
 ## Push delivery environment (server-side)
