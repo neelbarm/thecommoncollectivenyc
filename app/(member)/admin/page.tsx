@@ -7,11 +7,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getAdminOpsData } from "@/lib/admin/get-admin-ops-data";
 
 export default async function AdminPage() {
-  const session = await requireAdmin();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getAdminOpsData();

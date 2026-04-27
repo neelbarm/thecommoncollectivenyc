@@ -1,16 +1,12 @@
 import { MessageCircleMore } from "lucide-react";
 
-import { auth } from "@/auth";
 import { AppQuickLink, AppSection, MemberAppShell } from "@/components/layout/member-app-shell";
 import { MemberChatClient } from "@/components/member/member-chat-client";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberChatData } from "@/lib/chat/get-member-chat-data";
 
 export default async function CohortChatPage() {
-  const session = await auth();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   const data = await getMemberChatData(session.user.id);
 

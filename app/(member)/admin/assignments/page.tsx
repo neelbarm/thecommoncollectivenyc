@@ -10,11 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getAssignmentData } from "@/lib/admin/get-assignment-data";
 
 export default async function AdminAssignmentsPage() {
-  const session = await requireAdmin();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getAssignmentData();

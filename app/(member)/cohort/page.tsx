@@ -4,14 +4,11 @@ import { MemberAppShell } from "@/components/layout/member-app-shell";
 import { MemberCohortPage } from "@/components/member/member-cohort-page";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { auth } from "@/auth";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberCohortData } from "@/lib/member/get-member-cohort-data";
 
 export default async function CohortPage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   try {
     const data = await getMemberCohortData(session.user.id);

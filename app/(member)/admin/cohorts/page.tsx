@@ -10,10 +10,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getCohortManagementData } from "@/lib/admin/get-cohort-management-data";
 
 export default async function AdminCohortsPage() {
-  const session = await requireAdmin();
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getCohortManagementData();

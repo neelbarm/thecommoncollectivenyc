@@ -7,11 +7,7 @@ import { requireAdmin } from "@/lib/auth/require-admin";
 import { getNotificationOpsData } from "@/lib/admin/get-notification-ops-data";
 
 export default async function AdminNotificationsPage() {
-  const session = await requireAdmin();
-
-  if (!session?.user?.id) {
-    return null;
-  }
+  await requireAdmin();
 
   try {
     const data = await getNotificationOpsData("30d");

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Instrument_Serif, Inter } from "next/font/google";
 
 import { CapacitorNativeBridge } from "@/components/native/capacitor-native-bridge";
+import { NativePushRegistrar } from "@/components/native/native-push-registrar";
 
 import "./globals.css";
 
@@ -57,6 +58,7 @@ export default function RootLayout({
     <html lang="en" className="dark" suppressHydrationWarning>
       <body className={`${inter.variable} ${instrumentSerif.variable} antialiased`}>
         <CapacitorNativeBridge />
+        <NativePushRegistrar />
         {children}
       </body>
     </html>

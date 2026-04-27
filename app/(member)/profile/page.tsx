@@ -1,10 +1,11 @@
 import { MapPin, Sparkles, Zap } from "lucide-react";
 
-import { auth } from "@/auth";
 import { AppQuickLink, AppSection, AppStat, MemberAppShell } from "@/components/layout/member-app-shell";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { requireMemberSession } from "@/lib/auth/require-member-session";
 import { getMemberDashboardData } from "@/lib/dashboard/get-member-dashboard-data";
+import { redirect } from "next/navigation";
 
 function initials(firstName: string, memberName: string) {
   const pieces = memberName.split(" ").filter(Boolean);
@@ -17,14 +18,11 @@ function formatList(values: string[]) {
 }
 
 export default async function ProfilePage() {
-  const session = await auth();
-  if (!session?.user?.id) {
-    return null;
-  }
+  const session = await requireMemberSession();
 
   const data = await getMemberDashboardData(session.user.id);
   if (!data) {
-    return null;
+    redirect("/dashboard");
   }
 
   const interestList = data.profile?.interests?.slice(0, 5) ?? [];

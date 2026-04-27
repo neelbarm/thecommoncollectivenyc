@@ -23,6 +23,9 @@ const config: CapacitorConfig = {
       resize: KeyboardResize.Native,
       style: KeyboardStyle.Dark,
     },
+    PushNotifications: {
+      presentationOptions: ["badge", "sound", "alert"],
+    },
   },
   ios: {
     scheme: "CommonCollective",
